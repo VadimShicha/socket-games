@@ -6,6 +6,8 @@ function FriendItem(props)
     return (
         <tr style={{textAlign: "center"}}>
             <td style={{display: "inline", width: "415px"}}><b>{props.username}</b></td>
+            <td style={{margin: "0px"}}><button className="action_buttons message_button"></button></td>
+            <td style={{margin: "0px"}}><button className="action_buttons decline_button"></button></td>
         </tr>
     );
 }

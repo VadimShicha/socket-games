@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {sendPOST} from '../../tools';
 import Cookies from 'js-cookie';
 import FriendRequest from '../../components/FriendRequest';
@@ -56,7 +56,7 @@ function SocialPage()
             {
                 setRequestsTableRows(data.result.length);
                 let element = data.result.map((item) =>
-                    <FriendItem key={item} accept={acceptFriendRequest} decline={declineFriendRequest} username={item}></FriendItem>);
+                    <FriendRequest key={item} accept={acceptFriendRequest} decline={declineFriendRequest} username={item}></FriendRequest>);
                 setRequests(element);
             }
         });
@@ -66,27 +66,39 @@ function SocialPage()
     {
         sendPOST({requestID: "get_friends", token: Cookies.get("token")}, function(data)
         {
+            console.log(data);
             if(data.success)
             {
                 setFriendTableRows(data.result.length);
                 let element = data.result.map((item) =>
-                    <FriendRequest key={item} username={item}></FriendRequest>);
+                    <FriendItem key={item} username={item}></FriendItem>);
                 setFriends(element);
             }
         });
     }
 
+    function refresh()
+    {
+        getRequests();
+        getFriends();
+    }
+
+    useEffect(() =>
+    {
+        console.log("LATE");
+    }, []);
+
     return (
         <>
             <div className="nav_bar_body">
                 <h2>Social</h2>
-                <button onClick={getRequests}>Refresh</button>
+                <button onClick={refresh}>Refresh</button>
                 <br></br><br></br>
-                <div>
+                <div hidden={friendTableRows == 0}>
                     <h4>Friends</h4>
                     <div className="friends_div">
                         <table className="friends_table">
-                            <tbody></tbody>
+                            <tbody>{friends}</tbody>
                         </table>
                     </div>
                 </div>
@@ -100,7 +112,7 @@ function SocialPage()
                 </div>
                 <br></br>
                 <input onChange={(e) => {e.target.value = e.target.value.toLowerCase(); setSearchUsername(e.target.value)}} placeholder="Search Username"></input>
-                <button onClick={searchFriend}>Add Friend</button>
+                <button onClick={searchFriend}>Send Request</button>
                 <p>{sendRequestMessage}</p>
             </div>
         </>

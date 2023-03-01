@@ -1,12 +1,14 @@
 from flask import Flask, request, jsonify
+# from flask_limiter import Limiter
+# from flask_limiter.util import get_remote_address
 import mysql.connector
 import string
 import json
 import random
 import time
-# import pretty_errors
+#import pretty_errors
 
-# pretty_errors.replace_stderr(True)
+#pretty_errors.replace_stderr(True)
 
 #MySQL config
 USERS_TABLE = "users"
@@ -29,7 +31,7 @@ SERVER_NAME = __name__
 LOG_MESSAGES = True
 
 #OTHER CONFIG
-LOGIN_TOKEN_EXPIRATION = 15 * 60000 #the amount of milliseconds a login token lasts for in the database
+LOGIN_TOKEN_EXPIRATION = 30 * 60000 #the amount of milliseconds a login token lasts for in the database
 
 LOGIN_TOKEN_LENGTH = 16
 LOGIN_TOKEN_CHARS = string.ascii_letters + string.digits
@@ -56,6 +58,12 @@ def log_message(message):
 def log_error(type, message):
     if LOG_MESSAGES:
         print(f"\033[91mERROR {type}: {message}\033[0m")
+
+def run_sql(cursor, cmd, cmd_args=""):
+    try:
+        cursor.execute(cmd, cmd_args)
+    except:
+        log_error(f"run_sql({cmd}, {cmd_args})", "Failed to execute SQL command")
 
 #get milliseconds since Jan 1, 1970
 def current_epoch_time():
@@ -117,7 +125,7 @@ def create_user(first_name, last_name, username, password, confirm_password):
     cmd = f"SELECT username FROM {USERS_TABLE} WHERE username = %s" #command to check if the username given is already taken
     cmd_args = (username, ) #args for the command
 
-    db_cursor.execute(cmd, cmd_args)
+    run_sql(db_cursor, cmd, cmd_args)
 
     result = db_cursor.fetchone() #get result from the cmd
 
@@ -125,10 +133,10 @@ def create_user(first_name, last_name, username, password, confirm_password):
     if result != None:
         return "09Username is already taken"
 
-    cmd = f"INSERT INTO {USERS_TABLE} VALUES (%s, %s, %s, %s, %s);" #command to add the user to the table
+    cmd = f"INSERT INTO {USERS_TABLE} VALUES (%s, %s, %s, %s, %s)" #command to add the user to the table
     cmd_args = (first_name, last_name, username, password, '{"friends": [], "friend_requests": []}')
 
-    db_cursor.execute(cmd, cmd_args) #run the cmd
+    run_sql(db_cursor, cmd, cmd_args) #run the cmd
     db.commit() #apply the changes
 
     return "00Success"
@@ -141,7 +149,7 @@ def login_user(username, password):
     cmd = f"SELECT username FROM {USERS_TABLE} WHERE username = %s"
     cmd_args = (username, )
 
-    db_cursor.execute(cmd, cmd_args)
+    run_sql(db_cursor, cmd, cmd_args)
 
     if db_cursor.fetchone() == None:
         return "1Username doesn't exist"
@@ -149,7 +157,7 @@ def login_user(username, password):
     cmd = f"SELECT password FROM {USERS_TABLE} WHERE password = %s"
     cmd_args = (password, )
 
-    db_cursor.execute(cmd, cmd_args)
+    run_sql(db_cursor, cmd, cmd_args)
 
     if db_cursor.fetchone() == None:
         return "2Password is incorrect"
@@ -161,7 +169,7 @@ def delete_login_token(username):
     cmd = f"DELETE FROM {LOGIN_TOKENS_TABLE} WHERE username = %s"
     cmd_args = (username, )
 
-    db_cursor.execute(cmd, cmd_args)
+    run_sql(db_cursor, cmd, cmd_args)
     db.commit()
 
 #gets a login token for the username or creates one if it doesn't exist
@@ -170,7 +178,7 @@ def get_login_token(username):
     cmd = f"SELECT token, username FROM {LOGIN_TOKENS_TABLE} WHERE username = %s" #command to check if there already is a token for the username
     cmd_args = (username, )
 
-    db_cursor.execute(cmd, cmd_args)
+    run_sql(db_cursor, cmd, cmd_args)
 
     result = db_cursor.fetchone()
 
@@ -187,14 +195,14 @@ def get_login_token(username):
     cmd = f"SELECT token FROM {LOGIN_TOKENS_TABLE} WHERE token = %s" #command to check if the token already exists (VERY RARE)
     cmd_args = (token, )
 
-    db_cursor.execute(cmd, cmd_args)
+    run_sql(db_cursor, cmd, cmd_args)
 
     #check if the token doesn't already exist
     if db_cursor.fetchone() == None:
         cmd = f"INSERT INTO {LOGIN_TOKENS_TABLE} VALUES (%s, %s, %s)" #command to add a new row to the login tokens table
         cmd_args = (token, username, current_epoch_time())
         
-        db_cursor.execute(cmd, cmd_args)
+        run_sql(db_cursor, cmd, cmd_args)
         db.commit() #apply the changes to the database
 
         return token
@@ -206,7 +214,9 @@ def auth_login_token(token):
     cmd = f"SELECT username, date FROM {LOGIN_TOKENS_TABLE} WHERE token = %s"
     cmd_args = (token, )
 
-    db_cursor.execute(cmd, cmd_args)
+    if run_sql(db_cursor, cmd, cmd_args) == False:
+        return False
+
 
     result = db_cursor.fetchone()
 
@@ -223,7 +233,7 @@ def auth_login_token(token):
         cmd = f"DELETE FROM {LOGIN_TOKENS_TABLE} WHERE token = %s"
         cmd_args = (token, )
 
-        db_cursor.execute(cmd, cmd_args)
+        run_sql(db_cursor, cmd, cmd_args)
         db.commit()
         log_message(db_cursor.fetchone())
 
@@ -236,7 +246,7 @@ def user_exists(username):
     cmd = f"SELECT username FROM {USERS_TABLE} WHERE username = %s"
     cmd_args = (username, )
 
-    db_cursor.execute(cmd, cmd_args)
+    run_sql(db_cursor, cmd, cmd_args)
 
     result = db_cursor.fetchone()
 
@@ -256,7 +266,7 @@ def send_friend_request(to_username, from_username):
     cmd = f"SELECT data FROM {USERS_TABLE} WHERE username = %s"
     cmd_args = (to_username, )
 
-    db_cursor.execute(cmd, cmd_args)
+    run_sql(db_cursor, cmd, cmd_args)
 
     result = db_cursor.fetchone()
     text = json.loads(result[0])
@@ -272,7 +282,7 @@ def send_friend_request(to_username, from_username):
     cmd = f"UPDATE {USERS_TABLE} SET data = %s WHERE username = %s"
     cmd_args = (json.dumps(text), to_username, )
 
-    db_cursor.execute(cmd, cmd_args)
+    run_sql(db_cursor, cmd, cmd_args)
 
     db.commit()
     
@@ -282,7 +292,7 @@ def get_friend_requests(username):
     cmd = f"SELECT data FROM {USERS_TABLE} WHERE username = %s"
     cmd_args = (username, )
 
-    db_cursor.execute(cmd, cmd_args)
+    run_sql(db_cursor, cmd, cmd_args)
 
     result = db_cursor.fetchone()
 
@@ -300,7 +310,7 @@ def accept_friend_request(username, accept_username):
     cmd = f"SELECT username, data FROM {USERS_TABLE} WHERE username IN (%s, %s)"
     cmd_args = (username, accept_username)
 
-    db_cursor.execute(cmd, cmd_args)
+    run_sql(db_cursor, cmd, cmd_args)
 
     result = db_cursor.fetchall()
 
@@ -331,12 +341,12 @@ def accept_friend_request(username, accept_username):
     cmd = f"UPDATE {USERS_TABLE} SET data = %s WHERE username = %s"
     cmd_args = (json.dumps(username_text), username)
 
-    db_cursor.execute(cmd, cmd_args)
+    run_sql(db_cursor, cmd, cmd_args)
 
     cmd = f"UPDATE {USERS_TABLE} SET data = %s WHERE username = %s"
     cmd_args = (json.dumps(accept_username_text), accept_username)
 
-    db_cursor.execute(cmd, cmd_args)
+    run_sql(db_cursor, cmd, cmd_args)
 
     db.commit()
 
@@ -345,7 +355,7 @@ def decline_friend_request(username, decline_username):
     cmd = f"SELECT data FROM {USERS_TABLE} WHERE username = %s"
     cmd_args = (username, )
 
-    db_cursor.execute(cmd, cmd_args)
+    run_sql(db_cursor, cmd, cmd_args)
 
     result = db_cursor.fetchone()
 
@@ -356,23 +366,35 @@ def decline_friend_request(username, decline_username):
         return False
 
     log_message("DCLINE")
-    log_message(result)
+    log_message(result[0])
 
-    #log_message(type(text["friend_requests"]))
-
-    # if decline_username not in text["friend_requests"]:
-    #     return False
+    if decline_username not in text["friend_requests"]:
+        return False
     
-    # text["friend_requests"].remove(decline_username)
+    text["friend_requests"].remove(decline_username)
 
-    # cmd = f"UPDATE {USERS_TABLE} SET data = %s WHERE username = %s"
-    # cmd_args = (json.dumps(text), username)
+    cmd = f"UPDATE {USERS_TABLE} SET data = %s WHERE username = %s"
+    cmd_args = (json.dumps(text), username)
 
-    # db_cursor.execute(cmd, cmd_args)
+    run_sql(db_cursor, cmd, cmd_args)
 
-    # db.commit()
+    db.commit()
 
-    # log_message(db_cursor.fetchone())
+def get_friends(username):
+    cmd = f"SELECT data FROM {USERS_TABLE} WHERE username = %s"
+    cmd_args = (username, )
+
+    run_sql(db_cursor, cmd, cmd_args)
+
+    result = db_cursor.fetchone()
+
+    try:
+        text = json.loads(result[0])["friends"]
+    except:
+        log_error("get_friends", "Failed to parse JSON")
+        return False
+    
+    return text
 
 app = Flask(SERVER_NAME)
 
@@ -387,7 +409,6 @@ def POST_listen():
 
     match json["requestID"]:
         case "login":
-
             #check if the username and password were sent
             if json.get("username") == None or json.get("password") == None:
                 return request_fail
@@ -399,7 +420,6 @@ def POST_listen():
             send_json["message"] = result[1:]
 
             if code == 0:
-                
                 result = get_login_token(json["username"])
 
                 if result == False:
@@ -489,6 +509,25 @@ def POST_listen():
             send_json["code"] = code
 
             return send_json
+        case "get_friends":
+            #check if a token was sent
+            if json.get("token") == None:
+                return request_fail
+            
+            auth_result = auth_login_token(json["token"])
+
+            if auth_result == False:
+                return request_fail
+            
+            log_message(auth_result)
+            
+            result = get_friends(auth_result)
+
+            if result == False:
+                return request_fail
+            
+            send_json["result"] = result
+            return send_json
         case "get_friend_requests":
             #check if a token was sent
             if json.get("token") == None:
@@ -523,7 +562,6 @@ def POST_listen():
             send_json["success"] = True
             
             return send_json
-
         case "decline_friend_request":
             #check if a token and username were sent
             if json.get("token") == None or json.get("username") == None:
