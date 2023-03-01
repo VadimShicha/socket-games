@@ -4,7 +4,7 @@ import Cookies from 'js-cookie';
 import FriendRequest from '../../components/FriendRequest';
 import FriendItem from '../../components/FriendItem';
 
-function SocialPage()
+function SocialPage(props)
 {
     const [searchUsername, setSearchUsername] = useState("");
     const [sendRequestMessage, setSendRequestMessage] = useState("");
@@ -14,6 +14,17 @@ function SocialPage()
 
     const [requestsTableRows, setRequestsTableRows] = useState(0);
     const [friendTableRows, setFriendTableRows] = useState(0);
+
+    useEffect(() =>
+    {
+        console.log("LOAD SOCIAL");
+        refresh();
+
+        setInterval(function()
+        {
+            console.log("INT");
+        }, 1000);
+    }, [props.load]);
 
     function searchFriend()
     {
@@ -82,11 +93,6 @@ function SocialPage()
         getRequests();
         getFriends();
     }
-
-    useEffect(() =>
-    {
-        console.log("LATE");
-    }, []);
 
     return (
         <>

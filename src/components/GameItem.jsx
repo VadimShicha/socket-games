@@ -8,7 +8,7 @@ function GameItem(props)
 
     function play()
     {
-        window.location.hash = "#game-" + props.gameURL;
+        window.location.href = "/game-" + props.gameURL;
     }
 
     function info()

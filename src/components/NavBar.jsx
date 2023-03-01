@@ -33,6 +33,7 @@ function NavBar(props)
                 break;
             default:
                 setSelectedIndex(-1);
+                return;
         }
     }, [props.page]);
 
@@ -41,9 +42,9 @@ function NavBar(props)
             <ul>
                 <img className="nav_bar_image" width="40" height="40" src="./ico.svg"></img>
                 <li className="{nav_bar_li} nav_bar_title"><b>Socket Games</b></li>
-                <li className={classNames[0][0]}><a href="#">Games</a></li>
-                <li className={classNames[1][0]}><a href="#social">Social</a></li>
-                <li className={classNames[2][0]}><a href="#settings">Settings</a></li>
+                <li className={classNames[0][0]}><a href="/">Games</a></li>
+                <li className={classNames[1][0]}><a href="/social">Social</a></li>
+                <li className={classNames[2][0]}><a href="/settings">Settings</a></li>
             </ul>
         </div>
     );
