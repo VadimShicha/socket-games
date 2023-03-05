@@ -1,14 +1,19 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
+import InviteGame from './InviteGame';
 import {sendPOST} from '../tools'
 
 function GameItem(props)
 {
     const [inInfo, setInInfo] = useState(false);
     const [infoText, setInfoText] = useState("Info");
+    const [playText, setPlayText] = useState("Play");
 
     function play()
     {
-        window.location.href = "/game-" + props.gameURL;
+        if(props.multi)
+            props.play(props.name);
+        else
+            window.location.href = "/game-" + props.gameURL;
     }
 
     function info()
@@ -20,6 +25,11 @@ function GameItem(props)
         
         setInInfo(!inInfo);
     }
+
+    useEffect(() =>
+    {
+        setPlayText(props.multi ? "Invite" : "Play");
+    }, [props.multi]);
 
     return (
         <div className="game_item">
@@ -43,8 +53,8 @@ function GameItem(props)
             
             <br></br>
             <h4 style={{display: "inline"}}>{props.name}</h4><br></br><br></br>
-            <button style={{width: "50px", margin: "5px"}} onClick={play}>Play</button>
-            <button style={{width: "50px"}} onClick={info}>{infoText}</button>
+            <button style={{width: "fit-content", margin: "5px"}} onClick={play}>{playText}</button>
+            <button style={{width: "fit-content"}} onClick={info}>{infoText}</button>
         </div>
     );
 }

@@ -17,13 +17,8 @@ function SocialPage(props)
 
     useEffect(() =>
     {
-        console.log("LOAD SOCIAL");
+        //console.log("LOAD SOCIAL");
         refresh();
-
-        setInterval(function()
-        {
-            console.log("INT");
-        }, 1000);
     }, [props.load]);
 
     function searchFriend()
@@ -31,16 +26,13 @@ function SocialPage(props)
         sendPOST({requestID: "send_friend_request", username: searchUsername, token: Cookies.get("token")}, function(data)
         {
             setSendRequestMessage(data.message);
-            console.log(data);
         });
     }
 
     function acceptFriendRequest(username)
     {
-        console.log("sdg");
         sendPOST({requestID: "accept_friend_request", username: username, token: Cookies.get("token")}, function(data)
         {
-            console.log(data);
             if(data.success)
             {
                 getRequests();

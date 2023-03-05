@@ -6,7 +6,7 @@ const selectedClass = "nav_bar_li_selected";
 
 function NavBar(props)
 {
-    const classNames = [useState(regularClass), useState(regularClass), useState(regularClass)]; //array of nav bar tab class names
+    const classNames = [useState(regularClass), useState(regularClass), useState(regularClass), useState(regularClass)]; //array of nav bar tab class names
 
     //set the selected nav bar tab
     function setSelectedIndex(index)
@@ -25,11 +25,14 @@ function NavBar(props)
             case "":
                 setSelectedIndex(0);
                 break;
-            case "social":
+            case "multiplayer":
                 setSelectedIndex(1);
                 break;
-            case "settings":
+            case "social":
                 setSelectedIndex(2);
+                break;
+            case "settings":
+                setSelectedIndex(3);
                 break;
             default:
                 setSelectedIndex(-1);
@@ -42,9 +45,10 @@ function NavBar(props)
             <ul>
                 <img className="nav_bar_image" width="40" height="40" src="./ico.svg"></img>
                 <li className="{nav_bar_li} nav_bar_title"><b>Socket Games</b></li>
-                <li className={classNames[0][0]}><a href="/">Games</a></li>
-                <li className={classNames[1][0]}><a href="/social">Social</a></li>
-                <li className={classNames[2][0]}><a href="/settings">Settings</a></li>
+                <li className={classNames[0][0]}><a href="/">Singleplayer</a></li>
+                <li className={classNames[1][0]}><a href="/multiplayer">Multiplayer</a></li>
+                <li className={classNames[2][0]}><a href="/social">Social</a></li>
+                <li className={classNames[3][0]}><a href="/settings">Settings</a></li>
             </ul>
         </div>
     );

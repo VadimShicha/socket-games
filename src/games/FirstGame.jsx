@@ -1,6 +1,8 @@
 import React, {useState, useRef, createRef, useEffect} from 'react';
 import {sendPOST} from '../tools';
 import Matter from 'matter-js';
+import GamePage from '../pages/GamePage';
+import { Outlet } from 'react-router-dom';
 
 const defaultRender = {fillStyle: "chocolate", strokeStyle: "white", lineWidth: 0};
 
@@ -30,8 +32,6 @@ class FirstGame extends React.Component
 
     load()
     {
-        console.log("LOAD");
-
         this.engine = Matter.Engine.create();
         this.renderer = Matter.Render.create({
             element: this.mainRef.current,
@@ -73,6 +73,7 @@ class FirstGame extends React.Component
     {
         return (
             <>
+                <GamePage></GamePage>
                 <div ref={this.mainRef}></div>
                 <button onClick={() => this.move(this, -1)}>Left</button>
                 <button onClick={() => this.move(this, 0)}>Center</button>

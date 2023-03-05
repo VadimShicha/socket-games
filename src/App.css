@@ -111,7 +111,7 @@ li a
 .friends_div
 {
     border: 2px solid black;
-    overflow-y: scroll;
+    overflow-y: auto;
     width: fit-content;
     margin-left: auto;
     margin-right: auto;
@@ -131,6 +131,26 @@ td, tr
     text-align: right;
     border-collapse: separate;
     border-spacing: 0px 0;
+}
+
+.invite_game_div
+{
+    position: absolute;
+    width: 400px;
+    height: 250px;
+    left: 0px;
+    right: 0px;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: bisque;
+    border-radius: 30px;
+}
+
+.invite_game_div_close
+{
+    position: absolute;
+    top: 15px;
+    right: 15px;
 }
 
 .action_buttons
@@ -164,6 +184,11 @@ td, tr
 .message_button
 {
     background: url("../public/message_box.svg");
+}
+
+.invite_button
+{
+    background: url("../public/invite_box.svg");
 }
 
 .App-header

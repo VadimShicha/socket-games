@@ -10,7 +10,7 @@ function SettingsPage()
         {
             console.log("Logged out and deleted token");
             Cookies.remove("token");
-            window.location.hash = "#login";
+            window.location.href = "/login";
         });
     }
 

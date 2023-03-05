@@ -1,6 +1,7 @@
 import React, {useState, useRef, createRef, useEffect} from 'react';
 import {sendPOST} from '../tools';
 import Matter, { MouseConstraint } from 'matter-js';
+import GamePage from '../pages/GamePage';
 
 const crateAmountX = 10;
 const crateAmountY = 20;
@@ -54,8 +55,6 @@ class SlingGame extends React.Component
 
     load()
     {
-        console.log("LOAD");
-
         this.engine = Matter.Engine.create();
         this.renderer = Matter.Render.create({
             element: this.mainRef.current,
@@ -131,6 +130,7 @@ class SlingGame extends React.Component
     {
         return (
             <>
+                <GamePage></GamePage>
                 <div ref={this.mainRef}></div>
             </>
         );

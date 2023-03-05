@@ -18,7 +18,21 @@ function LoginPage()
             if(data.success)
             {
                 Cookies.set("token", data.token, {expires: 1});
-                window.location.hash = "#";
+                window.location.href = "/";
+            }
+        });
+    }
+
+    function loginExample(user)
+    {
+        sendPOST({requestID: "login", username: user, password: "bobissad"}, function(data)
+        {
+            setMessage(data.message);
+
+            if(data.success)
+            {
+                Cookies.set("token", data.token, {expires: 1});
+                window.location.href = "/";
             }
         });
     }
@@ -29,19 +43,22 @@ function LoginPage()
     //     Cookies.set("username", v, {expires: 1});
     // }
     // else
-    // {
     //     alert(Cookies.get("username"));
-    // }
     
 
     return (
         <>
             <h2>Login into an Account</h2>
-            <p>Login into an existing account or <a href="#sign_up">sign up</a></p>
+            <p>Login into an existing account or <a href="/sign_up">sign up</a></p>
             <input onChange={e => setUsername(e.target.value)} placeholder="Username"></input><br></br><br></br>
             <input onChange={e => setPassword(e.target.value)} placeholder="Password"></input><br></br><br></br>
             <button onClick={login}>Login</button>
             <p>{message}</p>
+
+            {/*CODE FOR TEST PURPOSE*/}
+            <h2>Preset Accounts:</h2>
+            <button onClick={() => loginExample("bob")}>Login Bob Example</button><br></br>
+            <button onClick={() => loginExample("sally")}>Login Sally Example</button>
         </>
     )
 }
