@@ -3,10 +3,12 @@ import {sendPOST} from '../../tools';
 import Cookies from 'js-cookie';
 import FriendRequest from '../../components/FriendRequest';
 import FriendItem from '../../components/FriendItem';
+import SendFriendRequestForm from '../../components/forms/SendFriendRequestForm';
 
 function SocialPage(props)
 {
-    const [searchUsername, setSearchUsername] = useState("");
+    const [sendRequestHidden, setSendRequestHidden] = useState(true);
+    // const [searchUsername, setSearchUsername] = useState("");
     const [sendRequestMessage, setSendRequestMessage] = useState("");
 
     const [requests, setRequests] = useState(<></>);
@@ -21,9 +23,9 @@ function SocialPage(props)
         refresh();
     }, [props.load]);
 
-    function searchFriend()
+    function searchFriend(name)
     {
-        sendPOST({requestID: "send_friend_request", username: searchUsername, token: Cookies.get("token")}, function(data)
+        sendPOST({requestID: "send_friend_request", username: name, token: Cookies.get("token")}, function(data)
         {
             setSendRequestMessage(data.message);
         });
@@ -90,28 +92,33 @@ function SocialPage(props)
         <>
             <div className="nav_bar_body">
                 <h2>Social</h2>
-                <button onClick={refresh}>Refresh</button>
-                <br></br><br></br>
-                <div hidden={friendTableRows == 0}>
-                    <h4>Friends</h4>
-                    <div className="friends_div">
-                        <table className="friends_table">
-                            <tbody>{friends}</tbody>
-                        </table>
-                    </div>
+                <div className="center_align" style={{border: "0px solid black", width: "fit-content"}}>
+                    <button className="social_action_element action_button refresh_button" onClick={refresh}></button>
+                    <button className="social_action_element action_button invite_button" onClick={() => {setSendRequestHidden(false)}}></button> 
                 </div>
-                <div hidden={requestsTableRows == 0}>
-                    <h4>Friend Requests:</h4>
-                    <div className="friend_request_div">
-                        <table className="friend_request_table">
-                            <tbody>{requests}</tbody>
+
+                <SendFriendRequestForm hidden={sendRequestHidden} search={searchFriend} message={sendRequestMessage} close={() => {setSendRequestMessage(""); setSendRequestHidden(true)}}></SendFriendRequestForm>
+                
+                <br></br><br></br>
+                <div hidden={friendTableRows == 9}>
+                    <div className="friends_div_template" style={{height: "305px"}}>
+                        <h3 style={{margin: "0px"}}>Friends:</h3>
+                        <table className="friends_table_template" style={{width: "500px"}}>
+                            <tbody>
+                                {friends}
+                            </tbody>
+                        </table>
+                        <h3 style={{margin: "0px"}}>Requests:</h3>
+                        
+                        <table className="friends_table_template" style={{width: "500px"}}>
+                            <tbody>
+                                {requests}
+                            </tbody>
                         </table>
                     </div>
                 </div>
                 <br></br>
-                <input onChange={(e) => {e.target.value = e.target.value.toLowerCase(); setSearchUsername(e.target.value)}} placeholder="Search Username"></input>
-                <button onClick={searchFriend}>Send Request</button>
-                <p>{sendRequestMessage}</p>
+                
             </div>
         </>
     )

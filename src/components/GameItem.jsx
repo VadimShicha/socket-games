@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import InviteGame from './InviteGame';
+import InviteGame from './forms/InviteGameForm';
 import {sendPOST} from '../tools'
 
 function GameItem(props)
@@ -32,7 +32,7 @@ function GameItem(props)
     }, [props.multi]);
 
     return (
-        <div className="game_item">
+        <div style={{marginLeft: "10px", marginRight: "10px"}}>
             <div>
                 <img hidden={inInfo != false} style={{border: "3px solid black"}} width="225" height="150" src={props.imgURL}></img>
                 <div hidden={inInfo != true} style={{border: "3px solid black", width: "225px", height: "150px"}}>
@@ -53,7 +53,7 @@ function GameItem(props)
             
             <br></br>
             <h4 style={{display: "inline"}}>{props.name}</h4><br></br><br></br>
-            <button style={{width: "fit-content", margin: "5px"}} onClick={play}>{playText}</button>
+            <button hidden={props.playHidden} style={{width: "fit-content", margin: "5px"}} onClick={play}>{playText}</button>
             <button style={{width: "fit-content"}} onClick={info}>{infoText}</button>
         </div>
     );

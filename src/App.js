@@ -1,5 +1,5 @@
 import {useState} from 'react';
-//import {BrowserRouter, Routes, Route} from 'react-router-dom';
+import {BrowserRouter, Routes, Route} from 'react-router-dom';
 import SignUpPage from './pages/SignUpPage';
 import LoginPage from './pages/LoginPage';
 import SettingsPage from './pages/nav/SettingsPage';
@@ -20,8 +20,12 @@ function App()
     const [socialPageLoad, setSocialPageLoad] = useState(true);
     //const [navPageIndex, setNavPageIndex] = useState(0);
 
+    //setInterval(function(){console.log(page)});
+
     function loadPage(page)
     {
+        //setPage(page);
+        console.log(page);
         if(page == "social")
         {
             setSocialPageLoad(!socialPageLoad);
@@ -39,7 +43,6 @@ function App()
             });
         }
         
-        setPage(page);
     }
 
     // onhashchange = function(e)
@@ -57,11 +60,12 @@ function App()
 
     return (
         <div onLoad={() => loadPage(window.location.pathname.substring(1))} className="App">
-            {/* <BrowserRouter>
+            <BrowserRouter>
                 <Routes>
-                    <Route index element={<><NavBar page=""></NavBar><GameListPage></GameListPage></>}></Route>
-                    <Route path="/social" element={<><NavBar page="social"></NavBar><SocialPage></SocialPage></>}></Route>
-                    <Route path="/settings" element={<><NavBar page="settings"></NavBar><SettingsPage></SettingsPage></>}></Route>
+                    <Route index element={<><NavBar page={0}></NavBar><GameListPage></GameListPage></>}></Route>
+                    <Route path="/multiplayer" element={<><NavBar page={1}></NavBar><MultiGameListPage></MultiGameListPage></>}></Route>
+                    <Route path="/social" element={<><NavBar page={2}></NavBar><SocialPage></SocialPage></>}></Route>
+                    <Route path="/settings" element={<><NavBar page={3}></NavBar><SettingsPage></SettingsPage></>}></Route>
 
                     <Route path="/login" element={<LoginPage></LoginPage>}></Route>
                     <Route path="/sign_up" element={<SignUpPage></SignUpPage>}></Route>
@@ -70,15 +74,16 @@ function App()
                     <Route path="/game-sling" element={<SlingGame></SlingGame>}></Route>
 
                 </Routes>
-            </BrowserRouter> */}
-            <div hidden={page != "" && page != "multiplayer" && page != "social" && page != "settings" && page.slice(0, 5) != "game-" && page.slice(0, 9) != "multigame"}>
+            </BrowserRouter>
+            {/* <div hidden={page != "" && page != "multiplayer" && page != "social" && page != "settings" && page.slice(0, 5) != "game-" && page.slice(0, 9) != "multigame"}>
                 <NavBar page={page}></NavBar>
+            </div>
+            
+            <div hidden={page != "multiplayer"}>
+                <MultiGameListPage></MultiGameListPage>
             </div>
             <div hidden={page != ""}>
                 <GameListPage></GameListPage>
-            </div>
-            <div hidden={page != "multiplayer"}>
-                <MultiGameListPage></MultiGameListPage>
             </div>
             <div hidden={page != "social"}>
                 <SocialPage load={socialPageLoad}></SocialPage>
@@ -101,7 +106,7 @@ function App()
                 <div hidden={page.slice(5) != "sling"}>
                     <SlingGame></SlingGame>
                 </div>
-            </div>
+            </div> */}
         </div>
     );
 }

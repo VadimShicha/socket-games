@@ -225,11 +225,12 @@ def user_exists(username):
 # 1 - user doesn't exist
 # 2 - request already sent
 # 3 - user already sent friend request to user sending
-# 4 - request sent to self
+# 4 - user is already your friend
+# 5 - request sent to self
 def send_friend_request(to_username, from_username):
     #check if the user sent a friend request to themselves
     if to_username == from_username:
-        return "4Can't send a friend request to yourself"
+        return "5Can't send a friend request to yourself"
     
     #check if the username given is an actual user
     if user_exists(to_username) == False:
@@ -242,13 +243,19 @@ def send_friend_request(to_username, from_username):
     result = run_sql(cmd, cmd_args)
 
     text = json.loads(result[0])
-    arr = text["friend_requests"]
+    requests_arr = text["friend_requests"]
+    friends_arr = text["friends"]
 
-    if to_username in arr:
+    if to_username in requests_arr:
         return "3User already sent a friend request to you"
     
-
+    #check if the user is already your friend
+    if to_username in friends_arr:
+        return "4User is already your friend"
     
+    log_message("SDHSDH")
+    log_message(result)
+
     cmd = f"SELECT data FROM {USERS_TABLE} WHERE username = %s"
     cmd_args = (to_username, )
 
@@ -441,6 +448,7 @@ def POST_listen():
                     return request_fail
 
                 send_json["token"] = result
+                send_json["success"] = True
             else:
                 send_json["success"] = False
                 

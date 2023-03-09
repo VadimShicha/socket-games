@@ -3,62 +3,50 @@
     text-align: center;
 }
 
+body
+{
+    
+}
+
 *
 {
     -webkit-user-drag: none; /*disable drag from all elements*/
 }
 
-.nav_bar
+.center_align
 {
-    position: fixed;
-    width: 100vw;
-    top: 0px;
-    overflow: hidden;
+    margin-left: auto;
+    margin-right: auto;
 }
 
-.nav_bar_title
+.social_action_element
 {
-    position: fixed;
-    left: 40px;
-    padding: 7px;
-    font-size: 20px;
-}
-
-.nav_bar_image
-{
-    position: fixed;
-    left: 0px;
+    margin-left: 5px;
+    margin-right: 5px;
+    vertical-align: middle;
 }
 
 .nav_bar_li:hover
 {
-    background-color: #66ceab;
+    /* background-color: #66ceab; */
+    background-color: #39d3c4;
 }
 
 .nav_bar_li
 {
-    background-color: #76f5ca;
+    /* background-color: #76f5ca; */
+    background-color: turquoise;
 }
 
 .nav_bar_li_selected
 {
-    background-color: #48e8b2;
+    /* background-color: #48e8b2; */
+    background-color: #29c2b2;
 }
 
 .nav_bar_body
 {
     margin-top: 50px;
-}
-
-ul
-{
-    list-style-type: none;
-    top: 0px;
-    margin: 0px;
-    padding: 0px;
-    height: 40px;
-    /*background-color: aliceblue;*/
-    background-color: #c0c0c0;
 }
 
 li
@@ -80,35 +68,10 @@ li a
     flex-wrap: wrap;
     padding: 10px;
     gap: 75px;
-    
     padding-bottom: 300px;
 }
 
-.game_item
-{
-    margin-left: 10px;
-    margin-right: 10px;
-}
-
-.friend_request_div
-{
-    border: 2px solid black;
-    overflow-y: scroll;
-    width: fit-content;
-    margin-left: auto;
-    margin-right: auto;
-    scroll-margin: 10px;
-    height: 155px;
-}
-
-.friend_request_table
-{
-    margin-left: auto;
-    margin-right: auto;
-    width: 500px;
-}
-
-.friends_div
+.friends_div_template
 {
     border: 2px solid black;
     overflow-y: auto;
@@ -116,33 +79,37 @@ li a
     margin-left: auto;
     margin-right: auto;
     scroll-margin: 10px;
-    height: 155px;
 }
 
-.friends_table
+.friends_table_template
 {
     margin-left: auto;
     margin-right: auto;
-    width: 200px;
+    justify-content: center;
+    align-items: center;
+    text-align: left;
 }
 
-td, tr
+.friends_td, .friends_tr
 {
-    text-align: right;
+    text-align: left;
     border-collapse: separate;
     border-spacing: 0px 0;
 }
 
-.invite_game_div
+.friends_table_text
+{
+    padding-left: 5px;
+    text-align: left;
+    width: 415px;
+}
+
+.form_template
 {
     position: absolute;
-    width: 400px;
-    height: 250px;
     left: 0px;
     right: 0px;
-    margin-left: auto;
-    margin-right: auto;
-    background-color: bisque;
+    background-color: peru;
     border-radius: 30px;
 }
 
@@ -153,7 +120,7 @@ td, tr
     right: 15px;
 }
 
-.action_buttons
+.action_button
 {
     width: 25px;
     height: 25px;
@@ -161,12 +128,12 @@ td, tr
     opacity: 1;
 }
 
-.action_buttons:hover
+.action_button:hover
 {
     opacity: 0.85;
 }
 
-.action_buttons:active
+.action_button:active
 {
     opacity: 0.6;
 }
@@ -189,6 +156,16 @@ td, tr
 .invite_button
 {
     background: url("../public/invite_box.svg");
+}
+
+.add_button
+{
+    background: url("../public/add_box.svg");
+}
+
+.refresh_button
+{
+    background: url("../public/refresh_box.svg");
 }
 
 .App-header

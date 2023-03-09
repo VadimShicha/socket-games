@@ -12,11 +12,12 @@ function FriendRequest(props)
     {
         props.decline(props.username)
     };
+
     return (
-        <tr style={{textAlign: "center"}}>
-            <td style={{display: "inline", width: "415px"}}><b>{props.username}</b> wants to be your friend</td>
-            <td style={{margin: "0px"}}><button onClick={() => accept()} className="action_buttons accept_button"></button></td>
-            <td style={{margin: "0px"}}><button onClick={() => decline()} className="action_buttons decline_button"></button></td>
+        <tr className="friends_tr" style={{textAlign: "center"}}>
+            <td className="friends_td friends_table_text"><b>{props.username}</b></td>
+            <td className="friends_td"><button onClick={() => accept()} className="action_button accept_button"></button></td>
+            <td className="friends_td"><button onClick={() => decline()} className="action_button decline_button"></button></td>
         </tr>
     );
 }

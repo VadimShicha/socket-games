@@ -19,7 +19,7 @@ function SettingsPage()
             <div className="nav_bar_body">
                 <h2>Settings</h2>
                 <p>Config stuff!</p>
-                <button onClick={logout}>Log Out and Delete Token</button>
+                <button title="Logout and delete session" onClick={logout}>Log Out</button>
             </div>
         </>
     )

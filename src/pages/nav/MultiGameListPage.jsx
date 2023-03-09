@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import GameItem from '../../components/GameItem';
 import {sendPOST} from '../../tools'
-import InviteGame from '../../components/InviteGame';
+import InviteGameForm from '../../components/forms/InviteGameForm';
 import Cookies from 'js-cookie';
 
 function GameListPage()
@@ -38,14 +38,12 @@ function GameListPage()
         <>
             <div className="nav_bar_body">
                 <h2>Select a 2-Player Game to Play!</h2>
-                <p hidden={hasFriends}>You have no friends</p>
+                <p hidden={hasFriends}>Add a friend to start playing</p>
 
-                <div hidden={inviteGameHidden}>
-                    <InviteGame close={() => setInviteGameHidden(true)} active={!inviteGameHidden}></InviteGame>
-                </div>
+                <InviteGameForm hidden={inviteGameHidden} close={() => setInviteGameHidden(true)} active={!inviteGameHidden}></InviteGameForm>
                 
                 <div className="game_items">
-                    <GameItem multi={true} info={"First 2-player game"} play={play} imgURL="./first_multi_game.png" name="First"></GameItem>
+                    <GameItem playHidden={!hasFriends} multi={true} info={"First 2-player game"} play={play} imgURL="./first_multi_game.png" name="First"></GameItem>
                 </div>
             </div>
         </>
