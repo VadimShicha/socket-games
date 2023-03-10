@@ -121,26 +121,30 @@ function SocialPage(props)
                 <br></br><br></br>
                 <div hidden={friendTableRows == 9}>
                     <div className="friends_div_template" style={{height: "305px"}}>
-                        <h3 style={{margin: "0px"}}>Game Invites</h3>
-                        <table className="friends_table_template" style={{width: "500px"}}>
-                            <tbody>
-                                {gameInvites}
-                            </tbody>
-                        </table>
-
-                        <h3 hidden={friendTableRows == 0} style={{margin: "0px"}}>Friends:</h3>
-                        <table className="friends_table_template" style={{width: "500px"}}>
-                            <tbody>
-                                {friends}
-                            </tbody>
-                        </table>
-                        <h3 hidden={requestsTableRows == 0} style={{margin: "0px"}}>Requests:</h3>
-                        
-                        <table className="friends_table_template" style={{width: "500px"}}>
-                            <tbody>
-                                {requests}
-                            </tbody>
-                        </table>
+                        <div hidden={gameInvitesTableRows == 0}>
+                            <h3 style={{margin: "0px"}}>Game Invites</h3>
+                            <table className="friends_table_template" style={{width: "500px"}}>
+                                <tbody>
+                                    {gameInvites}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div hidden={friendTableRows == 0}>
+                            <h3 style={{margin: "0px"}}>Friends:</h3>
+                            <table className="friends_table_template" style={{width: "500px"}}>
+                                <tbody>
+                                    {friends}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div hidden={requestsTableRows == 0}>
+                            <h3 style={{margin: "0px"}}>Requests:</h3>
+                            <table className="friends_table_template" style={{width: "500px"}}>
+                                <tbody>
+                                    {requests}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
                 <br></br>

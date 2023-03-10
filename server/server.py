@@ -7,6 +7,27 @@ from config import *
 db = None
 db_cursor = None
 
+game_invites = [] #array of [to_user, from_user, epoch_time]
+
+def remove_game_invite(to_username):
+    for i in range(len(game_invites)):
+        if game_invites[i][0] == to_username:
+            game_invites.pop(i)
+            break
+
+#removes expired game invites
+def check_game_invites(scheduler):
+    log_message("LIST: ")
+    log_message(game_invites)
+
+    for i in range(len(game_invites)):
+        #check if the invite expired
+        if game_invites[i][2] + GAME_INVITE_EXPIRATION > current_epoch_time():
+            log_message("REMOVING: ")
+            log_message(game_invites[i])
+            game_invites.pop(i) #remove the index
+
+
 app = Flask(SERVER_NAME)
 
 #handle all post requests at the url '/server'
@@ -207,7 +228,7 @@ def POST_listen():
             send_json["result"] = result
             return send_json
         case "send_game_invite":
-            #check if a token was sent
+            #check if a token and username were sent
             if json.get("token") == None or json.get("username") == None:
                 return request_fail
             
@@ -221,8 +242,33 @@ def POST_listen():
 
             if code == 0:
                 send_json["success"] = True
+                game_invites.append([json["username"], auth_result, current_epoch_time()])
             else:
                 send_json["success"] = False
+
+            return send_json
+        case "accept_game_invite":
+            #check if a token and username were sent
+            if json.get("token") == None or json.get("username") == None:
+                return request_fail
+            
+            auth_result = auth_login_token(json["token"])
+            if auth_result == False:
+                return request_fail
+            
+            remove_game_invite(json["username"])
+
+            return send_json
+        case "decline_game_invite":
+            #check if a token and username were sent
+            if json.get("token") == None or json.get("username") == None:
+                return request_fail
+            
+            auth_result = auth_login_token(json["token"])
+            if auth_result == False:
+                return request_fail
+            
+            remove_game_invite(json["username"])
 
             return send_json
 

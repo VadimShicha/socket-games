@@ -9,6 +9,9 @@ PORT = 5000
 SERVER_NAME = "server"
 
 #OTHER CONFIG
+GAME_INVITE_CHECK = 10 #delay in seconds of checking if a game invite expired
+GAME_INVITE_EXPIRATION = 3 * 60 * 1000 #amount of milliseconds a game invite last before expiring
+
 LOGIN_TOKEN_EXPIRATION = 2 * 60 * 60 * 1000 #the amount of milliseconds a login token lasts for in the database
 
 LOGIN_TOKEN_LENGTH = 16
