@@ -74,10 +74,12 @@ function SignUpPage()
             <p>{message}</p>
 
             {/*CODE FOR TEST PURPOSE*/}
-            <h2>Preset Accounts:</h2>
-            <button onClick={() => createExample("bob")}>Create Bob Example</button><br></br><br></br>
-            <button onClick={() => createExample("sally")}>Create Sally Example</button><br></br><br></br>
-            <button onClick={() => createExample("both")}>Create Bob & Sally Examples</button>
+            <div style={{position: "absolute", left: "0px", top: "0px"}}>
+                <h3>Preset Accounts:</h3>
+                <button onClick={() => createExample("bob")}>Create Bob Example</button><br></br><br></br>
+                <button onClick={() => createExample("sally")}>Create Sally Example</button><br></br><br></br>
+                <button onClick={() => createExample("both")}>Create Both Examples</button>
+            </div>
         </>
     )
 }

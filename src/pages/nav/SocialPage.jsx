@@ -3,6 +3,7 @@ import {sendPOST} from '../../tools';
 import Cookies from 'js-cookie';
 import FriendRequest from '../../components/FriendRequest';
 import FriendItem from '../../components/FriendItem';
+import InviteGameItem from '../../components/InviteGameItem';
 import SendFriendRequestForm from '../../components/forms/SendFriendRequestForm';
 
 function SocialPage(props)
@@ -13,9 +14,11 @@ function SocialPage(props)
 
     const [requests, setRequests] = useState(<></>);
     const [friends, setFriends] = useState(<></>);
+    const [gameInvites, setGameInvites] = useState(<></>);
 
     const [requestsTableRows, setRequestsTableRows] = useState(0);
     const [friendTableRows, setFriendTableRows] = useState(0);
+    const [gameInvitesTableRows, setGameInvitesTableRows] = useState(0);
 
     useEffect(() =>
     {
@@ -82,8 +85,24 @@ function SocialPage(props)
         });
     }
 
+    function getGameInvites()
+    {
+        sendPOST({requestID: "get_game_invites", token: Cookies.get("token")}, function(data)
+        {
+            console.log(data);
+            if(data.success)
+            {
+                setGameInvitesTableRows(data.result.length);
+                let element = data.result.map((item) =>
+                    <InviteGameItem key={item} username={item}></InviteGameItem>);
+                setGameInvites(element);
+            }
+        });
+    }
+
     function refresh()
     {
+        getGameInvites();
         getRequests();
         getFriends();
     }
@@ -102,13 +121,20 @@ function SocialPage(props)
                 <br></br><br></br>
                 <div hidden={friendTableRows == 9}>
                     <div className="friends_div_template" style={{height: "305px"}}>
-                        <h3 style={{margin: "0px"}}>Friends:</h3>
+                        <h3 style={{margin: "0px"}}>Game Invites</h3>
+                        <table className="friends_table_template" style={{width: "500px"}}>
+                            <tbody>
+                                {gameInvites}
+                            </tbody>
+                        </table>
+
+                        <h3 hidden={friendTableRows == 0} style={{margin: "0px"}}>Friends:</h3>
                         <table className="friends_table_template" style={{width: "500px"}}>
                             <tbody>
                                 {friends}
                             </tbody>
                         </table>
-                        <h3 style={{margin: "0px"}}>Requests:</h3>
+                        <h3 hidden={requestsTableRows == 0} style={{margin: "0px"}}>Requests:</h3>
                         
                         <table className="friends_table_template" style={{width: "500px"}}>
                             <tbody>

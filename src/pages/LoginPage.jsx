@@ -56,9 +56,11 @@ function LoginPage()
             <p>{message}</p>
 
             {/*CODE FOR TEST PURPOSE*/}
-            <h2>Preset Accounts:</h2>
-            <button onClick={() => loginExample("bob")}>Login Bob Example</button><br></br>
-            <button onClick={() => loginExample("sally")}>Login Sally Example</button>
+            <div style={{position: "absolute", left: "0px", top: "0px"}}>
+                <h3>Preset Accounts:</h3>
+                <button onClick={() => loginExample("bob")}>Login Bob Example</button><br></br>
+                <button onClick={() => loginExample("sally")}>Login Sally Example</button>
+            </div>
         </>
     )
 }

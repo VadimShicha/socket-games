@@ -3,9 +3,19 @@
     text-align: center;
 }
 
-body
+:root
 {
-    
+    /* --primary-light-color: #6fa8dc;
+    --primary-color: #3c78d8;
+    --primary-secondary-mix-color: #45818e;
+    --secondary-color: #6aa84f;
+    --secondary-light-color: #93c47d; */
+    --light-primary-color: #fed55a;
+    --primary-color: #e5b522;
+    --dark-primary-color: #d2a10b;
+    --dark-secondary-color: #3d85c6;
+    --secondary-color: #6d9eeb;
+    --light-secondary-color: #9fc5e8;
 }
 
 *
@@ -29,19 +39,20 @@ body
 .nav_bar_li:hover
 {
     /* background-color: #66ceab; */
-    background-color: #39d3c4;
+    filter: brightness(95%);
 }
 
 .nav_bar_li
 {
     /* background-color: #76f5ca; */
-    background-color: turquoise;
+    background-color: var(--primary-color);
 }
 
 .nav_bar_li_selected
 {
     /* background-color: #48e8b2; */
-    background-color: #29c2b2;
+    background-color: var(--primary-color);
+    filter: brightness(85%);
 }
 
 .nav_bar_body
@@ -109,7 +120,7 @@ li a
     position: absolute;
     left: 0px;
     right: 0px;
-    background-color: peru;
+    background-color: var(--light-secondary-color);
     border-radius: 30px;
 }
 

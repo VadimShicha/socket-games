@@ -5,6 +5,7 @@ import LoginPage from './pages/LoginPage';
 import SettingsPage from './pages/nav/SettingsPage';
 import GameListPage from './pages/nav/GameListPage';
 import MultiGameListPage from './pages/nav/MultiGameListPage';
+import ColorPalettePage from './pages/ColorPalettePage';
 import GamePage from './pages/GamePage';
 import NavBar from './components/NavBar';
 import FirstGame from './games/FirstGame';
@@ -16,15 +17,24 @@ import './App.css';
 
 function App()
 {
-    const [page, setPage] = useState("");
-    const [socialPageLoad, setSocialPageLoad] = useState(true);
-    //const [navPageIndex, setNavPageIndex] = useState(0);
+    //if last_page key is null asign it the default page url
+    if(sessionStorage.getItem("last_page") == null)
+        sessionStorage.setItem("last_page", "");
 
-    //setInterval(function(){console.log(page)});
+    const [page, setPage] = useState(sessionStorage.getItem("last_page"));
+    //const [page, setPage] = useState("any_unused_url");
+    const [socialPageLoad, setSocialPageLoad] = useState(true);
+
+    //before the page unloads save the last page into session storage to have it be the default value for the page variable on the loading page
+    //used to create a smooth transition between pages
+    onbeforeunload = function()
+    {
+        sessionStorage.setItem("last_page", page);
+    }
 
     function loadPage(page)
     {
-        //setPage(page);
+        setPage(page);
         console.log(page);
         if(page == "social")
         {
@@ -60,7 +70,7 @@ function App()
 
     return (
         <div onLoad={() => loadPage(window.location.pathname.substring(1))} className="App">
-            <BrowserRouter>
+            {/* <BrowserRouter>
                 <Routes>
                     <Route index element={<><NavBar page={0}></NavBar><GameListPage></GameListPage></>}></Route>
                     <Route path="/multiplayer" element={<><NavBar page={1}></NavBar><MultiGameListPage></MultiGameListPage></>}></Route>
@@ -73,17 +83,19 @@ function App()
                     <Route path="/game-first" element={<FirstGame></FirstGame>}></Route>
                     <Route path="/game-sling" element={<SlingGame></SlingGame>}></Route>
 
+                    <Route path="/color-palette" element={<ColorPalettePage></ColorPalettePage>}></Route>
+
                 </Routes>
-            </BrowserRouter>
-            {/* <div hidden={page != "" && page != "multiplayer" && page != "social" && page != "settings" && page.slice(0, 5) != "game-" && page.slice(0, 9) != "multigame"}>
+            </BrowserRouter> */}
+            <div hidden={page != "" && page != "multiplayer" && page != "social" && page != "settings" && page.slice(0, 5) != "game-" && page.slice(0, 9) != "multigame"}>
                 <NavBar page={page}></NavBar>
             </div>
             
-            <div hidden={page != "multiplayer"}>
-                <MultiGameListPage></MultiGameListPage>
-            </div>
             <div hidden={page != ""}>
                 <GameListPage></GameListPage>
+            </div>
+            <div hidden={page != "multiplayer"}>
+                <MultiGameListPage></MultiGameListPage>
             </div>
             <div hidden={page != "social"}>
                 <SocialPage load={socialPageLoad}></SocialPage>
@@ -97,6 +109,9 @@ function App()
             <div hidden={page != "settings"}>
                 <SettingsPage></SettingsPage>
             </div>
+            <div hidden={page != "color-palette"}>
+                <ColorPalettePage></ColorPalettePage>
+            </div>
             <div hidden={page.slice(0, 5) != "game-"}>
                 <GamePage></GamePage>
 
@@ -106,7 +121,7 @@ function App()
                 <div hidden={page.slice(5) != "sling"}>
                     <SlingGame></SlingGame>
                 </div>
-            </div> */}
+            </div>
         </div>
     );
 }

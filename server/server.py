@@ -92,7 +92,7 @@ def create_user(first_name, last_name, username, password, confirm_password):
         return "09Username is already taken"
 
     cmd = f"INSERT INTO {USERS_TABLE} VALUES (%s, %s, %s, %s, %s)" #command to add the user to the table
-    cmd_args = (first_name, last_name, username, password, '{"friends": [], "friend_requests": []}')
+    cmd_args = (first_name, last_name, username, password, '{"friends": [], "friend_requests": [], "game_invites": []}')
 
     run_sql(cmd, cmd_args, commit=True) #run the cmd
     #db.commit() #apply the changes
@@ -382,6 +382,68 @@ def get_friends(username):
     
     return text
 
+def get_game_invites(username):
+    cmd = f"SELECT data FROM {USERS_TABLE} WHERE username = %s"
+    cmd_args = (username, )
+
+    result = run_sql(cmd, cmd_args)
+
+    try:
+        text = json.loads(result[0])["game_invites"]
+    except:
+        log_error("get_friends", "Failed to parse JSON")
+        return False
+    
+    return text
+
+#sends a friend request to a user
+# 0 - success
+# 1 - already sent invite
+# 2 - can't send because that user already sent to you
+# 3 - other error (error caused by running this function with the web console)
+def send_game_invite(to_username, from_username):
+    #check if the user sent a game invite to themselves
+    if to_username == from_username:
+        return "3Error"
+    
+    #check if the username given is an actual user
+    if user_exists(to_username) == False:
+        return "3Error"
+    
+    #check if the user that tried to send a game invite does already have one from the other person
+    cmd = f"SELECT data FROM {USERS_TABLE} WHERE username = %s"
+    cmd_args = (from_username, )
+
+    result = run_sql(cmd, cmd_args)
+
+    text = json.loads(result[0])
+    invite_arr = text["game_invites"]
+
+    if to_username in invite_arr:
+        return "2User already sent a game invite to you"
+
+    cmd = f"SELECT data FROM {USERS_TABLE} WHERE username = %s"
+    cmd_args = (to_username, )
+
+    result = run_sql(cmd, cmd_args)
+
+    text = json.loads(result[0])
+    arr = text["game_invites"]
+
+    for i in range(len(arr)):
+        if arr[i] == from_username:
+            return "1Game invite already sent"
+
+    arr.append(str(from_username))
+    text["game_invites"] = arr
+
+    cmd = f"UPDATE {USERS_TABLE} SET data = %s WHERE username = %s"
+    cmd_args = (json.dumps(text), to_username, )
+
+    run_sql(cmd, cmd_args, fetch="none", commit=True)
+    
+    return "0Game invite sent!"
+
 app = Flask(SERVER_NAME)
 
 @app.route('/server', methods=['POST'])
@@ -565,6 +627,45 @@ def POST_listen():
             
             send_json["success"] = True
             
+            return send_json
+        case "get_game_invites":
+            #check if a token was sent
+            if json.get("token") == None:
+                return request_fail
+            
+            auth_result = auth_login_token(json["token"])
+
+            if auth_result == False:
+                return request_fail
+            
+            log_message(auth_result)
+            
+            result = get_game_invites(auth_result)
+
+            if result == False:
+                return request_fail
+            
+            send_json["result"] = result
+            return send_json
+        case "send_game_invite":
+            #check if a token was sent
+            if json.get("token") == None:
+                return request_fail
+            
+            auth_result = auth_login_token(json["token"])
+            if auth_result == False:
+                return request_fail
+            
+            result = send_game_invite(json["username"], auth_result)
+            code = int(result[0])
+
+            if code == 0:
+                send_json["success"] = True
+            else:
+                send_json["success"] = False
+
+            send_json["message"] = result[1:]
+            send_json["code"] = code
             return send_json
 
     return jsonify(json)

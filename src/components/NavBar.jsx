@@ -20,25 +20,25 @@ function NavBar(props)
 
     useEffect(function()
     {
-        setSelectedIndex(props.page);
-        // switch(props.page)
-        // {
-        //     case "":
-        //         setSelectedIndex(0);
-        //         break;
-        //     case "multiplayer":
-        //         setSelectedIndex(1);
-        //         break;
-        //     case "social":
-        //         setSelectedIndex(2);
-        //         break;
-        //     case "settings":
-        //         setSelectedIndex(3);
-        //         break;
-        //     default:
-        //         setSelectedIndex(-1);
-        //         return;
-        // }
+        //setSelectedIndex(props.page);
+        switch(props.page)
+        {
+            case "":
+                setSelectedIndex(0);
+                break;
+            case "multiplayer":
+                setSelectedIndex(1);
+                break;
+            case "social":
+                setSelectedIndex(2);
+                break;
+            case "settings":
+                setSelectedIndex(3);
+                break;
+            default:
+                setSelectedIndex(-1);
+                return;
+        }
     }, [props.page]);
 
     return (

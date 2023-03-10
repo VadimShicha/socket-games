@@ -22,14 +22,14 @@ function InviteGameForm(props)
             {
                 setFriendTableRows(data.result.length);
                 let element = data.result.map((item) =>
-                    <InviteFriendItem key={item} username={item}></InviteFriendItem>);
+                    <InviteFriendItem key={item} username={item} send={(username) => props.send(username)}></InviteFriendItem>);
                 setFriends(element);
             }
         });
     }
     
     return (
-        <div hidden={props.hidden} className="form_template invite_game_div center_align" style={{width: "400px", height: "250px"}}>
+        <div hidden={props.hidden} className="form_template invite_game_div center_align" style={{width: "400px", height: "260px"}}>
             <h3>Invite a Friend to Join You!</h3>
             <button onClick={props.close} className="invite_game_div_close action_button decline_button"></button>
             <div hidden={friendTableRows == 0}>
@@ -39,6 +39,7 @@ function InviteGameForm(props)
                     </table>
                 </div>
             </div>
+            <p>{props.message}</p>
         </div>
     );
 }

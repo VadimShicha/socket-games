@@ -9,6 +9,8 @@ function GameListPage()
     const [inviteGameHidden, setInviteGameHidden] = useState(true);
     const [hasFriends, setHasFriends] = useState(false);
 
+    const [inviteGameMessage, setInviteGameMessage] = useState("");
+
     function play(name)
     {
         sendPOST({requestID: "get_friends", token: Cookies.get("token")}, function(data)
@@ -34,13 +36,28 @@ function GameListPage()
         }
     });
 
+    function send(username)
+    {
+        console.log(username);
+        sendPOST({requestID: "send_game_invite", username: username, token: Cookies.get("token")}, function(data)
+        {
+            console.log(data);
+            setInviteGameMessage(data.message);
+
+            if(data.success)
+            {
+                
+            }
+        });
+    }
+
     return (
         <>
             <div className="nav_bar_body">
                 <h2>Select a 2-Player Game to Play!</h2>
                 <p hidden={hasFriends}>Add a friend to start playing</p>
 
-                <InviteGameForm hidden={inviteGameHidden} close={() => setInviteGameHidden(true)} active={!inviteGameHidden}></InviteGameForm>
+                <InviteGameForm hidden={inviteGameHidden} send={send} close={() => setInviteGameHidden(true)} message={inviteGameMessage} active={!inviteGameHidden}></InviteGameForm>
                 
                 <div className="game_items">
                     <GameItem playHidden={!hasFriends} multi={true} info={"First 2-player game"} play={play} imgURL="./first_multi_game.png" name="First"></GameItem>
