@@ -25,10 +25,14 @@
 
 body
 {
-    background-image: url("../public/images/background_texture.svg");
+    /* background-image: url("../public/assets/background_texture.svg");
     background-size: 32px;
     background-repeat: repeat;
-    background-color: #dbdbdb;
+    background-color: #dbdbdb; */
+    background-image: url("../public/assets/background.svg");
+    background-color: #c4c4c4;
+    background-size: 480px 360px;
+    background-repeat: repeat;
 }
 
 .nav_bar_body
@@ -62,6 +66,7 @@ body
 .action_button:hover
 {
     opacity: 0.85;
+    cursor: pointer;
 }
 
 .action_button:active

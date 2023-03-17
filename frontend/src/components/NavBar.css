@@ -3,7 +3,11 @@
     position: fixed;
     width: 100vw;
     top: 0px;
+    height: fit-content;
     overflow: hidden;
+    background-image: url("/public/assets/plank_texture.svg");
+    background-repeat: repeat-x;
+    background-size: 192px calc(26px * 2px);
 }
 
 .nav_bar_ul
@@ -13,12 +17,13 @@
     margin: 0px;
     padding: 0px;
     height: 40px;
-    background-color: var(--primary-color);
+    /* background-color: #49a741; */
 }
 
 .nav_bar_title
 {
     position: fixed;
+    color: #fffefa;
     left: 40px;
     padding: 6px;
     font-size: 20px;
@@ -37,24 +42,29 @@ li a
     display: block;
     padding: 10px;
     text-decoration: none;
+    color: #fffefa;
+    font-size: "30px";
+    font-weight: bold;
 }
 
 .nav_bar_li
 {
     display: inline-block;
     /* background-color: #76f5ca; */
-    background-color: var(--primary-color);
+    /* background-color: #49a741; */
 }
 
 .nav_bar_li:hover
 {
     /* background-color: #66ceab; */
-    filter: brightness(95%);
+
+    filter: brightness(93%);
 }
 
 .nav_bar_li_selected
 {
+    display: inline-block;
     /* background-color: #48e8b2; */
-    background-color: var(--primary-color);
+    /* background-color: var(--primary-color); */
     filter: brightness(85%);
 }
