@@ -31,14 +31,6 @@ body
     background-color: #dbdbdb;
 }
 
-@keyframes pop_text
-{
-    0% {opacity: 0;}
-    50% {opacity: 1;}
-    100% {opacity: 0;}
-}
-
-
 .nav_bar_body
 {
     margin-top: 50px;
@@ -50,87 +42,6 @@ body
     margin-right: auto;
 }
 
-.social_action_element
-{
-    margin-left: 5px;
-    margin-right: 5px;
-    vertical-align: middle;
-}
-
-.nav_bar_li:hover
-{
-    /* background-color: #66ceab; */
-    filter: brightness(95%);
-}
-
-.nav_bar_li
-{
-    /* background-color: #76f5ca; */
-    background-color: var(--dark-primary-color);
-}
-
-.nav_bar_li_selected
-{
-    /* background-color: #48e8b2; */
-    background-color: var(--dark-primary-color);
-    filter: brightness(85%);
-}
-
-li
-{
-    display: inline-block;
-}
-
-li a
-{
-    display: block;
-    padding: 10px;
-    text-decoration: none;
-}
-
-.game_items
-{
-    justify-items: center;
-    display: flex;
-    flex-wrap: wrap;
-    padding: 10px;
-    gap: 75px;
-    padding-bottom: 300px;
-}
-
-.friends_div_template
-{
-    border: 2px solid black;
-    overflow-y: auto;
-    width: fit-content;
-    margin-left: auto;
-    margin-right: auto;
-    scroll-margin: 10px;
-}
-
-.friends_table_template
-{
-    margin-left: auto;
-    margin-right: auto;
-    justify-content: center;
-    align-items: center;
-    text-align: left;
-}
-
-.friends_td, .friends_tr
-{
-    text-align: left;
-    border-collapse: separate;
-    border-spacing: 0px 0;
-}
-
-.friends_table_text
-{
-    padding-left: 5px;
-    text-align: left;
-    width: 415px;
-}
-
 .form_template
 {
     position: absolute;
@@ -138,13 +49,6 @@ li a
     right: 0px;
     background-color: var(--light-secondary-color);
     border-radius: 30px;
-}
-
-.invite_game_div_close
-{
-    position: absolute;
-    top: 15px;
-    right: 15px;
 }
 
 .action_button
@@ -167,37 +71,37 @@ li a
 
 .accept_button
 {
-    background: url("../public/accept_box.svg");
+    background: url("../public/assets/accept_box.svg");
 }
 
 .decline_button
 {
-    background: url("../public/decline_box.svg");
+    background: url("../public/assets/decline_box.svg");
 }
 
 .message_button
 {
-    background: url("../public/message_box.svg");
+    background: url("../public/assets/message_box.svg");
 }
 
 .invite_button
 {
-    background: url("../public/invite_box.svg");
+    background: url("../public/assets/invite_box.svg");
 }
 
 .add_button
 {
-    background: url("../public/add_box.svg");
+    background: url("../public/assets/add_box.svg");
 }
 
 .refresh_button
 {
-    background: url("../public/refresh_box.svg");
+    background: url("../public/assets/refresh_box.svg");
 }
 
 .link_button
 {
-    background: url("../public/link_box.svg");
+    background: url("../public/assets/link_box.svg");
 }
 
 .App-header

@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {sendPOST} from '../../tools';
 import Cookies from 'js-cookie';
 import NavBar from '../../components/NavBar';

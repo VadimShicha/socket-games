@@ -62,7 +62,7 @@ function GameListPage()
                 <InviteGameForm hidden={inviteGameHidden} send={send} close={() => setInviteGameHidden(true)} message={inviteGameMessage} active={!inviteGameHidden}></InviteGameForm>
                 
                 <div className="game_items">
-                    <GameItem playHidden={!hasFriends} multi={true} info={"First 2-player game"} play={play} imgURL="./first_multi_game.png" name="First"></GameItem>
+                    <GameItem playHidden={!hasFriends} multi={true} info={"First 2-player game"} play={play} imgURL="./assets/first_multi_game.png" name="First"></GameItem>
                 </div>
             </div>
         </>

@@ -1,5 +1,4 @@
-import React, {useState} from 'react';
-import {sendPOST} from '../tools'
+import React from 'react';
 
 function InviteFriendItem(props)
 {

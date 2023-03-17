@@ -1,6 +1,4 @@
 import React, {useEffect, useState, useRef, createRef} from 'react';
-import {sendPOST} from '../../tools';
-import PopText from '../PopText';
 
 function SendFriendRequestForm(props)
 {
@@ -17,9 +15,9 @@ function SendFriendRequestForm(props)
 
     function link()
     {
-        popTextRef.current.show("Copied");
+        navigator.clipboard.writeText("192.168.0.94:3000/friend_request#user");
+        props.popTextRef.current.show("Copied link to clipboard");
         props.close();
-        //navigator.clipboard.writeText("192.168.0.94:3000/friend_request#user");
     }
 
     return (

@@ -1,6 +1,5 @@
 //page made for test purpose
-import React, {useState} from 'react';
-import {sendPOST} from '../tools'
+import React from 'react';
 import NavBar from '../components/NavBar';
 
 function ColorPalettePage(props)

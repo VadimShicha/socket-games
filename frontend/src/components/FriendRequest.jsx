@@ -1,5 +1,4 @@
-import React, {useState} from 'react';
-import {sendPOST} from '../tools'
+import React from 'react';
 
 function FriendRequest(props)
 {
@@ -14,7 +13,7 @@ function FriendRequest(props)
     };
 
     return (
-        <tr className="friends_tr" style={{textAlign: "center"}}>
+        <tr className="friends_tr">
             <td className="friends_td friends_table_text"><b>{props.username}</b></td>
             <td className="friends_td"><button onClick={() => accept()} className="action_button accept_button"></button></td>
             <td className="friends_td"><button onClick={() => decline()} className="action_button decline_button"></button></td>

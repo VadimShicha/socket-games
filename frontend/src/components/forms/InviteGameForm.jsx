@@ -1,6 +1,5 @@
 import React, {useEffect, useState} from 'react';
 import {sendPOST} from '../../tools';
-import FriendItem from '../FriendItem';
 import Cookies from 'js-cookie';
 import InviteFriendItem from '../InviteFriendItem';
 

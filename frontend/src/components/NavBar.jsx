@@ -1,5 +1,5 @@
-import React, {useState, useRef, useEffect} from 'react';
-import {sendPOST} from '../tools'
+import React, {useState, useEffect} from 'react';
+import "./NavBar.css";
 
 const regularClass = "nav_bar_li";
 const selectedClass = "nav_bar_li_selected";
@@ -42,10 +42,10 @@ function NavBar(props)
     }, [props.page]);
 
     return (
-        <div className="nav_bar" style={{position: "fixed", width: "100vw", top: "0px", overflow: "hidden"}}>
-            <ul style={{listStyleType: "none", top: "0px", margin: "0px", padding: "0px", height: "40px", backgroundColor: "var(--dark-primary-color)"}}>
-                <img style={{position: "fixed", left: "0px"}} width="40" height="40" src="./ico.svg"></img>
-                <li style={{position: "fixed", left: "40px", padding: "6px", fontSize: "20px"}}><b>Socket Games</b></li>
+        <div className="nav_bar">
+            <ul className="nav_bar_ul">
+                <img className="nav_bar_image" src="./assets/ico.svg"></img>
+                <li className="nav_bar_title nav_bar_li"><b>Socket Games</b></li>
                 <li className={classNames[0][0]}><a href="/">Singleplayer</a></li>
                 <li className={classNames[1][0]}><a href="/multiplayer">Multiplayer</a></li>
                 <li className={classNames[2][0]}><a href="/social">Social</a></li>

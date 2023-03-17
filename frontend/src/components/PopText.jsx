@@ -1,5 +1,5 @@
-import React, {useEffect, useImperativeHandle, useState, useRef, createRef} from 'react';
-import {sendPOST} from '../tools'
+import React from 'react';
+import './PopText.css';
 
 class PopText extends React.Component
 {
@@ -18,13 +18,13 @@ class PopText extends React.Component
     {
         this.setState({opacity: 1, text: text});
 
-        setTimeout(this.showFrame, 0.75 * 1000, this, text);
+        setTimeout(this.showFrame, 1 * 1000, this, text);
     }
 
     render()
     {
         return (
-            <div style={{opacity: this.state.opacity, transition: "opacity 0.75s ease", backgroundColor: "var(--secondary-color)"}}>
+            <div className="center_align pop_text" style={{opacity: this.state.opacity}}>
                 <p>{this.state.text}</p>
             </div>
         );

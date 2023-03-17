@@ -1,0 +1,18 @@
+.pop_text
+{
+    position: absolute;
+    padding: 0px 10px 0px 10px;
+    width: fit-content;
+    height: fit-content;
+    inset: 0px 0px 0px 0px;
+    transition: opacity 1s ease;
+    margin: auto;
+    background-color: var(--secondary-color);
+}
+
+@keyframes pop_text
+{
+    0% {opacity: 0;}
+    50% {opacity: 1;}
+    100% {opacity: 0;}
+}

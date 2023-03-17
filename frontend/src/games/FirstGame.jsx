@@ -1,7 +1,5 @@
-import React, {useState, useRef, createRef, useEffect} from 'react';
-import {sendPOST} from '../tools';
+import React, {createRef} from 'react';
 import Matter from 'matter-js';
-import GamePage from '../pages/GamePage';
 
 const defaultRender = {fillStyle: "chocolate", strokeStyle: "white", lineWidth: 0};
 

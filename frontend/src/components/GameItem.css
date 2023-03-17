@@ -1,0 +1,39 @@
+.game_item_div
+{
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+.game_item_frame
+{
+    border: 3px solid black;
+    width: 225px;
+    height: 150px;
+}
+
+.game_item_textarea
+{
+    text-align: center;
+    padding: 0px;
+    resize: none;
+    outline: none;
+    border: none;
+    width: 225px;
+    height: 150px;
+}
+
+.game_item_name
+{
+    display: inline;
+}
+
+.game_item_play_button
+{
+    width: fit-content;
+    margin: 5px;
+}
+
+.game_item_info_button
+{
+    width: fit-content;
+}

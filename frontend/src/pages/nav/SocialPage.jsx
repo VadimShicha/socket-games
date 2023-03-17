@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, createRef} from 'react';
 import {sendPOST} from '../../tools';
 import Cookies from 'js-cookie';
 import FriendRequest from '../../components/FriendRequest';
@@ -7,11 +7,11 @@ import InviteGameItem from '../../components/InviteGameItem';
 import SendFriendRequestForm from '../../components/forms/SendFriendRequestForm';
 import PopText from '../../components/PopText';
 import NavBar from '../../components/NavBar';
+import "./SocialPage.css";
 
 function SocialPage(props)
 {
     const [sendRequestHidden, setSendRequestHidden] = useState(true);
-    // const [searchUsername, setSearchUsername] = useState("");
     const [sendRequestMessage, setSendRequestMessage] = useState("");
 
     const [requests, setRequests] = useState(<></>);
@@ -21,6 +21,8 @@ function SocialPage(props)
     const [requestsTableRows, setRequestsTableRows] = useState(0);
     const [friendTableRows, setFriendTableRows] = useState(0);
     const [gameInvitesTableRows, setGameInvitesTableRows] = useState(0);
+
+    const popTextRef = createRef();
 
     useEffect(() =>
     {
@@ -32,6 +34,8 @@ function SocialPage(props)
         sendPOST({requestID: "send_friend_request", username: name, token: Cookies.get("token")}, function(data)
         {
             setSendRequestMessage(data.message);
+            popTextRef.current.show(data.message);
+            sendFriendRequestClose();
         });
     }
 
@@ -104,43 +108,49 @@ function SocialPage(props)
         getGameInvites();
         getRequests();
         getFriends();
-        //props.popText.show("Refresh!");
+    }
+
+    function sendFriendRequestClose()
+    {
+        setSendRequestMessage(""); 
+        setSendRequestHidden(true);
     }
 
     return (
         <>
             <NavBar page={2}></NavBar>
+            <PopText ref={popTextRef}></PopText>
             <div className="nav_bar_body">
                 <h2>Social</h2>
-                <div className="center_align" style={{border: "0px solid black", width: "fit-content"}}>
+                <div className="center_align social_action_div">
                     <button title="Refresh" className="social_action_element action_button refresh_button" onClick={refresh}></button>
                     <button title="Add user" className="social_action_element action_button invite_button" onClick={() => {setSendRequestHidden(false)}}></button> 
                 </div>
 
-                <SendFriendRequestForm hidden={sendRequestHidden} search={searchFriend} message={sendRequestMessage} close={() => {setSendRequestMessage(""); setSendRequestHidden(true)}}></SendFriendRequestForm>
+                <SendFriendRequestForm popTextRef={popTextRef} hidden={sendRequestHidden} search={searchFriend} message={sendRequestMessage} close={sendFriendRequestClose}></SendFriendRequestForm>
                 
                 <br></br><br></br>
                 <div hidden={friendTableRows == 9}>
-                    <div hidden={gameInvitesTableRows == 0 && friendTableRows == 0 && requestsTableRows == 0} className="friends_div_template" style={{height: "305px"}}>
+                    <div hidden={gameInvitesTableRows == 0 && friendTableRows == 0 && requestsTableRows == 0} className="friends_div_template">
                         <div hidden={gameInvitesTableRows == 0}>
-                            <h3 style={{margin: "0px"}}>Game Invites</h3>
-                            <table className="friends_table_template" style={{width: "500px"}}>
+                            <h3 className="friends_table_title">Game Invites</h3>
+                            <table className="friends_table_template">
                                 <tbody>
                                     {gameInvites}
                                 </tbody>
                             </table>
                         </div>
                         <div hidden={friendTableRows == 0}>
-                            <h3 style={{margin: "0px"}}>Friends:</h3>
-                            <table className="friends_table_template" style={{width: "500px"}}>
+                            <h3 className="friends_table_title">Friends:</h3>
+                            <table className="friends_table_template">
                                 <tbody>
                                     {friends}
                                 </tbody>
                             </table>
                         </div>
                         <div hidden={requestsTableRows == 0}>
-                            <h3 style={{margin: "0px"}}>Requests:</h3>
-                            <table className="friends_table_template" style={{width: "500px"}}>
+                            <h3 className="friends_table_title">Requests:</h3>
+                            <table className="friends_table_template">
                                 <tbody>
                                     {requests}
                                 </tbody>
@@ -149,7 +159,6 @@ function SocialPage(props)
                     </div>
                 </div>
                 <br></br>
-                
             </div>
         </>
     )

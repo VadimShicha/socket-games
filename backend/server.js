@@ -4,7 +4,6 @@ const app = express();
 const http = require("http");
 const server = http.createServer(app);
 const config = require("./config");
-const tools = require("./tools");
 const user = require("./user");
 
 const rateLimiter = rateLimit({
@@ -59,7 +58,6 @@ app.post("/server", function(req, res)
     {
         user.getUsernameWithToken(req.body["token"], function(err, data)
         {
-            console.log(data);
             if(err)
                 res.send({success: false});
             else
