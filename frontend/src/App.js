@@ -15,6 +15,7 @@ import {sendPOST} from './tools';
 import Cookies from 'js-cookie';
 import PopText from './components/PopText';
 import './App.css';
+import CameraGame from './games/CameraGame';
 
 function App()
 {
@@ -99,6 +100,7 @@ function App()
 
                     <Route path="/game-first" element={<><GamePage></GamePage><FirstGame></FirstGame></>}></Route>
                     <Route path="/game-sling" element={<><GamePage></GamePage><SlingGame></SlingGame></>}></Route>
+                    <Route path="/game-camera" element={<><GamePage></GamePage><CameraGame></CameraGame></>}></Route>
 
                     <Route path="/color-palette" element={<ColorPalettePage></ColorPalettePage>}></Route>
 
