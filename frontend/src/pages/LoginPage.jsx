@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import {sendPOST} from '../tools'
 import Cookies from 'js-cookie';
+import "./SignPage.css";
 
 function LoginPage()
 {
@@ -49,11 +50,21 @@ function LoginPage()
     return (
         <>
             <h2>Login into an Account</h2>
-            <p>Login into an existing account or <a href="/sign_up">sign up</a></p>
-            <input onChange={e => setUsername(e.target.value)} placeholder="Username"></input><br></br><br></br>
-            <input onChange={e => setPassword(e.target.value)} placeholder="Password"></input><br></br><br></br>
-            <button onClick={login}>Login</button>
-            <p>{message}</p>
+            
+            <form onSubmit={(e) => {e.preventDefault()}} className="center_align sign_form">
+                <h3 className="sign_form_title">Login</h3>
+                <p className="sign_form_description">Login into an existing account or <a href="/sign_up">sign up</a></p>
+                <div>
+                    <label htmlFor="username">Username:</label>
+                    <input autoComplete="off" type="text" onChange={e => setUsername(e.target.value)} placeholder="Username" id="username"></input>
+                </div>
+                <div>
+                    <label htmlFor="password">Password:</label>
+                    <input type="password" onChange={e => setPassword(e.target.value)} placeholder="Password" id="password"></input>
+                </div>
+                <input type="submit" onClick={login} value="Login"></input>
+                <p>{message}</p>
+            </form>
 
             {/*CODE FOR TEST PURPOSE*/}
             <div style={{position: "absolute", left: "0px", top: "0px"}}>

@@ -1,0 +1,76 @@
+.sign_form
+{
+    background-color: var(--light-secondary-color);
+    border: 3px solid black;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    width: 325px;
+    display: inline-block;
+    border-radius: 20px;
+}
+
+.sign_form_title
+{
+    margin-top: 7px;
+    margin-bottom: 2px;
+}
+
+.sign_form_description
+{
+    margin: 12px;
+}
+
+.sign_form div
+{
+    display: inline-block;
+    width: fit-content;
+}
+
+.sign_form label
+{
+    width: 150px;
+    float: left;
+    text-align: left;
+    margin-left: 5px;
+    font-weight: 600;
+}
+
+.sign_form input[type="text"], .sign_form input[type="password"]
+{
+    border: 2px solid gray;
+    background-color: #f1f1f1;
+    width: 150px;
+    height: 20px;
+    padding: 2px;
+    font-size: 15px;
+    float: left;
+    margin-left: auto;
+    margin-right: 5px;
+    /* margin-left: 140px; */
+}
+
+.sign_form input[type="submit"]
+{
+    border: 2px solid gray;
+    width: 138px;
+    height: 25px;
+    font-size: 15px;
+    margin-top: 8px;
+}
+
+.sign_form input[type="submit"]:hover
+{
+    filter: brightness(90%);
+}
+
+.sign_form input[type="submit"]:active
+{
+    border-color: black;
+    filter: brightness(85%);
+}
+
+.sign_form input[type="text"]:focus, .sign_form input[type="password"]:focus
+{
+    outline: none;
+    border-color: black;
+}

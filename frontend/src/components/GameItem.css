@@ -4,6 +4,11 @@
     margin-right: 10px;
 }
 
+.game_item_frame_div
+{
+    height: 160px;
+}
+
 .game_item_frame
 {
     border: 3px solid black;

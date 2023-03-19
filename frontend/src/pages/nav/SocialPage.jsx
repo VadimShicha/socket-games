@@ -110,6 +110,12 @@ function SocialPage(props)
         getFriends();
     }
 
+    function refreshClicked()
+    {
+        refresh();
+        popTextRef.current.show("Refreshed");
+    }
+
     function sendFriendRequestClose()
     {
         setSendRequestMessage(""); 
@@ -123,7 +129,7 @@ function SocialPage(props)
             <div className="nav_bar_body">
                 <h2>Social</h2>
                 <div className="center_align social_action_div">
-                    <button title="Refresh" className="social_action_element action_button refresh_button" onClick={refresh}></button>
+                    <button title="Refresh" className="social_action_element action_button refresh_button" onClick={refreshClicked}></button>
                     <button title="Add user" className="social_action_element action_button invite_button" onClick={() => {setSendRequestHidden(false)}}></button> 
                 </div>
 

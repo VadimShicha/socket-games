@@ -32,7 +32,11 @@ app.post("/server", function(req, res)
     {
         user.loginUser(req.body["username"], req.body["password"], function(err, data)
         {
-            if(!err)
+            if(err)
+            {
+                res.send({message: data[0], code: data[1], success: false})
+            }
+            else
             {
                 user.getLoginToken(req.body["username"], function(err, newData)
                 {

@@ -8,6 +8,7 @@
     transition: opacity 1s ease;
     margin: auto;
     background-color: var(--secondary-color);
+    border-radius: 20px;
 }
 
 @keyframes pop_text

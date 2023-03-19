@@ -32,7 +32,7 @@ function GameItem(props)
 
     return (
         <div className="game_item_div">
-            <div>
+            <div className="game_item_frame_div">
                 <img className="game_item_frame" hidden={inInfo != false} src={props.imgURL}></img>
                 <div className="game_item_frame" hidden={inInfo != true}>
                     <textarea className="game_item_textarea" readOnly defaultValue={props.info}></textarea>

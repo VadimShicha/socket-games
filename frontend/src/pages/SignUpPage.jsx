@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import Cookies from 'js-cookie';
-import {sendPOST} from '../tools'
+import {sendPOST} from '../tools';
+import "./SignPage.css";
 
 function SignUpPage()
 {
@@ -56,22 +57,34 @@ function SignUpPage()
     return (
         <>
             <h2>Create an Account</h2>
-            <p>Create a new account or <a href="/login">login</a></p>
-
-            <label htmlFor="first_name">First Name:</label><br></br>
-            <input onChange={e => setFirstName(e.target.value)} placeholder="First Name" id="first_name"></input><br></br>
-            <label htmlFor="last_name">Last Name:</label><br></br>
-            <input onChange={e => setLastName(e.target.value)} placeholder="Last Name" id="last_name"></input><br></br>
-            <label htmlFor="username">Username:</label><br></br>
-            <input onChange={e => {e.target.value = e.target.value.toLowerCase(); setUsername(e.target.value)}} placeholder="Username" id="username"></input><br></br>
-            <label htmlFor="password">Password:</label><br></br>
-            <input onChange={e => setPassword(e.target.value)} placeholder="Password" id="password"></input><br></br>
-            <label htmlFor="confirm_password">Confirm Password:</label><br></br>
-            <input onChange={e => setConfirmPassword(e.target.value)} placeholder="Confirm Password" id="confirm_password"></input><br></br>
-            <br></br>
-
-            <button onClick={signUp}>Create Account</button>
-            <p>{message}</p>
+            
+            <form onSubmit={(e) => {e.preventDefault()}} className="center_align sign_form">
+                <h3 className="sign_form_title">Sign Up</h3>
+                <p className="sign_form_description">Create a new account or <a href="/login">login</a></p>
+                <div>
+                    <label htmlFor="first_name">First Name: </label>
+                    <input autoComplete="off" type="text" onChange={e => setFirstName(e.target.value)} placeholder="First Name" id="first_name"></input>
+                </div>
+                <div>
+                    <label htmlFor="last_name">Last Name: </label>
+                    <input autoComplete="off" type="text" onChange={e => setLastName(e.target.value)} placeholder="Last Name" id="last_name"></input>
+                </div>
+                <div>
+                    <label htmlFor="username">Username: </label>
+                    <input autoComplete="off" type="text" onChange={e => {e.target.value = e.target.value.toLowerCase(); setUsername(e.target.value)}} placeholder="Username" id="username"></input>
+                </div>
+                <div>
+                    <label htmlFor="password">Password: </label>
+                    <input type="password" onChange={e => setPassword(e.target.value)} placeholder="Password" id="password"></input>
+                </div>
+                <div>
+                    <label htmlFor="confirm_password">Confirm Password: </label>
+                    <input type="password" onChange={e => setConfirmPassword(e.target.value)} placeholder="Re-type Password" id="confirm_password"></input>
+                </div>
+                
+                <input type="submit" onClick={signUp} value="Create Account"></input>
+                <p>{message}</p>
+            </form>
 
             {/*CODE FOR TEST PURPOSE*/}
             <div style={{position: "absolute", left: "0px", top: "0px"}}>

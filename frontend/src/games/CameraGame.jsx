@@ -9,7 +9,7 @@ class CameraGame extends React.Component
         this.mainRef = createRef();
         this.loaded = false;
 
-        this.ground = Matter.Bodies.rectangle(400, 610, 810, 60,
+        this.ground = Matter.Bodies.rectangle(400, 610, 5000, 60,
         {
             isStatic: true,
             render:
@@ -19,8 +19,19 @@ class CameraGame extends React.Component
             }
         });
 
-        this.player = Matter.Bodies.circle(100, 100, 5,
+        this.roof = Matter.Bodies.rectangle(400, 0, 5000, 60,
         {
+            isStatic: true,
+            render:
+            {
+                fillStyle: "burlywood",
+                lineWidth: 0
+            }
+        });
+
+        this.player = Matter.Bodies.circle(100, 250, 20,
+        {
+            mass: 5,
             render:
             {
                 fillStyle: "red",
@@ -46,7 +57,7 @@ class CameraGame extends React.Component
             }
         });
 
-        Matter.Composite.add(this.engine.world, [this.player, this.ground]);
+        Matter.Composite.add(this.engine.world, [this.player, this.ground, this.roof]);
         Matter.Render.run(this.renderer);
 
         this.runner = Matter.Runner.create();
@@ -55,30 +66,34 @@ class CameraGame extends React.Component
 
         this.loaded = true;
         
+        setInterval(this.look, 1, this);
 
-        console.log(this.engine);
-
-        setInterval(this.look, 10, this);
-
-        document.addEventListener("keydown", function(e, _this)
-        {
-            console.log(e);
-        });
+        document.addEventListener("keyup", this.keyUp);
     };
 
-    look(_this)
+    keyUp = (e) =>
     {
-        Matter.Render.lookAt(_this.renderer, _this.player, {x: 500, y:500});
+        if(e.key == "a")
+            this.move(-1);
+        else if(e.key == "d")
+            this.move(1);
+        else if(e.key == " ")
+            this.move(0);
     }
 
-    move(_this, direction)
+    look = () =>
     {
-        let yVelocity = -0.15;
+        Matter.Render.lookAt(this.renderer, this.player, {x: 500, y:500});
+    }
+
+    move = (direction) =>
+    {
+        let yVelocity = 0;
 
         if(direction == 0)
             yVelocity = -0.3;
 
-        Matter.Body.applyForce(_this.player, _this.player.position, Matter.Vector.create(0.1 * direction, yVelocity));
+        Matter.Body.applyForce(this.player, this.player.position, Matter.Vector.create(0.1 * direction, yVelocity));
     }
 
     componentDidMount()
@@ -92,7 +107,6 @@ class CameraGame extends React.Component
         return (
             <div>
                 <div ref={this.mainRef}></div>
-                <button onClick={() => this.look(this)}>Look</button>
             </div>
         );
     };

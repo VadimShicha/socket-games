@@ -43,8 +43,6 @@ function App()
             //check if the login token is valid
             sendPOST({requestID: "auth_token", token: Cookies.get("token")}, function(data)
             {
-                console.log(data);
-                
                 //if the auth failed redirect to login page
                 if(!data.success)
                     window.location.href = "login";
