@@ -109,6 +109,11 @@ body
     background: url("../public/assets/link_box.svg");
 }
 
+.loading_button
+{
+    background: url("../public/assets/loading_box.svg");
+}
+
 .App-header
 {
     background-color: #282c34;

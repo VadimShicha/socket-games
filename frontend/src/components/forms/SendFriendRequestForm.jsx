@@ -1,11 +1,10 @@
 import React, {useEffect, useState, useRef, createRef} from 'react';
+import DataManager from '../../dataManager';
 
 function SendFriendRequestForm(props)
 {
     const [requestName, setRequestName] = useState("");
     const inputRef = useRef(null);
-
-    const popTextRef = createRef();
 
     //clear elements when the form opens
     useEffect(() =>
@@ -16,7 +15,7 @@ function SendFriendRequestForm(props)
     function link()
     {
         navigator.clipboard.writeText("192.168.0.94:3000/friend_request#user");
-        props.popTextRef.current.show("Copied link to clipboard");
+        DataManager.popTextRef.current.show("Copied link to clipboard");
         props.close();
     }
 

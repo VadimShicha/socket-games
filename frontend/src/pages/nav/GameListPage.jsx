@@ -2,11 +2,13 @@ import React from 'react';
 import GameItem from '../../components/GameItem';
 import NavBar from '../../components/NavBar';
 import './GameListPage.css';
+import AuthUser from '../../components/AuthUser';
 
 function GameListPage()
 {
     return (
         <>
+            <AuthUser></AuthUser>
             <NavBar page={0}></NavBar>
             <div className="nav_bar_body">
                 <h2>Select a Game to Play!</h2>

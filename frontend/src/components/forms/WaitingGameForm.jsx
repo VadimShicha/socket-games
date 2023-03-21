@@ -3,10 +3,8 @@ import {sendPOST} from '../../tools';
 import Cookies from 'js-cookie';
 import InviteFriendItem from '../InviteFriendItem';
 
-function InviteGameForm(props)
+function WaitingGameForm(props)
 {
-    const [waiting, setWaiting] = useState(false);
-    
     const [friends, setFriends] = useState(<></>);
     const [friendTableRows, setFriendTableRows] = useState(0);
     const [loading, setLoading] = useState(-1);
@@ -39,7 +37,7 @@ function InviteGameForm(props)
     
     return (
         <div hidden={props.hidden} className="form_template invite_game_div center_align" style={{width: "400px", height: "260px"}}>
-            <h3>Invite a Friend to Join You!</h3>
+            <h3>Waiting for {props.name}</h3>
             <button onClick={props.close} className="invite_game_div_close action_button decline_button"></button>
             <div hidden={friendTableRows == 0}>
                 <div className="friends_div_template" style={{height: "150px"}}>
@@ -48,9 +46,9 @@ function InviteGameForm(props)
                     </table>
                 </div>
             </div>
-            {/* <p>{props.message}</p> */}
+            <p>{props.message}</p>
         </div>
     );
 }
 
-export default InviteGameForm;
+export default WaitingGameForm;

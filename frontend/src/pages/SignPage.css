@@ -1,7 +1,7 @@
 .sign_form
 {
     background-color: var(--light-secondary-color);
-    border: 3px solid black;
+    border: 2px solid black;
     padding-top: 5px;
     padding-bottom: 5px;
     width: 325px;

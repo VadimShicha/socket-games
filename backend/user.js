@@ -1,6 +1,8 @@
 const tools = require("./tools");
 const config = require("./config");
 
+let gameInvites = []; //[toUser, fromUser, epochTime]
+
 //create a new user (returns message, code)
 /* CODE - MESSAGE
     0 - success
@@ -409,3 +411,5 @@ exports.declineFriendRequest = function(username, declineUsername, callback)
         }
     });
 };
+
+//

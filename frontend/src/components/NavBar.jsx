@@ -1,5 +1,7 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useContext} from 'react';
+import {Link} from 'react-router-dom';
 import "./NavBar.css";
+import DataManager from '../dataManager';
 
 const regularClass = "nav_bar_li";
 const selectedClass = "nav_bar_li_selected";
@@ -56,10 +58,10 @@ function NavBar(props)
                 <ul className="nav_bar_ul">
                     <img className="nav_bar_image" src="/assets/ico.svg"></img>
                     <li className="nav_bar_title nav_bar_li nav_bar_regular"><a className="nav_bar_title_a" href="/"><b>Socket Games</b></a></li>
-                    <li className={`${classNames[0][0]} nav_bar_text nav_bar_regular`}><a href="/">Singleplayer</a></li>
-                    <li className={`${classNames[1][0]} nav_bar_text nav_bar_regular`}><a href="/multiplayer">Multiplayer</a></li>
-                    <li className={`${classNames[2][0]} nav_bar_text nav_bar_regular`}><a href="/social">Social</a></li>
-                    <li className={`${classNames[3][0]} nav_bar_text nav_bar_regular`}><a href="/settings">Settings</a></li>
+                    <li className={`${classNames[0][0]} nav_bar_text nav_bar_regular`}><Link to="/">Singleplayer</Link></li>
+                    <li className={`${classNames[1][0]} nav_bar_text nav_bar_regular`}><Link to="/multiplayer">Multiplayer</Link></li>
+                    <li className={`${classNames[2][0]} nav_bar_text nav_bar_regular`}><Link to="/social">Social</Link></li>
+                    <li className={`${classNames[3][0]} nav_bar_text nav_bar_regular`}><Link to="/settings">Settings</Link></li>
                     <div className="nav_bar_short">
                         <li className="nav_bar_center_title nav_bar_title nav_bar_li"><a className="nav_bar_title_a" href="/"><b>Socket Games</b></a></li>
                         <button className="nav_bar_menu_button" onClick={() => setMenuHidden(!menuHidden)}></button>

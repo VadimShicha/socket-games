@@ -2,6 +2,7 @@ import React from 'react';
 import {sendPOST} from '../../tools';
 import Cookies from 'js-cookie';
 import NavBar from '../../components/NavBar';
+import AuthUser from '../../components/AuthUser';
 
 function SettingsPage()
 {
@@ -17,6 +18,7 @@ function SettingsPage()
 
     return (
         <>
+            <AuthUser></AuthUser>
             <NavBar page={3}></NavBar>
             <div className="nav_bar_body">
                 <h2>Settings</h2>

@@ -1,14 +1,18 @@
-import React, {useState} from 'react';
+import React, {useState, createRef} from 'react';
 import GameItem from '../../components/GameItem';
 import {sendPOST} from '../../tools'
 import InviteGameForm from '../../components/forms/InviteGameForm';
 import Cookies from 'js-cookie';
 import NavBar from '../../components/NavBar';
+import AuthUser from '../../components/AuthUser';
+import DataManager from '../../dataManager';
+import { socket } from '../../socket';
 
 function GameListPage()
 {
     const [inviteGameHidden, setInviteGameHidden] = useState(true);
     const [hasFriends, setHasFriends] = useState(false);
+    const [gameName, setGameName] = useState("");
 
     const [inviteGameMessage, setInviteGameMessage] = useState("");
 
@@ -21,6 +25,7 @@ function GameListPage()
                 if(data.result.length > 0)
                 {
                     setInviteGameHidden(false);
+                    setGameName(name);
                 }
             }
         });
@@ -37,23 +42,34 @@ function GameListPage()
         }
     });
 
+    socket.on("game_invite_sent", function(data)
+    {
+        console.log(data);
+    });
+
     function send(username)
     {
         console.log(username);
-        sendPOST({requestID: "send_game_invite", username: username, token: Cookies.get("token")}, function(data)
+        socket.emit("send_game_invite", {gameName: gameName, toUser: username, token: Cookies.get("token")}, function(data)
         {
-            console.log(data);
-            setInviteGameMessage(data.message);
-
-            if(data.success)
-            {
-                
-            }
+            setInviteGameMessage(data[0]);
+            DataManager.popTextRef.current.show(data[0]);
         });
+        // sendPOST({requestID: "send_game_invite", username: username, token: Cookies.get("token")}, function(data)
+        // {
+        //     console.log(data);
+        //     setInviteGameMessage(data.message);
+
+        //     if(data.success)
+        //     {
+        //         
+        //     }
+        // });
     }
 
     return (
         <>
+            <AuthUser></AuthUser>
             <NavBar page={1}></NavBar>
             <div className="nav_bar_body">
                 <h2>Select a 2-Player Game to Play!</h2>

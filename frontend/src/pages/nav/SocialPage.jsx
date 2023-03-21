@@ -1,13 +1,16 @@
-import React, {useEffect, useState, createRef} from 'react';
+import React, {useEffect, useState} from 'react';
 import {sendPOST} from '../../tools';
 import Cookies from 'js-cookie';
 import FriendRequest from '../../components/FriendRequest';
 import FriendItem from '../../components/FriendItem';
 import InviteGameItem from '../../components/InviteGameItem';
 import SendFriendRequestForm from '../../components/forms/SendFriendRequestForm';
-import PopText from '../../components/PopText';
 import NavBar from '../../components/NavBar';
 import "./SocialPage.css";
+import AuthUser from '../../components/AuthUser';
+import DataManager from '../../dataManager';
+import { socket } from '../../socket';
+import { useNavigate } from 'react-router-dom';
 
 function SocialPage(props)
 {
@@ -16,25 +19,34 @@ function SocialPage(props)
 
     const [requests, setRequests] = useState(<></>);
     const [friends, setFriends] = useState(<></>);
-    const [gameInvites, setGameInvites] = useState(<></>);
+    const [gameInvites, setGameInvites] = useState([].map(item => <></>));
 
     const [requestsTableRows, setRequestsTableRows] = useState(0);
     const [friendTableRows, setFriendTableRows] = useState(0);
     const [gameInvitesTableRows, setGameInvitesTableRows] = useState(0);
 
-    const popTextRef = createRef();
-
-    useEffect(() =>
+    function load()
     {
         refresh();
-    }, [props.load]);
+        socket.on("game_invite_sent", (args) =>
+        {
+            console.log("SH");
+            console.log(args);
+
+            let element = gameInvites;
+            element.push(<InviteGameItem key={args} accept={() => acceptGameInvite(args.gameName, args.fromUser)} decline={() => declineGameInvite(args.gameName, args.fromUser)} gameName={args.gameName} username={args.fromUser}></InviteGameItem>);
+            
+            setGameInvites(element);
+            setGameInvitesTableRows(gameInvitesTableRows + 1);
+        });
+    }
 
     function searchFriend(name)
     {
         sendPOST({requestID: "send_friend_request", username: name, token: Cookies.get("token")}, function(data)
         {
             setSendRequestMessage(data.message);
-            popTextRef.current.show(data.message);
+            DataManager.popTextRef.current.show(data.message);
             sendFriendRequestClose();
         });
     }
@@ -59,6 +71,34 @@ function SocialPage(props)
                 getRequests();
             }
         });
+    }
+
+    function removeGameInvite(fromUser)
+    {
+        let element = gameInvites;
+
+        for(let i = 0; i < element.length; i++)
+            if(element[i].props.username == fromUser)
+                element.splice(i, 1);
+
+        
+        setGameInvites(element);
+        setGameInvitesTableRows(gameInvitesTableRows - 1);
+    }
+
+    function acceptGameInvite(gameName, username)
+    {
+        socket.emit("accept_game_invite", {gameName: gameName, fromUser: username, token: Cookies.get("token")});
+
+
+        removeGameInvite(username);
+    }
+
+    function declineGameInvite(gameName, username)
+    {
+        socket.emit("decline_game_invite", {gameName: gameName, fromUser: username, token: Cookies.get("token")});
+
+        removeGameInvite(username);
     }
 
     function getRequests()
@@ -95,9 +135,12 @@ function SocialPage(props)
         {
             if(data.success)
             {
+                console.log(data.result);
                 setGameInvitesTableRows(data.result.length);
                 let element = data.result.map((item) =>
-                    <InviteGameItem key={item} username={item}></InviteGameItem>);
+                    <InviteGameItem key={item[2]} accept={() => acceptGameInvite(item[0], item[2])} decline={() => declineGameInvite(item[0], item[2])} gameName={item[0]} username={item[2]}></InviteGameItem>);
+
+                //element.push(<InviteGameItem key={"Bob"} gameName={"NAME"} username={"Bob"}></InviteGameItem>)
                 setGameInvites(element);
             }
         });
@@ -113,7 +156,7 @@ function SocialPage(props)
     function refreshClicked()
     {
         refresh();
-        popTextRef.current.show("Refreshed");
+        DataManager.popTextRef.current.show("Refreshed");
     }
 
     function sendFriendRequestClose()
@@ -123,9 +166,9 @@ function SocialPage(props)
     }
 
     return (
-        <>
+        <div onLoad={load}>
+            <AuthUser></AuthUser>
             <NavBar page={2}></NavBar>
-            <PopText ref={popTextRef}></PopText>
             <div className="nav_bar_body">
                 <h2>Social</h2>
                 <div className="center_align social_action_div">
@@ -133,12 +176,12 @@ function SocialPage(props)
                     <button title="Add user" className="social_action_element action_button invite_button" onClick={() => {setSendRequestHidden(false)}}></button> 
                 </div>
 
-                <SendFriendRequestForm popTextRef={popTextRef} hidden={sendRequestHidden} search={searchFriend} message={sendRequestMessage} close={sendFriendRequestClose}></SendFriendRequestForm>
+                <SendFriendRequestForm hidden={sendRequestHidden} search={searchFriend} message={sendRequestMessage} close={sendFriendRequestClose}></SendFriendRequestForm>
                 
                 <br></br><br></br>
                 <div hidden={friendTableRows == 9}>
                     <div hidden={gameInvitesTableRows == 0 && friendTableRows == 0 && requestsTableRows == 0} className="friends_div_template">
-                        <div hidden={gameInvitesTableRows == 0}>
+                        <div hidden={gameInvitesTableRows <= 0}>
                             <h3 className="friends_table_title">Game Invites</h3>
                             <table className="friends_table_template">
                                 <tbody>
@@ -166,7 +209,7 @@ function SocialPage(props)
                 </div>
                 <br></br>
             </div>
-        </>
+        </div>
     )
 }
 

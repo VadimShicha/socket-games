@@ -12,6 +12,7 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.8.1",
     "react-scripts": "^5.0.1",
+    "socket.io-client": "^4.6.1",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
@@ -40,5 +41,5 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://127.0.0.1:5000/"
+  "proxy": "http://192.168.0.94:5000/"
 }
