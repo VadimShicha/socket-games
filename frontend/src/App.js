@@ -1,6 +1,7 @@
-import {useEffect, useState, createContext} from 'react';
-import {BrowserRouter, Routes, Route, useNavigate, Navigation} from 'react-router-dom';
-import {Redirect} from 'react-router';
+import React, {useState, useEffect, createRef} from 'react';
+import {BrowserRouter, Routes, Route} from 'react-router-dom';
+import {redirect} from 'react-router-dom';
+import SentGameInviteForm from "./components/forms/SentGameInviteForm";
 import SignUpPage from './pages/SignUpPage';
 import LoginPage from './pages/LoginPage';
 import SettingsPage from './pages/nav/SettingsPage';
@@ -11,55 +12,73 @@ import GamePage from './pages/GamePage';
 import FirstGame from './games/FirstGame';
 import SlingGame from './games/SlingGame';
 import SocialPage from './pages/nav/SocialPage';
-import './App.css';
 import CameraGame from './games/CameraGame';
 import NotFoundPage from './pages/NotFoundPage';
 import DataManager from './dataManager';
 import PopText from './components/PopText';
 import FirstMultiGame from './multi_games/FirstMultiGame';
 import {socket} from './socket';
+import Cookies from 'js-cookie';
+import MainContent from './components/MainContent';
+import './App.css';
 
 function App()
 {
-    // const [nextNavigate, setNextNavigate] = useState(null);
-    // console.log("BLAH");
+    let gameInvites = [];
+    const sentGameInviteRef = createRef();
 
-    
+    let ranStart = false;
 
-    // useEffect(() =>
-    // {
-    //     if(nextNavigate == null)
-    //         return;
-
-    //     navigate(nextNavigate);
-    //     setNextNavigate(null);
-    // }, [nextNavigate]);
-
-
-    function load()
+    useEffect(() =>
     {
-        console.log("SJHdj");
-        //const navigate = useNavigate();
-        socket.on("send_to_game", (args) =>
+        if(ranStart)
+            return;
+
+        socket.on("game_invite_sent", function(data)
         {
-            console.log("SDHDh");
-            //DataManager.navigate("/multiplayer/game-" + args.gameName);
+            console.log(data);
+            console.log(sentGameInviteRef);
+            gameInvites.push([data.gameName, data.fromUser]);
+            sentGameInviteRef.current.show(data.gameName, data.fromUser);
+        });
 
-            //setNextNavigate("/multiplayer/game-" + args.gameName);
-        });  
+        ranStart = true;
+    }, []);
+
+    function removeGameInvite(gameName, username)
+    {
+        for(let i = 0; i < gameInvites.length; i++)
+            if(gameInvites[i][0] == gameName && gameInvites[i][1] == username)
+            {
+                gameInvites.splice(i, 1);
+                break;
+            }
     }
-    
 
-    
+    function acceptGameInvite(gameName, username)
+    {
+        removeGameInvite(gameName, username);
+
+        socket.emit("accept_game_invite", {gameName: gameName, fromUser: username, token: Cookies.get("token")});
+        return redirect("/login");
+    }
+
+    function declineGameInvite(gameName, username)
+    {
+        removeGameInvite(gameName, username);
+
+        socket.emit("decline_game_invite", {gameName: gameName, fromUser: username, token: Cookies.get("token")});
+    }
 
     return (
         <div className="App">
             <PopText ref={DataManager.popTextRef}></PopText>
             <BrowserRouter>
-                <Routes onLoad={load}>
+                <SentGameInviteForm ref={sentGameInviteRef} accept={acceptGameInvite} decline={declineGameInvite}></SentGameInviteForm>
+                <Routes>
                     <Route index element={<GameListPage/>}></Route>
                     <Route path="/multiplayer" element={<MultiGameListPage/>}></Route>
-                    <Route path="/social" element={<SocialPage/>}></Route>
+                    <Route path="/social" element={<SocialPage gameInvites={gameInvites} removeGameInvite={removeGameInvite}/>}></Route>
                     <Route path="/settings" element={<SettingsPage/>}></Route>
 
                     <Route path="/login" element={<LoginPage></LoginPage>}></Route>

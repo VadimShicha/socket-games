@@ -49,10 +49,7 @@ body
 .form_template
 {
     position: absolute;
-    left: 0px;
-    right: 0px;
     background-color: var(--light-secondary-color);
-    border-radius: 30px;
 }
 
 .action_button

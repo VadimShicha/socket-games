@@ -10,7 +10,6 @@ import "./SocialPage.css";
 import AuthUser from '../../components/AuthUser';
 import DataManager from '../../dataManager';
 import { socket } from '../../socket';
-import { useNavigate } from 'react-router-dom';
 
 function SocialPage(props)
 {
@@ -88,14 +87,15 @@ function SocialPage(props)
 
     function acceptGameInvite(gameName, username)
     {
+        props.removeGameInvite(gameName, username);
         socket.emit("accept_game_invite", {gameName: gameName, fromUser: username, token: Cookies.get("token")});
-
 
         removeGameInvite(username);
     }
 
     function declineGameInvite(gameName, username)
     {
+        props.removeGameInvite(gameName, username);
         socket.emit("decline_game_invite", {gameName: gameName, fromUser: username, token: Cookies.get("token")});
 
         removeGameInvite(username);
@@ -131,19 +131,25 @@ function SocialPage(props)
 
     function getGameInvites()
     {
-        sendPOST({requestID: "get_game_invites", token: Cookies.get("token")}, function(data)
-        {
-            if(data.success)
-            {
-                console.log(data.result);
-                setGameInvitesTableRows(data.result.length);
-                let element = data.result.map((item) =>
-                    <InviteGameItem key={item[2]} accept={() => acceptGameInvite(item[0], item[2])} decline={() => declineGameInvite(item[0], item[2])} gameName={item[0]} username={item[2]}></InviteGameItem>);
+        // sendPOST({requestID: "get_game_invites", token: Cookies.get("token")}, function(data)
+        // {
+        //     if(data.success)
+        //     {
+        //         console.log(data.result);
+        //         setGameInvitesTableRows(data.result.length);
+        //         let element = data.result.map((item) =>
+        //             <InviteGameItem key={item[2]} accept={() => acceptGameInvite(item[0], item[2])} decline={() => declineGameInvite(item[0], item[2])} gameName={item[0]} username={item[2]}></InviteGameItem>);
 
-                //element.push(<InviteGameItem key={"Bob"} gameName={"NAME"} username={"Bob"}></InviteGameItem>)
-                setGameInvites(element);
-            }
-        });
+        //         //element.push(<InviteGameItem key={"Bob"} gameName={"NAME"} username={"Bob"}></InviteGameItem>)
+        //         setGameInvites(element);
+        //     }
+        // });
+
+        setGameInvitesTableRows(props.gameInvites.length);
+        let element = props.gameInvites.map((item) =>
+            <InviteGameItem key={item[1]} accept={() => acceptGameInvite(item[0], item[1])} decline={() => declineGameInvite(item[0], item[1])} gameName={item[0]} username={item[1]}></InviteGameItem>);
+
+        setGameInvites(element);
     }
 
     function refresh()

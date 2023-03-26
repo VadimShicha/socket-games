@@ -197,6 +197,9 @@ let sockets = []; //[socket, username]
 
 io.on("connection", (socket) =>
 {
+    socket.emit()
+
+
     socket.on("send_game_invite", (args, callback) =>
     {
         console.log(args);
@@ -221,7 +224,8 @@ io.on("connection", (socket) =>
                 {
                     if(sockets[i][1] == args["toUser"])
                     {
-                        gameInvites.push([args["gameName"], args["toUser"], data]);
+                        
+                        //gameInvites.push([args["gameName"], args["toUser"], data]);
                         sockets[i][0].emit("game_invite_sent", {gameName: args["gameName"], fromUser: data});
                         console.log("SENT");
                         callback(["Sent request to " + args["toUser"], 0])
@@ -240,21 +244,29 @@ io.on("connection", (socket) =>
         {
             if(!err)
             {
-                let gameSockets = [];
-                console.log(data);
-                console.log(args["fromUser"]);
+                // let gameSockets = [];
+                // console.log(data);
+                // console.log(args["fromUser"]);
+
+                // for(let i = 0; i < sockets.length; i++)
+                //     if(sockets[i][1] == data || sockets[i][1] == args["fromUser"])
+                //     {
+                //         sockets[i][0].emit("send_to_game", {gameName: args["gameName"]});
+                //         //sockets[i][0].join("game");//gameSockets.push(sockets[i]);
+                //         console.log(sockets[i][1]);
+                //     }
+                
+                // //console.log(io.of("game").clients.length);
+                // gameInvites = gameInvites.filter(invite => !(invite[1] == data && invite[2] == args["fromUser"])); //remove the game invite
+                // io.to("game").emit("send_to_game", {gameName: args["gameName"]});
 
                 for(let i = 0; i < sockets.length; i++)
-                    if(sockets[i][1] == data || sockets[i][1] == args["fromUser"])
+                    if(sockets[i][1] == args["fromUser"])
                     {
-                        sockets[i][0].emit("send_to_game", {gameName: args["gameName"]});
+                        sockets[i][0].emit("send_to_game", {gameName: args["gameName"], toUser: data});
                         //sockets[i][0].join("game");//gameSockets.push(sockets[i]);
-                        console.log(sockets[i][1]);
+                        //console.log(sockets[i][1]);
                     }
-                
-                //console.log(io.of("game").clients.length);
-                gameInvites = gameInvites.filter(invite => !(invite[1] == data && invite[2] == args["fromUser"])); //remove the game invite
-                io.to("game").emit("send_to_game", {gameName: args["gameName"]});
             }
         });
     });
@@ -265,7 +277,12 @@ io.on("connection", (socket) =>
         {
             if(!err)
             {
-                gameInvites = gameInvites.filter(invite => !(invite[1] == data && invite[2] == args["fromUser"]));
+                for(let i = 0; i < sockets.length; i++)
+                    if(sockets[i][1] == args["fromUser"])
+                    {
+                        sockets[i][0].emit("game_invite_declined", {gameName: args["gameName"], toUser: data});
+                    }
+                //gameInvites = gameInvites.filter(invite => !(invite[1] == data && invite[2] == args["fromUser"]));
             }
         });
     });
