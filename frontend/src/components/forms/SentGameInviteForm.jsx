@@ -8,16 +8,16 @@ class SendFriendRequestForm extends React.Component
     constructor(props)
     {
         super(props);
-        this.state = {opacity: 0, hidden: true, username: "", gameName: ""};
+        this.state = {opacity: 0, hidden: true, username: "", gameTitle: ""};
         this.showTimeoutID = null;
     }
 
-    setHiddenAfterHide(_this)
+    setHiddenAfterHide()
     {
-        _this.setState({opacity: 0, hidden: true, username: "", gameName: ""});
+        this.setState({opacity: 0, hidden: true, username: "", gameName: ""});
     }
 
-    hide(_this)
+    hide()
     {
         if(this.showTimeoutID != null)
         {
@@ -25,16 +25,16 @@ class SendFriendRequestForm extends React.Component
             this.showTimeoutID = null;
         }
 
-        _this.setState({opacity: 0, hidden: false, username: _this.state.username, gameName: _this.state.gameName});
+        this.setState({opacity: 0, hidden: false, username: this.state.username, gameName: this.state.gameName});
 
-        setTimeout(this.setHiddenAfterHide, 500, this);
+        setTimeout(this.setHiddenAfterHide.bind(this), 500, this);
     }
 
     show(gameName, username)
     {
         this.setState({opacity: 1, hidden: false, username: username, gameName: gameName});
 
-        this.showTimeoutID = setTimeout(this.hide, 5000, this);
+        this.showTimeoutID = setTimeout(this.hide.bind(this), 5000, this);
     }
 
     render()
@@ -42,11 +42,11 @@ class SendFriendRequestForm extends React.Component
         return (
             <div hidden={this.state.hidden}>
                 <div style={{opacity: this.state.opacity}} className="form_template center_align sent_game_invite_form">
-                    <p><b>{this.state.username}</b> invited you to play <b>{this.state.gameName}</b></p>
+                    <p><b>{this.state.username}</b> invited you to play <b>{this.state.gameTitle}</b></p>
 
                     <div className="sent_game_invite_form_actions">
-                        <Link to={"/multiplayer/game-" + this.state.gameName.toLowerCase()}><button onClick={() => {this.hide(this); this.props.accept(this.state.gameName, this.state.username)}} className="action_button accept_button"></button></Link>
-                        <button onClick={() => {this.hide(this); this.props.decline(this.state.gameName, this.state.username)}} className="action_button decline_button"></button>
+                        <Link to={"/multiplayer/game-" + this.state.gameName.toLowerCase()}><button onClick={() => {this.hide.bind(this); this.props.accept(this.state.gameName, this.state.username)}} className="action_button accept_button"></button></Link>
+                        <button onClick={() => {this.hide.bind(this); this.props.decline(this.state.gameName, this.state.username)}} className="action_button decline_button"></button>
                     </div>
                 </div>
             </div>

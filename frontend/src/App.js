@@ -1,4 +1,4 @@
-import React, {useState, useEffect, createRef} from 'react';
+import React, {useState, useEffect, createRef, useRef} from 'react';
 import {BrowserRouter, Routes, Route} from 'react-router-dom';
 import {redirect} from 'react-router-dom';
 import SentGameInviteForm from "./components/forms/SentGameInviteForm";
@@ -21,11 +21,12 @@ import {socket} from './socket';
 import Cookies from 'js-cookie';
 import MainContent from './components/MainContent';
 import './App.css';
+import TicTacToeMultiGame from './multi_games/TicTacToeMultiGame';
 
 function App()
 {
-    let gameInvites = [];
-    const sentGameInviteRef = createRef();
+    const [gameInvites, setGameInvites] = useState([]);
+    const sentGameInviteRef = useRef(null);
 
     let ranStart = false;
 
@@ -38,7 +39,7 @@ function App()
         {
             console.log(data);
             console.log(sentGameInviteRef);
-            gameInvites.push([data.gameName, data.fromUser]);
+            setGameInvites(gameInvites.concat([[data.gameName, data.fromUser]]));
             sentGameInviteRef.current.show(data.gameName, data.fromUser);
         });
 
@@ -47,19 +48,18 @@ function App()
 
     function removeGameInvite(gameName, username)
     {
-        for(let i = 0; i < gameInvites.length; i++)
-            if(gameInvites[i][0] == gameName && gameInvites[i][1] == username)
-            {
-                gameInvites.splice(i, 1);
-                break;
-            }
+        setGameInvites(gameInvites.filter(invite => (invite[0] != gameName && invite[1] != username)));
     }
 
     function acceptGameInvite(gameName, username)
     {
         removeGameInvite(gameName, username);
 
-        socket.emit("accept_game_invite", {gameName: gameName, fromUser: username, token: Cookies.get("token")});
+        socket.emit("accept_game_invite", {gameName: gameName, fromUser: username, token: Cookies.get("token")}, function(data)
+        {
+            Cookies.set("gameID", data.gameID);
+        });
+
         return redirect("/login");
     }
 
@@ -89,6 +89,7 @@ function App()
                     <Route path="/game-camera" element={<><GamePage/><CameraGame/></>}></Route>
 
                     <Route path="/multiplayer/game-first" element={<><GamePage/><FirstMultiGame/></>}></Route>
+                    <Route path="/multiplayer/game-tic_tac_toe" element={<><GamePage/><TicTacToeMultiGame/></>}></Route>
 
                     <Route path="/color-palette" element={<ColorPalettePage></ColorPalettePage>}></Route>
 

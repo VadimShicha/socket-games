@@ -13,7 +13,7 @@ function GameListPage()
 {
     const [inviteGameHidden, setInviteGameHidden] = useState(true);
     const [inviteGameWaiting, setInviteGameWaiting] = useState(false);
-    const [hasFriends, setHasFriends] = useState(false);
+    const [hasFriends, setHasFriends] = useState(true);
     const [gameName, setGameName] = useState("");
 
     const [inviteGameMessage, setInviteGameMessage] = useState("");
@@ -73,9 +73,9 @@ function GameListPage()
             console.log(data.result.length);
             if(data.success)
             {
-                if(data.result.length > 0)
+                if(data.result.length <= 0)
                 {
-                    setHasFriends(true);
+                    setHasFriends(false);
                 }
             }
         });
@@ -91,6 +91,7 @@ function GameListPage()
         socket.on("send_to_game", function(data)
         {
             console.log(data);
+            Cookies.set("gameID", data.gameID);
             setRenderComponent(<Navigate to={"/multiplayer/game-" + data.gameName.toLowerCase()}></Navigate>);
         });
 
@@ -109,7 +110,8 @@ function GameListPage()
                 <InviteGameForm hidden={inviteGameHidden} waiting={inviteGameWaiting} send={send} close={() => setInviteGameHidden(true)} message={inviteGameMessage} active={!inviteGameHidden}></InviteGameForm>
                 
                 <div className="game_items">
-                    <GameItem playHidden={!hasFriends} multi={true} info={"First 2-player game"} play={play} imgURL="../assets/first_multi_game.png" name="First"></GameItem>
+                    <GameItem playHidden={!hasFriends} multi={true} info={"First 2-player game\n\nThis game is made to test multiplayer."} play={play} imgURL="../assets/first_multi_game.png" gameUrl="first" title="First"></GameItem>
+                    <GameItem playHidden={!hasFriends} multi={true} info={"Tic Tac Toe\n\nPlayed on a board that looks like this:\n\n   |   |   \n---+---+---\n   |   |   \n---+---+---\n   |   |   \n\nYou and your opponent take turns placing X's and O's. First to get a 3 in a row wins! If neither get a 3 in a row the game ends in a draw.\n\n\nMade on 3/26/2023"} play={play} imgURL="../assets/example/game_image3.png" gameUrl="tic_tac_toe" title="Tic Tac Toe"></GameItem>
                 </div>
             </div>
         </>

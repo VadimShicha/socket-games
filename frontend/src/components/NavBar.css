@@ -75,7 +75,7 @@ li a
 {
     /* background-color: #66ceab; */
 
-    filter: brightness(93%);
+    filter: brightness(87.5%);
 }
 
 .nav_bar_li_selected
@@ -83,7 +83,7 @@ li a
     display: inline-block;
     /* background-color: #48e8b2; */
     /* background-color: var(--primary-color); */
-    filter: brightness(85%);
+    filter: brightness(80%);
 }
 
 .nav_bar_menu_button

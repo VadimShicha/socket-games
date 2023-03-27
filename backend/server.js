@@ -7,6 +7,7 @@ const config = require("./config");
 const user = require("./user");
 const socketio = require("socket.io");
 const cookie = require("cookie");
+const Matter = require("matter-js");
 
 const rateLimiter = rateLimit({
     windowMs: 5 * 1000,
@@ -18,7 +19,8 @@ setInterval(function()
     user.deleteExpiredTokens(function(){});
 }, 30 * 1000);
 
-let gameInvites = []; //[gameName, toUser, fromUser]
+// let gameInvites = []; //[gameName, toUser, fromUser]
+let games = []; //[gameID/roomID, gameName, [sockets], gameData]
 
 app.use(rateLimiter);
 app.use(express.json());
@@ -29,7 +31,20 @@ app.post("/server", function(req, res)
     {
         user.createUser(req.body["firstName"], req.body["lastName"], req.body["username"], req.body["password"], req.body["confirmPassword"], function(err, data)
         {
-            res.send({message: data[0], code: data[1], success: data[1] == 0});
+            if(data[1] == 0)
+            {
+                user.getLoginToken(req.body["username"], function(err, newData)
+                {
+                    if(!err)
+                    {
+                        res.send({message: data[0], code: data[1], token: newData, success: true});
+                    }
+                });
+            }
+            else
+            {
+                res.send({message: data[0], code: data[1], success: false});
+            }
         });
     }
     else if(req.body["requestID"] == "login")
@@ -160,23 +175,6 @@ app.post("/server", function(req, res)
             }
         });
     }
-    else if(req.body["requestID"] == "get_game_invites")
-    {
-        user.getUsernameWithToken(req.body["token"], function(err, data)
-        {
-            if(!err)
-            {
-                let invites = gameInvites.filter(invite => invite[1] == data);
-                console.log(invites);
-                console.log(gameInvites);
-                res.send({success: true, result: invites});
-            }
-            else
-            {
-                res.send({success: false});
-            }
-        });
-    }
     else
     {
         res.send({success: false});
@@ -197,38 +195,33 @@ let sockets = []; //[socket, username]
 
 io.on("connection", (socket) =>
 {
-    socket.emit()
-
-
     socket.on("send_game_invite", (args, callback) =>
     {
         console.log(args);
-        user.getUsernameWithToken(args["token"], function(err, data)
+        user.getUsernameWithToken(args.token, function(err, data)
         {
             if(!err)
             {
                 //check if the user already sent an invite
-                for(let i = 0; i < gameInvites.length; i++)
-                    if(gameInvites[i][1] == args["toUser"] && gameInvites[i][2] == data)
-                    {
-                        callback(["Already sent an invite to " + args["toUser"], 1]);
-                        return;
-                    }
-                    else if(gameInvites[i][1] == data && gameInvites[i][2] == args["toUser"])
-                    {
-                        callback([args["toUser"] + " has already sent an invite to you", 2]);
-                        return;
-                    }
+                // for(let i = 0; i < gameInvites.length; i++)
+                //     if(gameInvites[i][1] == args["toUser"] && gameInvites[i][2] == data)
+                //     {
+                //         callback(["Already sent an invite to " + args["toUser"], 1]);
+                //         return;
+                //     }
+                //     else if(gameInvites[i][1] == data && gameInvites[i][2] == args["toUser"])
+                //     {
+                //         callback([args["toUser"] + " has already sent an invite to you", 2]);
+                //         return;
+                //     }
 
                 for(let i = 0; i < sockets.length; i++)
                 {
-                    if(sockets[i][1] == args["toUser"])
+                    if(sockets[i][1] == args.toUser)
                     {
-                        
-                        //gameInvites.push([args["gameName"], args["toUser"], data]);
-                        sockets[i][0].emit("game_invite_sent", {gameName: args["gameName"], fromUser: data});
+                        sockets[i][0].emit("game_invite_sent", {gameName: args.gameName, fromUser: data});
                         console.log("SENT");
-                        callback(["Sent request to " + args["toUser"], 0])
+                        callback(["Sent request to " + args.toUser, 0])
                         return;
                     }
                 }
@@ -240,56 +233,120 @@ io.on("connection", (socket) =>
 
     socket.on("accept_game_invite", (args, callback) =>
     {
-        user.getUsernameWithToken(args["token"], function(err, data)
+        user.getUsernameWithToken(args.token, function(err, data)
         {
             if(!err)
             {
-                // let gameSockets = [];
-                // console.log(data);
-                // console.log(args["fromUser"]);
-
-                // for(let i = 0; i < sockets.length; i++)
-                //     if(sockets[i][1] == data || sockets[i][1] == args["fromUser"])
-                //     {
-                //         sockets[i][0].emit("send_to_game", {gameName: args["gameName"]});
-                //         //sockets[i][0].join("game");//gameSockets.push(sockets[i]);
-                //         console.log(sockets[i][1]);
-                //     }
-                
-                // //console.log(io.of("game").clients.length);
-                // gameInvites = gameInvites.filter(invite => !(invite[1] == data && invite[2] == args["fromUser"])); //remove the game invite
-                // io.to("game").emit("send_to_game", {gameName: args["gameName"]});
+                let gameID = user.createToken(); //generate a game id
 
                 for(let i = 0; i < sockets.length; i++)
-                    if(sockets[i][1] == args["fromUser"])
+                    if(sockets[i][1] == args.fromUser)
                     {
-                        sockets[i][0].emit("send_to_game", {gameName: args["gameName"], toUser: data});
-                        //sockets[i][0].join("game");//gameSockets.push(sockets[i]);
-                        //console.log(sockets[i][1]);
+                        games.push([gameID, args.gameName, [[sockets[i][0], sockets[i][1]], [socket, data]], {}]); //create a new game
+
+                        sockets[i][0].join("game-" + gameID); //from-user joins
+                        sockets[i][0].emit("send_to_game", {gameName: args.gameName, toUser: data, gameID: gameID});
                     }
+
+                socket.join("game-" + gameID); //to-user joins
+
+                if(args.gameName == "First")
+                {
+                    let boxA = Matter.Bodies.rectangle(400, 200, 80, 80);
+                    let ground = Matter.Bodies.rectangle(400, 610, 810, 60, {isStatic: true});
+
+                    let engine = Matter.Engine.create();
+
+                    Matter.Composite.add(engine.world, [ground, boxA]);
+
+                    let runner = Matter.Runner.create();
+
+                    games[games.length - 1][3] = {boxA: boxA, ground: ground, runner: runner, engine: engine};
+
+                    Matter.Runner.run(runner, engine);
+                }
+                else if(args.gameName == "Tic-Tac-Tac")
+                {
+                    games[games.length - 1][3] = {board: [[-1, -1, -1],[-1, -1, -1],[-1, -1, -1]], turn: Math.floor(Math.random() * 2)};
+                }
+                
+                callback({gameID: gameID});
             }
         });
     });
 
     socket.on("decline_game_invite", (args, callback) =>
     {
-        user.getUsernameWithToken(args["token"], function(err, data)
+        user.getUsernameWithToken(args.token, function(err, data)
         {
             if(!err)
             {
                 for(let i = 0; i < sockets.length; i++)
-                    if(sockets[i][1] == args["fromUser"])
+                    if(sockets[i][1] == args.fromUser)
                     {
-                        sockets[i][0].emit("game_invite_declined", {gameName: args["gameName"], toUser: data});
+                        sockets[i][0].emit("game_invite_declined", {gameName: args.gameName, toUser: data});
                     }
-                //gameInvites = gameInvites.filter(invite => !(invite[1] == data && invite[2] == args["fromUser"]));
+            }
+        });
+    });
+
+    socket.on("first_game_move", (args) =>
+    {
+        for(let i = 0; i < games.length; i++)
+        {
+            if(games[i][0] == args.gameID)
+            {
+                
+                Matter.Body.applyForce(games[i][3].boxA, games[i][3].boxA.position, Matter.Vector.create(0, -0.3));
+                io.to("game-" + games[i][0]).emit("game_tick", {boxA: games[i][3].boxA.velocity});
+            }
+        }
+    });
+
+    socket.on("tic_tac_toe_move", (args, callback) =>
+    {
+        if(args.row < 0 || args.row > 3 || args.column < 0 || args.column > 3)
+        {
+            callback(["Coords given are out of bounds", -1]);
+            return;
+        }
+
+        user.getUsernameWithToken(args.token, function(err, data)
+        {
+            console.log(data);
+            if(!err)
+            {
+                for(let i = 0; i < games.length; i++)
+                {
+                    if(games[i][0] == args.gameID)
+                    {
+                        let turn = games[i][2][games[i][3].turn][1];
+
+                        //check if it's the users turn
+                        if(turn == data)
+                        {
+                            //check if the spot is empty
+                            if(games[i][3].board[args.row][args.column] == -1)
+                            {
+                                games[i][3].board[args.row][args.column] = turn;
+                                
+                                if(turn == 0)
+                                    games[i][3].turn = 1;
+                                else
+                                    games[i][3].turn = 0;
+
+                                io.to(games[i][0]).emit("tic_tac_toe_tick", {board: games[i][3].board});
+                            }
+                        }
+                    }
+                }
             }
         });
     });
 
     socket.on("set_username", (args) =>
     {
-        user.getUsernameWithToken(args["token"], function(err, data)
+        user.getUsernameWithToken(args.token, function(err, data)
         {
             let username = null;
 
@@ -316,17 +373,27 @@ io.on("connection", (socket) =>
         console.log(`socket ${socket.id} has diconnected (${socket.handshake.address})`);
     });
 
-    
-
     sockets.push([socket, null]);
-    
 
     console.log(`socket ${socket.id} has connected (${socket.handshake.address})`);
 });
 
 setInterval(function()
 {
-    console.log("Socket Count: " + sockets.length);
+    console.log("Socket Count: " + sockets.length + " | Game Count: " + games.length);
 }, 500);
+
+setInterval(function()
+{
+    // for(let i = 0; i < games.length; i++)
+    // {
+    //     if(games[i][1] == "First")
+    //     {
+    //         // console.log(games[i][3].boxA.position);
+    //         // console.log(games[i][0]);
+    //         io.to("game-" + games[i][0]).emit("game_tick", {boxA: games[i][3].boxA.position});
+    //     }
+    // }
+}, 0);
 
 console.log("\x1b[36mServer started on port " + config.port + "\x1b[0m");

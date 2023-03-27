@@ -57,13 +57,13 @@ function NavBar(props)
             <div className="nav_bar">
                 <ul className="nav_bar_ul">
                     <img className="nav_bar_image" src="/assets/ico.svg"></img>
-                    <li className="nav_bar_title nav_bar_li nav_bar_regular"><a className="nav_bar_title_a" href="/"><b>Socket Games</b></a></li>
+                    <li className="nav_bar_title nav_bar_li nav_bar_regular"><Link className="nav_bar_title_a" to="/"><b>Socket Games</b></Link></li>
                     <li className={`${classNames[0][0]} nav_bar_text nav_bar_regular`}><Link to="/">Singleplayer</Link></li>
                     <li className={`${classNames[1][0]} nav_bar_text nav_bar_regular`}><Link to="/multiplayer">Multiplayer</Link></li>
                     <li className={`${classNames[2][0]} nav_bar_text nav_bar_regular`}><Link to="/social">Social</Link></li>
                     <li className={`${classNames[3][0]} nav_bar_text nav_bar_regular`}><Link to="/settings">Settings</Link></li>
                     <div className="nav_bar_short">
-                        <li className="nav_bar_center_title nav_bar_title nav_bar_li"><a className="nav_bar_title_a" href="/"><b>Socket Games</b></a></li>
+                        <li className="nav_bar_center_title nav_bar_title nav_bar_li"><Link className="nav_bar_title_a" to="/"><b>Socket Games</b></Link></li>
                         <button className="nav_bar_menu_button" onClick={() => setMenuHidden(!menuHidden)}></button>
                         
                         
@@ -77,10 +77,10 @@ function NavBar(props)
                 <div className="nav_bar_menu_div_nail top_right_nail"></div>
                 <div className="nav_bar_menu_div_nail bottom_left_nail"></div>
                 <div className="nav_bar_menu_div_nail bottom_right_nail"></div>
-                <a href="/">Singleplayer</a>
-                <a href="/multiplayer">Multiplayer</a>
-                <a href="/social">Social</a>
-                <a href="/settings">Settings</a>
+                <Link to="/">Singleplayer</Link>
+                <Link to="/multiplayer">Multiplayer</Link>
+                <Link to="/social">Social</Link>
+                <Link to="/settings">Settings</Link>
             </div>
         </div>
     );

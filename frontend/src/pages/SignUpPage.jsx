@@ -2,9 +2,12 @@ import React, {useState} from 'react';
 import Cookies from 'js-cookie';
 import {sendPOST} from '../tools';
 import "./SignPage.css";
+import { Link, Navigate } from 'react-router-dom';
 
 function SignUpPage()
 {
+    const [shouldRedirect, setShouldRedirect] = useState(false);
+
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
     const [username, setUsername] = useState("");
@@ -17,12 +20,13 @@ function SignUpPage()
     {
         sendPOST({requestID: "sign_up", firstName: firstName, lastName: lastName, username: username, password: password, confirmPassword: confirmPassword}, function(data)
         {
+            console.log(data);
             setMessage(data.message);
 
             if(data.success)
             {
                 Cookies.set("token", data.token, {expires: 1});
-                window.location.href = "/";
+                setShouldRedirect(true);
             }
         });
     }
@@ -49,18 +53,19 @@ function SignUpPage()
             if(data.success)
             {
                 Cookies.set("token", data.token, {expires: 1});
-                window.location.href = "/";
+                setShouldRedirect(true);
             }
         });
     }
 
     return (
         <>
+            {shouldRedirect && <Navigate to="/"></Navigate>}
             <h2>Create an Account</h2>
             
             <form onSubmit={(e) => {e.preventDefault()}} className="center_align sign_form">
                 <h3 className="sign_form_title">Sign Up</h3>
-                <p className="sign_form_description">Create a new account or <a href="/login">login</a></p>
+                <p className="sign_form_description">Create a new account or <Link to="/login">login</Link></p>
                 <div>
                     <label htmlFor="first_name">First Name: </label>
                     <input autoComplete="off" type="text" onChange={e => setFirstName(e.target.value)} placeholder="First Name" id="first_name"></input>

@@ -2,9 +2,12 @@ import React, {useState} from 'react';
 import {sendPOST} from '../tools'
 import Cookies from 'js-cookie';
 import "./SignPage.css";
+import { Link, Navigate } from 'react-router-dom';
 
 function LoginPage()
 {
+    const [shouldRedirect, setShouldRedirect] = useState(false);
+
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
 
@@ -19,7 +22,7 @@ function LoginPage()
             if(data.success)
             {
                 Cookies.set("token", data.token, {expires: 1});
-                window.location.href = "/";
+                setShouldRedirect(true);
             }
         });
     }
@@ -33,7 +36,7 @@ function LoginPage()
             if(data.success)
             {
                 Cookies.set("token", data.token, {expires: 1});
-                window.location.href = "/";
+                setShouldRedirect(true);
             }
         });
     }
@@ -49,11 +52,12 @@ function LoginPage()
 
     return (
         <>
+            {shouldRedirect && <Navigate to="/"></Navigate>}
             <h2>Login into an Account</h2>
             
             <form onSubmit={(e) => {e.preventDefault()}} className="center_align sign_form">
                 <h3 className="sign_form_title">Login</h3>
-                <p className="sign_form_description">Login into an existing account or <a href="/sign_up">sign up</a></p>
+                <p className="sign_form_description">Login into an existing account or <Link to="/sign_up">sign up</Link></p>
                 <div>
                     <label htmlFor="username">Username:</label>
                     <input autoComplete="off" type="text" onChange={e => setUsername(e.target.value)} placeholder="Username" id="username"></input>

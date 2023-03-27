@@ -1,8 +1,6 @@
 const tools = require("./tools");
 const config = require("./config");
 
-let gameInvites = []; //[toUser, fromUser, epochTime]
-
 //create a new user (returns message, code)
 /* CODE - MESSAGE
     0 - success
@@ -140,13 +138,13 @@ exports.deleteLoginToken = function(username)
     tools.runSQL(`DELETE FROM ${config.loginTokensTable} WHERE username = ${username}`, function(err, data){});
 };
 
-//generates a random login token
-exports.createLoginToken = function()
+//generates a random token
+exports.createToken = function()
 {
     let token = "";
 
-    for(let i = 0; i < config.loginTokenLength; i++)
-        token += config.loginTokenChars[Math.floor(Math.random() * config.loginTokenChars.length)];
+    for(let i = 0; i < config.tokenLength; i++)
+        token += config.tokenChars[Math.floor(Math.random() * config.tokenChars.length)];
 
     return token;
 };
@@ -170,7 +168,7 @@ exports.getLoginToken = function(username, callback)
             if(data.length != 0)
                 {callback(null, data[0]["token"]); return;}
 
-            let token = exports.createLoginToken();
+            let token = exports.createToken();
 
             tools.runSQL(`INSERT INTO ${config.loginTokensTable} VALUES ("${token}", "${username}", ${Date.now()})`, function(err, data)
             {

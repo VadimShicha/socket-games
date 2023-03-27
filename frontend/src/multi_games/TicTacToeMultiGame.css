@@ -1,0 +1,21 @@
+.tic_tac_toe_table
+{
+    border: 5px solid black;
+}
+
+.tic_tac_toe_table tr td
+{
+    border: 5px solid black;
+    width: 120px;
+    height: 120px;
+}
+
+.tic_tac_toe_x
+{
+    background-image: url("/public/assets/tic_tac_toe/x.svg");
+}
+
+.tic_tac_toe_o
+{
+    background-image: url("/public/assets/tic_tac_toe/o.svg");
+}

@@ -18,27 +18,27 @@ function SocialPage(props)
 
     const [requests, setRequests] = useState(<></>);
     const [friends, setFriends] = useState(<></>);
-    const [gameInvites, setGameInvites] = useState([].map(item => <></>));
+    const [gameInvites, setGameInvites] = useState([].map(() => <></>));
 
     const [requestsTableRows, setRequestsTableRows] = useState(0);
     const [friendTableRows, setFriendTableRows] = useState(0);
     const [gameInvitesTableRows, setGameInvitesTableRows] = useState(0);
 
-    function load()
-    {
-        refresh();
-        socket.on("game_invite_sent", (args) =>
-        {
-            console.log("SH");
-            console.log(args);
+    let ranStart = false;
 
-            let element = gameInvites;
-            element.push(<InviteGameItem key={args} accept={() => acceptGameInvite(args.gameName, args.fromUser)} decline={() => declineGameInvite(args.gameName, args.fromUser)} gameName={args.gameName} username={args.fromUser}></InviteGameItem>);
-            
-            setGameInvites(element);
-            setGameInvitesTableRows(gameInvitesTableRows + 1);
-        });
-    }
+    useEffect(() =>
+    {
+        getGameInvites();
+    }, [props.gameInvites]);
+
+    useEffect(() =>
+    {
+        if(ranStart)
+            return;
+
+        refresh();
+        ranStart = true;
+    }, []);
 
     function searchFriend(name)
     {
@@ -131,21 +131,8 @@ function SocialPage(props)
 
     function getGameInvites()
     {
-        // sendPOST({requestID: "get_game_invites", token: Cookies.get("token")}, function(data)
-        // {
-        //     if(data.success)
-        //     {
-        //         console.log(data.result);
-        //         setGameInvitesTableRows(data.result.length);
-        //         let element = data.result.map((item) =>
-        //             <InviteGameItem key={item[2]} accept={() => acceptGameInvite(item[0], item[2])} decline={() => declineGameInvite(item[0], item[2])} gameName={item[0]} username={item[2]}></InviteGameItem>);
-
-        //         //element.push(<InviteGameItem key={"Bob"} gameName={"NAME"} username={"Bob"}></InviteGameItem>)
-        //         setGameInvites(element);
-        //     }
-        // });
-
         setGameInvitesTableRows(props.gameInvites.length);
+        console.log(props.gameInvites);
         let element = props.gameInvites.map((item) =>
             <InviteGameItem key={item[1]} accept={() => acceptGameInvite(item[0], item[1])} decline={() => declineGameInvite(item[0], item[1])} gameName={item[0]} username={item[1]}></InviteGameItem>);
 
@@ -172,7 +159,7 @@ function SocialPage(props)
     }
 
     return (
-        <div onLoad={load}>
+        <div>
             <AuthUser></AuthUser>
             <NavBar page={2}></NavBar>
             <div className="nav_bar_body">

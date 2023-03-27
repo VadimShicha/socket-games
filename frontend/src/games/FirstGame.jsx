@@ -48,13 +48,10 @@ class FirstGame extends React.Component
         Matter.Runner.run(this.runner, this.engine);
 
         this.loaded = true;
-
-        console.log(this.engine);
     };
 
     componentDidMount()
     {
-        console.log("SH");
         if(!this.loaded)
             this.load();
     };

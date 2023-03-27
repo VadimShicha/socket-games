@@ -10,7 +10,7 @@ function GameItem(props)
     function play()
     {
         if(props.multi)
-            props.play(props.name);
+            props.play(props.gameUrl);
         else
             window.location.href = "/game-" + props.gameURL;
     }
@@ -40,7 +40,7 @@ function GameItem(props)
             </div>
             
             <br></br>
-            <h4 className="game_item_name">{props.name}</h4><br></br><br></br>
+            <h4 className="game_item_name">{props.title}</h4><br></br><br></br>
             <button className="game_item_play_button" hidden={props.playHidden} onClick={play}>{playText}</button>
             <button className="game_item_info_button" onClick={info}>{infoText}</button>
         </div>
