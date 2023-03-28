@@ -19,21 +19,6 @@
   </head>
   <body>
     <!-- <script src="../src/matter.js" type="text/javascript"></script> -->
-    <script>
-      function testConnect(obj, func)
-      {
-        fetch('/server',
-        {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(obj)
-        }).then(
-            res => res.json()
-        ).then(data => {
-            func(data);
-        });
-      }
-    </script>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
   </body>

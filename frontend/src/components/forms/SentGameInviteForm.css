@@ -1,3 +1,10 @@
+.sent_game_invite_form_div
+{
+    position: fixed;
+    left: 5px;
+    bottom: 5px;
+}
+
 .sent_game_invite_form
 {
     transition: opacity 0.5s ease;

@@ -1,3 +1,7 @@
+# hide all environment variable files
+.env
+.env.production
+
 /ignore
 
 /frontend/node_modules

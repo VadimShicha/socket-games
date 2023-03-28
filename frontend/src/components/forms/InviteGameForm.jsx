@@ -6,8 +6,6 @@ import "./InviteGameForm.css";
 
 function InviteGameForm(props)
 {
-    const [waiting, setWaiting] = useState(false);
-    
     const [friends, setFriends] = useState(<></>);
     const [friendTableRows, setFriendTableRows] = useState(0);
     const [loading, setLoading] = useState(-1);
@@ -56,7 +54,7 @@ function InviteGameForm(props)
             <h3>Sent game invite bobthebob</h3>
                 <p>Waiting for user to accept game invite</p>
                 {/* <button onClick={props.close} className="invite_game_div_close action_button decline_button"></button> */}
-                <button>Cancel Request</button>
+                <button onClick={props.cancelRequest}>Cancel Request</button>
             </div>
         </div>
         

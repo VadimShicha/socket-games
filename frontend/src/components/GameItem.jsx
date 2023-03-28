@@ -1,5 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import "./GameItem.css";
+import { Navigate } from 'react-router';
 
 function GameItem(props)
 {
@@ -7,12 +8,14 @@ function GameItem(props)
     const [infoText, setInfoText] = useState("Info");
     const [playText, setPlayText] = useState("Play");
 
+    const [shouldRedirect, setShouldRedirect] = useState(false);
+
     function play()
     {
         if(props.multi)
             props.play(props.gameUrl);
         else
-            window.location.href = "/game-" + props.gameURL;
+            setShouldRedirect(true);
     }
 
     function info()
@@ -32,6 +35,7 @@ function GameItem(props)
 
     return (
         <div className="game_item_div">
+            {shouldRedirect && <Navigate to={"/game-" + props.gameUrl}></Navigate>}
             <div className="game_item_frame_div">
                 <img className="game_item_frame" hidden={inInfo != false} src={props.imgURL}></img>
                 <div className="game_item_frame" hidden={inInfo != true}>

@@ -12,26 +12,29 @@ import { Navigate } from 'react-router';
 function GameListPage()
 {
     const [inviteGameHidden, setInviteGameHidden] = useState(true);
-    const [inviteGameWaiting, setInviteGameWaiting] = useState(false);
-    const [hasFriends, setHasFriends] = useState(true);
-    const [gameName, setGameName] = useState("");
+    const [inviteGameWaiting, setInviteGameWaiting] = useState(false); //indicates whether the user is waiting for another user for a game invite
+    const [hasFriends, setHasFriends] = useState(true); //indicates whether the user has friends
+    const [gameUrl, setGameUrl] = useState("");
+    const [waitingUsername, setWaitingUsername] = useState(""); //the username you are waiting for
 
     const [inviteGameMessage, setInviteGameMessage] = useState("");
 
-    const [renderComponent, setRenderComponent] = useState(<></>);
+    const [renderComponent, setRenderComponent] = useState(<></>); //the component being rendered
 
     let ranStart = false;
 
+    //called when the play button on a game is clicked
     function play(name)
     {
         sendPOST({requestID: "get_friends", token: Cookies.get("token")}, function(data)
         {
             if(data.success)
             {
+                //checks if the user has any friends
                 if(data.result.length > 0)
                 {
-                    setInviteGameHidden(false);
-                    setGameName(name);
+                    setInviteGameHidden(false); //shows the game invite form
+                    setGameUrl(name); //stores the url that was of the game that was clicked
                 }
             }
         });
@@ -40,27 +43,18 @@ function GameListPage()
     function send(username)
     {
         console.log(username);
-        socket.emit("send_game_invite", {gameName: gameName, toUser: username, token: Cookies.get("token")}, function(data)
+        socket.emit("send_game_invite", {gameUrl: gameUrl, toUser: username, token: Cookies.get("token")}, function(data)
         {
             //if success
             if(data[1] == 0)
             {
+                setWaitingUsername(username);
                 setInviteGameWaiting(true);
             }
 
             setInviteGameMessage(data[0]);
             DataManager.popTextRef.current.show(data[0]);
         });
-        // sendPOST({requestID: "send_game_invite", username: username, token: Cookies.get("token")}, function(data)
-        // {
-        //     console.log(data);
-        //     setInviteGameMessage(data.message);
-
-        //     if(data.success)
-        //     {
-        //         
-        //     }
-        // });
     }
 
     useEffect(() =>
@@ -70,14 +64,8 @@ function GameListPage()
 
         sendPOST({requestID: "get_friends", token: Cookies.get("token")}, function(data)
         {
-            console.log(data.result.length);
-            if(data.success)
-            {
-                if(data.result.length <= 0)
-                {
-                    setHasFriends(false);
-                }
-            }
+            if(data.success && data.result.length <= 0)
+                setHasFriends(false);
         });
 
         socket.on("game_invite_declined", function(data)
@@ -92,11 +80,24 @@ function GameListPage()
         {
             console.log(data);
             Cookies.set("gameID", data.gameID);
-            setRenderComponent(<Navigate to={"/multiplayer/game-" + data.gameName.toLowerCase()}></Navigate>);
+            setRenderComponent(<Navigate to={"/multiplayer/game-" + data.gameUrl}></Navigate>);
         });
 
         ranStart = true;
     }, []);
+
+    function cancelGameInvite()
+    {
+        socket.emit("cancel_game_invite", {gameUrl: gameUrl, username: waitingUsername, token: Cookies.get("token")}, function(data)
+        {
+            if(data[1] == 0)
+            {
+                setInviteGameHidden(true);
+                setInviteGameWaiting(false);
+                setWaitingUsername("");
+            }
+        });
+    }
 
     return (
         <>
@@ -107,7 +108,7 @@ function GameListPage()
                 <h2>Select a 2-Player Game to Play!</h2>
                 <p hidden={hasFriends}>Add a friend to start playing</p>
 
-                <InviteGameForm hidden={inviteGameHidden} waiting={inviteGameWaiting} send={send} close={() => setInviteGameHidden(true)} message={inviteGameMessage} active={!inviteGameHidden}></InviteGameForm>
+                <InviteGameForm hidden={inviteGameHidden} cancelRequest={cancelGameInvite} waiting={inviteGameWaiting} send={send} close={() => setInviteGameHidden(true)} message={inviteGameMessage} active={!inviteGameHidden}></InviteGameForm>
                 
                 <div className="game_items">
                     <GameItem playHidden={!hasFriends} multi={true} info={"First 2-player game\n\nThis game is made to test multiplayer."} play={play} imgURL="../assets/first_multi_game.png" gameUrl="first" title="First"></GameItem>

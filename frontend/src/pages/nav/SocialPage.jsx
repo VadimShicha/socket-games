@@ -134,7 +134,7 @@ function SocialPage(props)
         setGameInvitesTableRows(props.gameInvites.length);
         console.log(props.gameInvites);
         let element = props.gameInvites.map((item) =>
-            <InviteGameItem key={item[1]} accept={() => acceptGameInvite(item[0], item[1])} decline={() => declineGameInvite(item[0], item[1])} gameName={item[0]} username={item[1]}></InviteGameItem>);
+            <InviteGameItem key={item[1]} accept={() => acceptGameInvite(item[0], item[1])} decline={() => declineGameInvite(item[0], item[1])} title={DataManager.gameUrlToTitle(item[0])} gameUrl={item[0]} username={item[1]}></InviteGameItem>);
 
         setGameInvites(element);
     }

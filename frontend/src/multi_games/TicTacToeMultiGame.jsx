@@ -44,7 +44,7 @@ class TicTacToeMultiGame extends React.Component
 
     tableCellClick(row, column)
     {
-        socket.emit("tic_tac_toe_move", {row: row, column: column}, function(data)
+        socket.emit("tic_tac_toe_move", {token: Cookies.get("token"), gameID: Cookies.get("gameID"), row: row, column: column}, function(data)
         {
             console.log(data);
         });
@@ -52,19 +52,18 @@ class TicTacToeMultiGame extends React.Component
         this.updateTable();
     }
 
+    tick(data)
+    {
+        console.log(data);
+        this.board = data.board;
+        //this.turn = data.turn;
+        this.updateTable();
+    }
+
     load()
     {
         this.updateTable();
-        let board = this.board;
-
-        socket.on("tic_tac_toe_tick", function(data)
-        {
-            board = data.board;
-            this.updateTable();
-        });
-
-
-        this.board = board;
+        socket.on("tic_tac_toe_tick", this.tick.bind(this));
     }
 
     componentDidMount()

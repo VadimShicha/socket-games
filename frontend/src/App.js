@@ -39,23 +39,30 @@ function App()
         {
             console.log(data);
             console.log(sentGameInviteRef);
-            setGameInvites(gameInvites.concat([[data.gameName, data.fromUser]]));
-            sentGameInviteRef.current.show(data.gameName, data.fromUser);
+            setGameInvites(gameInvites.concat([[data.gameUrl, data.fromUser]]));
+            sentGameInviteRef.current.show(data.gameUrl, data.fromUser);
+        });
+
+        socket.on("game_invite_canceled", function(data)
+        {
+            console.log(data);
+            removeGameInvite(data.gameUrl, data.username);
+            sentGameInviteRef.current.hide();
         });
 
         ranStart = true;
     }, []);
 
-    function removeGameInvite(gameName, username)
+    function removeGameInvite(gameUrl, username)
     {
-        setGameInvites(gameInvites.filter(invite => (invite[0] != gameName && invite[1] != username)));
+        setGameInvites(gameInvites.filter(invite => (invite[0] != gameUrl && invite[1] != username)));
     }
 
-    function acceptGameInvite(gameName, username)
+    function acceptGameInvite(gameUrl, username)
     {
-        removeGameInvite(gameName, username);
+        removeGameInvite(gameUrl, username);
 
-        socket.emit("accept_game_invite", {gameName: gameName, fromUser: username, token: Cookies.get("token")}, function(data)
+        socket.emit("accept_game_invite", {gameUrl: gameUrl, fromUser: username, token: Cookies.get("token")}, function(data)
         {
             Cookies.set("gameID", data.gameID);
         });
@@ -63,11 +70,11 @@ function App()
         return redirect("/login");
     }
 
-    function declineGameInvite(gameName, username)
+    function declineGameInvite(gameUrl, username)
     {
-        removeGameInvite(gameName, username);
+        removeGameInvite(gameUrl, username);
 
-        socket.emit("decline_game_invite", {gameName: gameName, fromUser: username, token: Cookies.get("token")});
+        socket.emit("decline_game_invite", {gameUrl: gameUrl, fromUser: username, token: Cookies.get("token")});
     }
 
     return (

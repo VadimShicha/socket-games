@@ -1,10 +1,12 @@
 //send a post request to the server with and object of data
 export function sendPOST(obj, func)
 {
-    fetch('/server',
+    fetch(process.env.REACT_APP_API_URL + '/server',
     {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+            'Content-Type': 'application/json'
+        },
         body: JSON.stringify(obj)
     }).then(
         res => res.json()

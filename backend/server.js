@@ -1,4 +1,6 @@
+require("dotenv").config();
 const express = require("express");
+const cors = require("cors");
 const rateLimit = require("express-rate-limit");
 const app = express();
 const http = require("http");
@@ -6,13 +8,17 @@ const server = http.createServer(app);
 const config = require("./config");
 const user = require("./user");
 const socketio = require("socket.io");
-const cookie = require("cookie");
 const Matter = require("matter-js");
 
 const rateLimiter = rateLimit({
     windowMs: 5 * 1000,
-    max: 50
+    max: 60,
+    message: "You have reached the maximun number of requests"
 });
+
+const corsConfig = {
+    origin: process.env.CLIENT_URL,
+};
 
 setInterval(function()
 {
@@ -20,7 +26,9 @@ setInterval(function()
 }, 30 * 1000);
 
 // let gameInvites = []; //[gameName, toUser, fromUser]
-let games = []; //[gameID/roomID, gameName, [sockets], gameData]
+let games = []; //[gameID/roomID, gameUrl, [sockets], gameData]
+
+app.use(cors(corsConfig));
 
 app.use(rateLimiter);
 app.use(express.json());
@@ -183,13 +191,7 @@ app.post("/server", function(req, res)
 
 server.listen(config.port, () => {});
 
-const io = new socketio.Server(server,
-{
-    cors:
-    {
-        origin: "http://192.168.0.94:3000"
-    }
-});
+const io = socketio(server, {cors: corsConfig});
 
 let sockets = []; //[socket, username]
 
@@ -219,7 +221,7 @@ io.on("connection", (socket) =>
                 {
                     if(sockets[i][1] == args.toUser)
                     {
-                        sockets[i][0].emit("game_invite_sent", {gameName: args.gameName, fromUser: data});
+                        sockets[i][0].emit("game_invite_sent", {gameUrl: args.gameUrl, fromUser: data});
                         console.log("SENT");
                         callback(["Sent request to " + args.toUser, 0])
                         return;
@@ -233,8 +235,12 @@ io.on("connection", (socket) =>
 
     socket.on("accept_game_invite", (args, callback) =>
     {
+        if(args.token == undefined || args.fromUser == undefined || args.gameUrl == undefined)
+            return;
+
         user.getUsernameWithToken(args.token, function(err, data)
         {
+            console.log(args);
             if(!err)
             {
                 let gameID = user.createToken(); //generate a game id
@@ -242,15 +248,15 @@ io.on("connection", (socket) =>
                 for(let i = 0; i < sockets.length; i++)
                     if(sockets[i][1] == args.fromUser)
                     {
-                        games.push([gameID, args.gameName, [[sockets[i][0], sockets[i][1]], [socket, data]], {}]); //create a new game
+                        games.push([gameID, args.gameUrl, [[sockets[i][0], sockets[i][1]], [socket, data]], {}]); //create a new game
 
                         sockets[i][0].join("game-" + gameID); //from-user joins
-                        sockets[i][0].emit("send_to_game", {gameName: args.gameName, toUser: data, gameID: gameID});
+                        sockets[i][0].emit("send_to_game", {gameUrl: args.gameUrl, toUser: data, gameID: gameID});
                     }
 
                 socket.join("game-" + gameID); //to-user joins
 
-                if(args.gameName == "First")
+                if(args.gameUrl == "first")
                 {
                     let boxA = Matter.Bodies.rectangle(400, 200, 80, 80);
                     let ground = Matter.Bodies.rectangle(400, 610, 810, 60, {isStatic: true});
@@ -265,7 +271,7 @@ io.on("connection", (socket) =>
 
                     Matter.Runner.run(runner, engine);
                 }
-                else if(args.gameName == "Tic-Tac-Tac")
+                else if(args.gameUrl == "tic_tac_toe")
                 {
                     games[games.length - 1][3] = {board: [[-1, -1, -1],[-1, -1, -1],[-1, -1, -1]], turn: Math.floor(Math.random() * 2)};
                 }
@@ -284,7 +290,23 @@ io.on("connection", (socket) =>
                 for(let i = 0; i < sockets.length; i++)
                     if(sockets[i][1] == args.fromUser)
                     {
-                        sockets[i][0].emit("game_invite_declined", {gameName: args.gameName, toUser: data});
+                        sockets[i][0].emit("game_invite_declined", {gameUrl: args.gameUrl, toUser: data});
+                    }
+            }
+        });
+    });
+
+    socket.on("cancel_game_invite", (args, callback) =>
+    {
+        user.getUsernameWithToken(args.token, function(err, data)
+        {
+            if(!err)
+            {
+                for(let i = 0; i < sockets.length; i++)
+                    if(sockets[i][1] == args.username)
+                    {
+                        sockets[i][0].emit("game_invite_canceled", {gameUrl: args.gameUrl, username: data});
+                        callback(["Success", 0]);
                     }
             }
         });
@@ -320,22 +342,27 @@ io.on("connection", (socket) =>
                 {
                     if(games[i][0] == args.gameID)
                     {
-                        let turn = games[i][2][games[i][3].turn][1];
+                        let turnName = games[i][2][games[i][3].turn][1];
+                        let turnIndex = games[i][3].turn;
+                        console.log(turnName);
+                        console.log(turnIndex);
 
                         //check if it's the users turn
-                        if(turn == data)
+                        if(turnName == data)
                         {
+                            console.log(games[i][3].board[args.row][args.column]);
                             //check if the spot is empty
                             if(games[i][3].board[args.row][args.column] == -1)
                             {
-                                games[i][3].board[args.row][args.column] = turn;
+                                games[i][3].board[args.row][args.column] = turnIndex;
                                 
-                                if(turn == 0)
+                                if(turnIndex == 0)
                                     games[i][3].turn = 1;
                                 else
                                     games[i][3].turn = 0;
 
-                                io.to(games[i][0]).emit("tic_tac_toe_tick", {board: games[i][3].board});
+                                console.log(io.to())
+                                io.to("game-" + games[i][0]).emit("tic_tac_toe_tick", {board: games[i][3].board});
                             }
                         }
                     }
