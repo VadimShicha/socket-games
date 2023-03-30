@@ -6,7 +6,7 @@ import FriendItem from '../../components/FriendItem';
 import InviteGameItem from '../../components/InviteGameItem';
 import SendFriendRequestForm from '../../components/forms/SendFriendRequestForm';
 import NavBar from '../../components/NavBar';
-import "./SocialPage.css";
+import "../../styles/SocialPage.css";
 import AuthUser from '../../components/AuthUser';
 import DataManager from '../../dataManager';
 import { socket } from '../../socket';
@@ -85,18 +85,18 @@ function SocialPage(props)
         setGameInvitesTableRows(gameInvitesTableRows - 1);
     }
 
-    function acceptGameInvite(gameName, username)
+    function acceptGameInvite(gameUrl, username)
     {
-        props.removeGameInvite(gameName, username);
-        socket.emit("accept_game_invite", {gameName: gameName, fromUser: username, token: Cookies.get("token")});
+        props.removeGameInvite(gameUrl, username);
+        socket.emit("accept_game_invite", {gameUrl: gameUrl, fromUser: username, token: DataManager.token});
 
         removeGameInvite(username);
     }
 
-    function declineGameInvite(gameName, username)
+    function declineGameInvite(gameUrl, username)
     {
-        props.removeGameInvite(gameName, username);
-        socket.emit("decline_game_invite", {gameName: gameName, fromUser: username, token: Cookies.get("token")});
+        props.removeGameInvite(gameUrl, username);
+        socket.emit("decline_game_invite", {gameUrl: gameUrl, fromUser: username, token: DataManager.token});
 
         removeGameInvite(username);
     }

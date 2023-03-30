@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { sendPOST } from '../tools';
 import Cookies from 'js-cookie';
 import {socket} from '../socket';
+import DataManager from '../dataManager';
 
 function AuthUser()
 {
@@ -25,7 +26,7 @@ function AuthUser()
             navigate("/login");
         else
         {
-            socket.emit("set_username", {token: Cookies.get("token")});
+            socket.emit("auth_user", {token: DataManager.token});
         }
     }, [success]);
 

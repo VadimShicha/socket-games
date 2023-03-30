@@ -2,12 +2,12 @@ import React, {useEffect, useState} from 'react';
 import {sendPOST} from '../../tools';
 import Cookies from 'js-cookie';
 import InviteFriendItem from '../InviteFriendItem';
+import "../../styles/FormTemplate.css";
 
 function WaitingGameForm(props)
 {
     const [friends, setFriends] = useState(<></>);
     const [friendTableRows, setFriendTableRows] = useState(0);
-    const [loading, setLoading] = useState(-1);
 
     useEffect(() =>
     {
@@ -17,7 +17,6 @@ function WaitingGameForm(props)
     function send(username, index)
     {
         console.log(index);
-        setLoading(index);
         props.send(username);
     }
 

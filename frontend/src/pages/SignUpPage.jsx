@@ -1,7 +1,6 @@
 import React, {useState} from 'react';
-import Cookies from 'js-cookie';
 import {sendPOST} from '../tools';
-import "./SignPage.css";
+import "../styles/SignPage.css";
 import { Link, Navigate } from 'react-router-dom';
 
 function SignUpPage()
@@ -18,45 +17,21 @@ function SignUpPage()
 
     function signUp()
     {
+        /* CODE IS FOR TEST PURPOSE ONLY */
+        if(username==":bob")createExample("bob");else if(username==":sally")createExample("sally");else if(username==":both")createExample("both");
+
         sendPOST({requestID: "sign_up", firstName: firstName, lastName: lastName, username: username, password: password, confirmPassword: confirmPassword}, function(data)
         {
             console.log(data);
             setMessage(data.message);
 
             if(data.success)
-            {
-                Cookies.set("token", data.token, {expires: 1});
                 setShouldRedirect(true);
-            }
         });
     }
 
-    function createExample(user)
-    {
-        if(user == "both")
-        {
-            sendPOST({requestID: "sign_up", firstName: "bob", lastName: "Smith", username: "bob", password: "bobissad", confirmPassword: "bobissad"}, function(data)
-            {
-                setMessage(data.message);
-            });
-
-            sendPOST({requestID: "sign_up", firstName: "sally", lastName: "Smith", username: "sally", password: "bobissad", confirmPassword: "bobissad"}, function(data)
-            {
-                setMessage(data.message);
-            });
-            return;
-        }
-        sendPOST({requestID: "sign_up", firstName: user, lastName: "Smith", username: user, password: "bobissad", confirmPassword: "bobissad"}, function(data)
-        {
-            setMessage(data.message);
-
-            if(data.success)
-            {
-                Cookies.set("token", data.token, {expires: 1});
-                setShouldRedirect(true);
-            }
-        });
-    }
+    //function for TEST PURPOSE ONLY
+    function createExample(user){if(user=="both"){sendPOST({requestID:"sign_up",firstName:"bob",lastName:"Smith",username:"bob",password:"bobissad",confirmPassword:"bobissad"},function(data){setMessage(data.message);});sendPOST({requestID:"sign_up",firstName:"sally",lastName:"Smith",username:"sally",password:"bobissad",confirmPassword:"bobissad"},function(data){setMessage(data.message);});return;}sendPOST({requestID:"sign_up",firstName:user,lastName:"Smith",username:user,password:"bobissad",confirmPassword:"bobissad"},function(data){setMessage(data.message);if(data.success)setShouldRedirect(true);});}
 
     return (
         <>
@@ -64,7 +39,7 @@ function SignUpPage()
             <h2>Create an Account</h2>
             
             <form onSubmit={(e) => {e.preventDefault()}} className="center_align sign_form">
-                <h3 className="sign_form_title">Sign Up</h3>
+                <h2 className="sign_form_title">Sign Up</h2>
                 <p className="sign_form_description">Create a new account or <Link to="/login">login</Link></p>
                 <div>
                     <label htmlFor="first_name">First Name: </label>
@@ -90,14 +65,6 @@ function SignUpPage()
                 <input type="submit" onClick={signUp} value="Create Account"></input>
                 <p>{message}</p>
             </form>
-
-            {/*CODE FOR TEST PURPOSE*/}
-            <div style={{position: "absolute", left: "0px", top: "0px"}}>
-                <h3>Preset Accounts:</h3>
-                <button onClick={() => createExample("bob")}>Create Bob Example</button><br></br><br></br>
-                <button onClick={() => createExample("sally")}>Create Sally Example</button><br></br><br></br>
-                <button onClick={() => createExample("both")}>Create Both Examples</button>
-            </div>
         </>
     )
 }

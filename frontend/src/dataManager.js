@@ -6,6 +6,7 @@ class DataManager
 {
     static popTextRef = createRef();
     static redirectRef = createRef();
+    static token = "";
     static gameUrlToTitle = function(gameUrl)
     {
         if(gameUrl == "first")
@@ -13,7 +14,7 @@ class DataManager
         else if(gameUrl == "tic_tac_toe")
             return "Tic Tac Toe";
         return "";
-    }
+    };
 }
 
 export default DataManager;

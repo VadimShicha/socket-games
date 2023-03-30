@@ -1,6 +1,7 @@
 .pop_text
 {
     position: absolute;
+    z-index: 3;
     padding: 0px 10px 0px 10px;
     width: fit-content;
     height: fit-content;

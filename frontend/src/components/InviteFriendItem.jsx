@@ -11,4 +11,3 @@ function InviteFriendItem(props)
 }
 
 export default InviteFriendItem;
-//{/*(props.loading ? "loading_button" : "accept_button") + " action_button" */}

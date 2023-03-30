@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import "./GameItem.css";
+import "../styles/GameItem.css";
 import { Navigate } from 'react-router';
 
 function GameItem(props)

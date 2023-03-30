@@ -1,0 +1,33 @@
+.form_template
+{
+    position: absolute;
+    background-color: var(--light-secondary-color);
+    z-index: 1;
+}
+
+.form_template_close_button
+{
+    position: absolute;
+    top: 15px;
+    right: 15px;
+}
+
+.form_template_button
+{
+    border: 2px solid gray;
+    font-size: 18px;
+    height: 30px;
+    margin-left: 2px;
+    margin-right: 2px;
+    cursor: pointer;
+}
+
+.form_template_button:hover
+{
+    filter: brightness(95%);
+}
+
+.form_template_button:active
+{
+    filter: brightness(90%);
+}

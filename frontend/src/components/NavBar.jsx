@@ -1,7 +1,6 @@
-import React, {useState, useEffect, useContext} from 'react';
+import React, {useState, useEffect} from 'react';
 import {Link} from 'react-router-dom';
-import "./NavBar.css";
-import DataManager from '../dataManager';
+import "../styles/NavBar.css";
 
 const regularClass = "nav_bar_li";
 const selectedClass = "nav_bar_li_selected";
@@ -28,29 +27,6 @@ function NavBar(props)
     {
         setSelectedIndex(props.page);
     }, []);
-
-    // useEffect(function()
-    // {
-    //     //setSelectedIndex(props.page);
-    //     switch(props.page)
-    //     {
-    //         case "":
-    //             setSelectedIndex(0);
-    //             break;
-    //         case "multiplayer":
-    //             setSelectedIndex(1);
-    //             break;
-    //         case "social":
-    //             setSelectedIndex(2);
-    //             break;
-    //         case "settings":
-    //             setSelectedIndex(3);
-    //             break;
-    //         default:
-    //             setSelectedIndex(-1);
-    //             return;
-    //     }
-    // }, [props.page]);
 
     return (
         <div>

@@ -1,7 +1,8 @@
-import React, {useState, useEffect, createRef, useRef} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {BrowserRouter, Routes, Route} from 'react-router-dom';
 import {redirect} from 'react-router-dom';
 import SentGameInviteForm from "./components/forms/SentGameInviteForm";
+import GameOverForm from "./components/forms/GameOverForm";
 import SignUpPage from './pages/SignUpPage';
 import LoginPage from './pages/LoginPage';
 import SettingsPage from './pages/nav/SettingsPage';
@@ -18,10 +19,9 @@ import DataManager from './dataManager';
 import PopText from './components/PopText';
 import FirstMultiGame from './multi_games/FirstMultiGame';
 import {socket} from './socket';
-import Cookies from 'js-cookie';
-import MainContent from './components/MainContent';
 import './App.css';
 import TicTacToeMultiGame from './multi_games/TicTacToeMultiGame';
+import { sendPOST } from './tools';
 
 function App()
 {
@@ -34,6 +34,12 @@ function App()
     {
         if(ranStart)
             return;
+
+        sendPOST({requestID: "get_login_token"}, function(data)
+        {
+            DataManager.token = data.token;
+            socket.emit("auth_user", {token: data.token});
+        });
 
         socket.on("game_invite_sent", function(data)
         {
@@ -62,9 +68,9 @@ function App()
     {
         removeGameInvite(gameUrl, username);
 
-        socket.emit("accept_game_invite", {gameUrl: gameUrl, fromUser: username, token: Cookies.get("token")}, function(data)
+        socket.emit("accept_game_invite", {gameUrl: gameUrl, fromUser: username, token: DataManager.token}, function(data)
         {
-            Cookies.set("gameID", data.gameID);
+            
         });
 
         return redirect("/login");
@@ -74,7 +80,7 @@ function App()
     {
         removeGameInvite(gameUrl, username);
 
-        socket.emit("decline_game_invite", {gameUrl: gameUrl, fromUser: username, token: Cookies.get("token")});
+        socket.emit("decline_game_invite", {gameUrl: gameUrl, fromUser: username, token: DataManager.token});
     }
 
     return (

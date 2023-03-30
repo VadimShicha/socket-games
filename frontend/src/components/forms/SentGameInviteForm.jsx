@@ -1,7 +1,8 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
 import DataManager from '../../dataManager';
-import './SentGameInviteForm.css';
+import '../../styles/SentGameInviteForm.css';
+import "../../styles/FormTemplate.css";
 
 class SendFriendRequestForm extends React.Component
 {

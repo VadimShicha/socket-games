@@ -46,12 +46,6 @@ body
     margin-right: auto;
 }
 
-.form_template
-{
-    position: absolute;
-    background-color: var(--light-secondary-color);
-}
-
 .action_button
 {
     width: 25px;

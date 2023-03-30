@@ -1,0 +1,13 @@
+.game_over_form_div
+{
+    
+}
+
+.game_over_form
+{
+    left: 0px;
+    right: 0px;
+    width: 400px;
+    height: 260px;
+    border-radius: 20px;
+}

@@ -5,18 +5,14 @@ export function sendPOST(obj, func)
     {
         method: 'POST',
         headers: {
+            'Accept': 'application/json',
             'Content-Type': 'application/json'
         },
+        credentials: "include",
         body: JSON.stringify(obj)
     }).then(
         res => res.json()
     ).then(data => {
         func(data);
     });
-}
-
-//sets a single cookie to a value
-// export function setCookie(id, value, expireDate)
-// {
-//     document.cookie = id + "=" + value + ";expires=" + expireDate.toUTCString() + ";path=/";
-// }
+};

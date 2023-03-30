@@ -1,5 +1,5 @@
 import React from 'react';
-import './PopText.css';
+import '../styles/PopText.css';
 
 class PopText extends React.Component
 {
