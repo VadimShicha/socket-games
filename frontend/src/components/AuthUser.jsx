@@ -23,11 +23,9 @@ function AuthUser()
     useEffect(() =>
     {
         if(success == false)
-            navigate("/login");
+            navigate("/");
         else
-        {
             socket.emit("auth_user", {token: DataManager.token});
-        }
     }, [success]);
 
     return (

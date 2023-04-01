@@ -132,7 +132,6 @@ function SocialPage(props)
     function getGameInvites()
     {
         setGameInvitesTableRows(props.gameInvites.length);
-        console.log(props.gameInvites);
         let element = props.gameInvites.map((item) =>
             <InviteGameItem key={item[1]} accept={() => acceptGameInvite(item[0], item[1])} decline={() => declineGameInvite(item[0], item[1])} title={DataManager.gameUrlToTitle(item[0])} gameUrl={item[0]} username={item[1]}></InviteGameItem>);
 
@@ -160,8 +159,8 @@ function SocialPage(props)
 
     return (
         <div>
-            <AuthUser></AuthUser>
             <NavBar page={2}></NavBar>
+            <AuthUser></AuthUser>
             <div className="nav_bar_body">
                 <h2>Social</h2>
                 <div className="center_align social_action_div">

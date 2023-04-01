@@ -1,3 +1,8 @@
+.nav_bar, .nav_bar_short
+{
+    z-index: 3;
+}
+
 .nav_bar
 {
     position: fixed;
@@ -10,6 +15,23 @@
     background-size: 192px calc(26px * 2px);
 }
 
+.nav_bar_login_div_container
+{
+    overflow: hidden;
+}
+
+.nav_bar_login_div
+{
+    background-color: var(--light-secondary-color);
+    position: fixed;
+    right: 0px;
+    width: 400px;
+    height: 220px;
+    border-bottom-left-radius: 25px;
+    border-bottom-right-radius: 25px;
+    transition: margin-top 0.3s;
+}
+
 .nav_bar_ul
 {
     list-style-type: none;
@@ -17,7 +39,6 @@
     margin: 0px;
     padding: 0px;
     height: 40px;
-    /* background-color: #49a741; */
 }
 
 .nav_bar_title
@@ -33,7 +54,7 @@
 .nav_bar_center_title
 {
     position: fixed;
-    top: 6px;
+    top: 5px;
     left: 50%;
     transform: translate(-50%, 0);
     font-size: 20px;
@@ -60,7 +81,6 @@ li a
     padding: 10px;
     text-decoration: none;
     color: #fffefa;
-    font-size: "30px";
     font-weight: bold;
 }
 
@@ -161,6 +181,60 @@ li a
     color: #fffefa;
     margin-right: 0px;
     padding: 4px;
+}
+
+.nav_bar_username
+{
+    display: inline-block;
+    color: #fffefa;
+    position: fixed;
+    top: 5px;
+    right: 6px;
+    font-size: 20px;
+}
+
+.nav_bar_login_button, .nav_bar_sign_up_button
+{
+    display: inline-block;
+    position: fixed;
+    border: none;
+    color: #fffefa;
+    background-color: transparent;
+    font-weight: bold;
+    height: 34px;
+    font-size: 17px;
+    top: 3px;
+}
+
+.nav_bar_sign_up_button a
+{
+    visibility: hidden;
+    display: inline-block;
+    text-align: center;
+    width: 100%;
+    height: 100%;
+}
+
+.nav_bar_login_button:hover, .nav_bar_sign_up_button:hover
+{
+    filter: brightness(87.5%);
+}
+
+.nav_bar_login_button:active, .nav_bar_sign_up_button:active
+{
+    filter: brightness(80%);
+}
+
+.nav_bar_login_button
+{
+    width: 80px;
+    right: 83px;
+}
+
+.nav_bar_sign_up_button
+{
+    width: 80px;
+    right: 0px;
 }
 
 .nav_bar_menu_div a:hover

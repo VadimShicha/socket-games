@@ -1,6 +1,6 @@
 .form_template
 {
-    position: absolute;
+    position: fixed;
     background-color: var(--light-secondary-color);
     z-index: 1;
 }

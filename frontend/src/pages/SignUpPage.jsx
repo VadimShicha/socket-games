@@ -38,9 +38,9 @@ function SignUpPage()
             {shouldRedirect && <Navigate to="/"></Navigate>}
             <h2>Create an Account</h2>
             
-            <form onSubmit={(e) => {e.preventDefault()}} className="center_align sign_form">
+            <form onSubmit={(e) => {e.preventDefault()}} className="center_align sign_form sign_form_container">
                 <h2 className="sign_form_title">Sign Up</h2>
-                <p className="sign_form_description">Create a new account or <Link to="/login">login</Link></p>
+                <p className="sign_form_description">Create a new account or <Link to="/">login</Link></p>
                 <div>
                     <label htmlFor="first_name">First Name: </label>
                     <input autoComplete="off" type="text" onChange={e => setFirstName(e.target.value)} placeholder="First Name" id="first_name"></input>

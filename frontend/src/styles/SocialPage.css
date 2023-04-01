@@ -20,6 +20,16 @@
     margin-right: auto;
     scroll-margin: 10px;
     height: 305px;
+    width: 450px;
+    min-width: 280px;
+}
+
+@media (max-width: 500px)
+{
+    .friends_div_template
+    {
+        width: 90%;
+    }
 }
 
 .friends_table_template
@@ -29,7 +39,7 @@
     justify-content: center;
     align-items: center;
     text-align: left;
-    width: 500px;
+    width: 100%;
 }
 
 .friends_table_title
@@ -39,6 +49,8 @@
 
 .friends_td, .friends_tr
 {
+    max-width: fit-content;
+    width: fit-content;
     text-align: left;
     border-collapse: separate;
     border-spacing: 0px 0;
@@ -48,5 +60,6 @@
 {
     padding-left: 5px;
     text-align: left;
-    width: 415px;
+    min-width: 200px;
+    width: fit-content;
 }

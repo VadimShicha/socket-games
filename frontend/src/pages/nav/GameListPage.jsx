@@ -8,7 +8,7 @@ function GameListPage()
 {
     return (
         <>
-            <AuthUser></AuthUser>
+            {/* <AuthUser></AuthUser> */}
             <NavBar page={0}></NavBar>
             <div className="nav_bar_body">
                 <h2>Select a Game to Play!</h2>

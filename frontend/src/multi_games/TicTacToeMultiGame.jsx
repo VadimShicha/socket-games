@@ -1,21 +1,29 @@
 import React from 'react';
 import { socket } from '../socket';
-import Cookies from 'js-cookie';
 import "../styles/TicTacToeMultiGame.css";
 import DataManager from '../dataManager';
+import GameOverForm from '../components/forms/GameOverForm';
 
 class TicTacToeMultiGame extends React.Component
 {
     constructor(props)
     {
         super(props);
-        this.state = {tableBody: <></>, turnText: "==============="};
+        this.state = {tableBody: <></>, turnText: "===============", status: -1, statusMessage: ""};
         this.board = [[-1, -1, -1],[-1, -1, -1],[-1, -1, -1]];
         //-1 EMPTY
         //0 X
         //1 O
         this.loaded = false;
     };
+
+    rematch()
+    {
+        socket.emit("rematch", {token: DataManager.token}, function(data)
+        {
+
+        });
+    }
 
     //gets the class name for x and o image
     getClassByValue(value)
@@ -72,6 +80,7 @@ class TicTacToeMultiGame extends React.Component
 
     status(data)
     {
+        this.setState({status: data.status, statusMessage: data.statusMessage});
         if(data.status != -1)
             DataManager.popTextRef.current.show(data.statusMessage);
     }
@@ -95,11 +104,11 @@ class TicTacToeMultiGame extends React.Component
         this.loaded = true;
     };
 
-
     render()
     {
         return (
             <div>
+                <GameOverForm status={this.state.status} statusMessage={this.state.statusMessage} rematch={this.rematch}></GameOverForm>
                 <h2>Tic Tac Toe</h2>
                 <p>{this.state.turnText}</p>
                 <table className="tic_tac_toe_table center_align">

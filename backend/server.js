@@ -13,11 +13,11 @@ const CookieParser = require("http-cookie-manager");
 
 const TicTacToe = require("./TicTacToe");
 
-const rateLimiter = rateLimit({
-    windowMs: 5 * 1000,
-    max: 60,
-    message: "You have reached the maximun number of requests"
-});
+// const rateLimiter = rateLimit({
+//     windowMs: 5 * 1000,
+//     max: 6000000,
+//     message: "You have reached the maximun number of requests"
+// });
 
 const corsConfig = {
     origin: process.env.CLIENT_URL,
@@ -33,7 +33,7 @@ let games = []; //[gameID/roomID, gameUrl, [sockets], gameData]
 
 app.use(cors(corsConfig));
 
-app.use(rateLimiter);
+//app.use(rateLimiter);
 app.use(express.json());
 
 //if the cookie exists, returns the cookie's value else returns null
@@ -46,6 +46,7 @@ function getCookieValue(cookie)
 
 app.post("/server", function(req, res)
 {
+    console.log("POST REQUEST SENT");
     let cookieManager = CookieParser.parseFrom(!req.headers.cookie ? "" : req.headers.cookie);
 
     if(req.body["requestID"] == "sign_up")
@@ -102,6 +103,8 @@ app.post("/server", function(req, res)
 
                 res.send({success: true});
             }
+            else
+                res.send({success: false});
         });
     }
     else if(req.body["requestID"] == "auth_token")
@@ -111,7 +114,7 @@ app.post("/server", function(req, res)
             if(err)
                 res.send({success: false});
             else
-                res.send({success: true});
+                res.send({success: true, username: data});
         });
     }
     else if(req.body["requestID"] == "get_login_token")
@@ -124,6 +127,8 @@ app.post("/server", function(req, res)
         {
             if(!err)
                 res.send({success: true});
+            else
+                res.send({success: false});
         })
     }
     else if(req.body["requestID"] == "send_friend_request")
@@ -140,6 +145,8 @@ app.post("/server", function(req, res)
                     res.send({message: data[0], code: data[1], success: success});
                 });
             }
+            else
+                res.send({success: false});
         });
     }
     else if(req.body["requestID"] == "get_friends")
@@ -154,8 +161,12 @@ app.post("/server", function(req, res)
                         res.send({result: friendsData, success: true});
                     else
                         res.send({success: false});
+
+                    return;
                 });
             }
+            else
+                res.send({success: false});
         });
     }
     else if(req.body["requestID"] == "get_friend_requests")
@@ -172,6 +183,8 @@ app.post("/server", function(req, res)
                         res.send({success: false});
                 });
             }
+            else
+                res.send({success: false});
         });
     }
     else if(req.body["requestID"] == "accept_friend_request")
@@ -188,6 +201,8 @@ app.post("/server", function(req, res)
                         res.send({success: false});
                 });
             }
+            else
+                res.send({success: false});
         });
     }
     else if(req.body["requestID"] == "decline_friend_request")
@@ -204,6 +219,8 @@ app.post("/server", function(req, res)
                         res.send({success: false});
                 });
             }
+            else
+                res.send({success: false});
         });
     }
     else
@@ -343,6 +360,29 @@ io.on("connection", (socket) =>
                 io.to("game-" + games[i][0]).emit("game_tick", {boxA: games[i][3].boxA.velocity});
             }
         }
+    });
+
+    socket.on("rematch", (args) =>
+    {
+        user.getUsernameWithToken(args.token, function(err, data)
+        {
+            if(err)
+                return;
+
+            for(let i = 0; i < games.length; i++)
+            {
+                if(games[i][0] == socket.data.gameID)
+                {
+                    for(let j = 0; j < 2; j++)
+                    {
+                        if(games[i][2][i].data.username != socket.data.username)
+                        {
+                            sockets[i].emit("game_invite_sent", {gameUrl: games[i][1], fromUser: data});
+                        }
+                    }
+                }
+            }
+        });
     });
 
     socket.on("tic_tac_toe_is_turn", (args, callback) =>

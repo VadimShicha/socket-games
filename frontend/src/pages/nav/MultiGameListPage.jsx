@@ -51,14 +51,14 @@ function GameListPage()
 
     useEffect(() =>
     {
-        if(ranStart)
-            return;
+        //if(ranStart)
+            //return;
 
-        sendPOST({requestID: "get_friends", token: DataManager.token}, function(data)
-        {
-            if(data.success && data.result.length <= 0)
-                setHasFriends(false);
-        });
+        // sendPOST({requestID: "get_friends", token: DataManager.token}, function(data)
+        // {
+        //     if(data.success && data.result.length <= 0)
+        //         setHasFriends(false);
+        // });
 
         //called when the user who the game invite was sent to declined it
         socket.on("game_invite_declined", function(data)
@@ -73,7 +73,13 @@ function GameListPage()
             setRenderComponent(<Navigate to={"/multiplayer/game-" + data.gameUrl}></Navigate>); //navigate the user to the game page
         });
 
-        ranStart = true;
+        return () =>
+        {
+            socket.off("game_invite_declined");
+            socket.off("send_to_game");
+        };
+
+        //ranStart = true;
     }, []);
 
     //called when the user that sent the game invite canceled it
@@ -92,7 +98,7 @@ function GameListPage()
 
     return (
         <>
-            <AuthUser></AuthUser>
+            {/* <AuthUser></AuthUser> */}
             <NavBar page={1}></NavBar>
             {renderComponent}
             <div className="nav_bar_body">

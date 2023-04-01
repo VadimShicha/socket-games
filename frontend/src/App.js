@@ -22,6 +22,8 @@ import {socket} from './socket';
 import './App.css';
 import TicTacToeMultiGame from './multi_games/TicTacToeMultiGame';
 import { sendPOST } from './tools';
+import MultiGamePage from './pages/MultiGamePage';
+import NavBar from './components/NavBar';
 
 function App()
 {
@@ -38,20 +40,23 @@ function App()
         sendPOST({requestID: "get_login_token"}, function(data)
         {
             DataManager.token = data.token;
+            
+            if(data.token)
+                DataManager.authed = true;
+            else
+                DataManager.authed = false;
+
             socket.emit("auth_user", {token: data.token});
         });
 
         socket.on("game_invite_sent", function(data)
         {
-            console.log(data);
-            console.log(sentGameInviteRef);
             setGameInvites(gameInvites.concat([[data.gameUrl, data.fromUser]]));
             sentGameInviteRef.current.show(data.gameUrl, data.fromUser);
         });
 
         socket.on("game_invite_canceled", function(data)
         {
-            console.log(data);
             removeGameInvite(data.gameUrl, data.username);
             sentGameInviteRef.current.hide();
         });
@@ -68,10 +73,7 @@ function App()
     {
         removeGameInvite(gameUrl, username);
 
-        socket.emit("accept_game_invite", {gameUrl: gameUrl, fromUser: username, token: DataManager.token}, function(data)
-        {
-            
-        });
+        socket.emit("accept_game_invite", {gameUrl: gameUrl, fromUser: username, token: DataManager.token});
 
         return redirect("/login");
     }
@@ -94,7 +96,6 @@ function App()
                     <Route path="/social" element={<SocialPage gameInvites={gameInvites} removeGameInvite={removeGameInvite}/>}></Route>
                     <Route path="/settings" element={<SettingsPage/>}></Route>
 
-                    <Route path="/login" element={<LoginPage></LoginPage>}></Route>
                     <Route path="/sign_up" element={<SignUpPage></SignUpPage>}></Route>
 
                     <Route path="/game-first" element={<><GamePage/><FirstGame/></>}></Route>

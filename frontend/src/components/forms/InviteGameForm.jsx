@@ -1,6 +1,5 @@
 import React, {useEffect, useState} from 'react';
 import {sendPOST} from '../../tools';
-import Cookies from 'js-cookie';
 import InviteFriendItem from '../InviteFriendItem';
 import "../../styles/InviteGameForm.css";
 import "../../styles/FormTemplate.css";
@@ -13,7 +12,9 @@ function InviteGameForm(props)
     useEffect(() =>
     {
         getFriends();
-    }, [props.active]);
+    }, []);
+
+    //props.active
 
     function send(username, index)
     {
@@ -23,7 +24,7 @@ function InviteGameForm(props)
 
     function getFriends()
     {
-        sendPOST({requestID: "get_friends", token: Cookies.get("token")}, function(data)
+        sendPOST({requestID: "get_friends"}, function(data)
         {
             if(data.success)
             {
@@ -41,8 +42,8 @@ function InviteGameForm(props)
                 <h3>Invite a Friend to Join You!</h3>
                 <button onClick={props.close} className="form_template_close_button action_button decline_button"></button>
                 <div hidden={friendTableRows == 0}>
-                    <div className="friends_div_template" style={{height: "150px"}}>
-                        <table className="friends_table_template" style={{width: "200px"}}>
+                    <div className="invite_game_friends_div">
+                        <table className="invite_game_friends_table">
                             <tbody>{friends}</tbody>
                         </table>
                     </div>
