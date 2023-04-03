@@ -42,3 +42,21 @@ exports.runSQL = function(cmd, callback)
         });
     });
 }
+
+//get a cookie value by the id with a cookie string
+exports.parseCookie = function(cookieStr, id)
+{
+    if(!cookieStr)
+        return null;
+
+    let cookies = cookieStr.toString().replace(/ /g, '').split(';');
+
+    for(let i = 0; i < cookies.length; i++)
+    {
+        let indexCookie = cookies[i].split('=');
+        if(indexCookie[0] == id)
+            return indexCookie[1];
+    }
+
+    return null;
+}

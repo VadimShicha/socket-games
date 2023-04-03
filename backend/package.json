@@ -15,6 +15,7 @@
     "express-rate-limit": "^6.7.0",
     "http-cookie-manager": "^1.0.1",
     "matter-js": "^0.19.0",
+    "mongodb": "^5.1.0",
     "mysql": "^2.18.1",
     "socket.io": "^4.6.1"
   }

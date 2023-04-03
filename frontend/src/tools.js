@@ -14,12 +14,24 @@ export function sendPOST(obj, func)
     then(res => res.json()
     ).then(data => {
         func(data);
-    })
-    .catch((error) =>
-    {
-        console.log("ERROR");
-        console.log(error);
     });
-
-    console.log("FINISHED");
 };
+
+export async function sendAsyncPOST(obj)
+{
+    const res = await window.fetch(process.env.REACT_APP_API_URL + '/server',
+    {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        credentials: "include",
+        body: JSON.stringify(obj)
+    });
+    const then = await res.json();
+    console.log(then);
+    let data;
+    await then.then(async(d) => data = d);
+    return data;
+}

@@ -10,14 +10,15 @@ const user = require("./user");
 const socketio = require("socket.io");
 const Matter = require("matter-js");
 const CookieParser = require("http-cookie-manager");
+const tools = require("./tools");
 
 const TicTacToe = require("./TicTacToe");
 
-// const rateLimiter = rateLimit({
-//     windowMs: 5 * 1000,
-//     max: 6000000,
-//     message: "You have reached the maximun number of requests"
-// });
+const rateLimiter = rateLimit({
+    windowMs: 5 * 1000,
+    max: 20,
+    message: "You have reached the maximun number of requests"
+});
 
 const corsConfig = {
     origin: process.env.CLIENT_URL,
@@ -33,7 +34,7 @@ let games = []; //[gameID/roomID, gameUrl, [sockets], gameData]
 
 app.use(cors(corsConfig));
 
-//app.use(rateLimiter);
+app.use(rateLimiter);
 app.use(express.json());
 
 //if the cookie exists, returns the cookie's value else returns null
@@ -59,6 +60,7 @@ app.post("/server", function(req, res)
                 {
                     if(!err)
                     {
+                        cookieManager.setCookieBy("logged_in", "true");
                         cookieManager.setCookieBy("token", newData);
                         cookieManager.getCookieBy("token").setHttpOnly(true);
                         cookieManager.setHeaders(res);
@@ -68,9 +70,7 @@ app.post("/server", function(req, res)
                 });
             }
             else
-            {
                 res.send({message: data[0], code: data[1], success: false});
-            }
         });
     }
     else if(req.body["requestID"] == "login")
@@ -83,6 +83,7 @@ app.post("/server", function(req, res)
             {
                 user.getLoginToken(req.body["username"], function(err, newData)
                 {
+                    cookieManager.setCookieBy("logged_in", "true");
                     cookieManager.setCookieBy("token", newData);
                     cookieManager.getCookieBy("token").setHttpOnly(true);
                     cookieManager.setHeaders(res);
@@ -98,6 +99,7 @@ app.post("/server", function(req, res)
         {
             if(!err)
             {
+                cookieManager.getCookieBy("logged_in").setMaxAge(1);
                 cookieManager.getCookieBy("token").setMaxAge(1);
                 cookieManager.setHeaders(res);
 
@@ -151,6 +153,7 @@ app.post("/server", function(req, res)
     }
     else if(req.body["requestID"] == "get_friends")
     {
+        //console.log(":" + getCookieValue(cookieManager.getCookieBy("token")) + ":");
         user.getUsernameWithToken(getCookieValue(cookieManager.getCookieBy("token")), function(err, data)
         {
             if(!err)
@@ -233,16 +236,44 @@ server.listen(config.port, () => {});
 
 const io = socketio(server, {cors: corsConfig});
 
-let sockets = []; //list of sockets that are currently online
+let sockets = {};
 
 io.on("connection", (socket) =>
 {
+    // user.getUsernameWithToken(getCookieValue(cookieManager.getCookieBy("token")), function(err, data)
+    // {
+    //     if(err)
+    //         res.send({success: false});
+    //     else
+    //         res.send({success: true, username: data});
+    // });
+
+    const cookie = socket.handshake.headers.cookie;
+    console.log(tools.parseCookie(cookie, "token"));
+
+    let shouldReturn = false;
+    
+    user.getUsernameWithToken(tools.parseCookie(cookie, "token"), function(err, data)
+    {
+        if(err)
+        {
+            socket.emit("");
+            //shouldReturn =
+        }
+        
+        sockets[data] = socket;
+        socket.data.username = data;
+    });
+
     socket.on("send_game_invite", (args, callback) =>
     {
-        user.getUsernameWithToken(args.token, function(err, data)
+        user.getUsernameWithToken(tools.parseCookie(cookie, "token"), function(err, data)
         {
             if(err)
+            {
+                callback(["Fail", -1]);
                 return;
+            }
             
             for(let i = 0; i < sockets.length; i++)
             {
@@ -261,7 +292,7 @@ io.on("connection", (socket) =>
 
     socket.on("auth_user", (args, callback) =>
     {
-        user.getUsernameWithToken(args.token, function(err, data)
+        user.getUsernameWithToken(tools.parseCookie(cookie, "token"), function(err, data)
         {
             if(err)
                 return;
@@ -272,10 +303,10 @@ io.on("connection", (socket) =>
     
     socket.on("accept_game_invite", (args, callback) =>
     {
-        if(args.token == undefined || args.fromUser == undefined || args.gameUrl == undefined)
+        if(args.fromUser == undefined || args.gameUrl == undefined)
             return;
 
-        user.getUsernameWithToken(args.token, function(err, data)
+        user.getUsernameWithToken(tools.parseCookie(cookie, "token"), function(err, data)
         {
             console.log(args);
             if(!err)
@@ -320,7 +351,7 @@ io.on("connection", (socket) =>
 
     socket.on("decline_game_invite", (args, callback) =>
     {
-        user.getUsernameWithToken(args.token, function(err, data)
+        user.getUsernameWithToken(tools.parseCookie(cookie, "token"), function(err, data)
         {
             if(!err)
             {
@@ -335,7 +366,7 @@ io.on("connection", (socket) =>
 
     socket.on("cancel_game_invite", (args, callback) =>
     {
-        user.getUsernameWithToken(args.token, function(err, data)
+        user.getUsernameWithToken(tools.parseCookie(cookie, "token"), function(err, data)
         {
             if(!err)
             {
@@ -364,7 +395,7 @@ io.on("connection", (socket) =>
 
     socket.on("rematch", (args) =>
     {
-        user.getUsernameWithToken(args.token, function(err, data)
+        user.getUsernameWithToken(tools.parseCookie(cookie, "token"), function(err, data)
         {
             if(err)
                 return;
@@ -387,7 +418,7 @@ io.on("connection", (socket) =>
 
     socket.on("tic_tac_toe_is_turn", (args, callback) =>
     {
-        user.getUsernameWithToken(args.token, function(err, data)
+        user.getUsernameWithToken(tools.parseCookie(cookie, "token"), function(err, data)
         {
             if(!err)
             {
@@ -411,7 +442,7 @@ io.on("connection", (socket) =>
             return;
         }
 
-        user.getUsernameWithToken(args.token, function(err, data)
+        user.getUsernameWithToken(tools.parseCookie(cookie, "token"), function(err, data)
         {
             console.log(data);
             if(err)
@@ -477,7 +508,7 @@ io.on("connection", (socket) =>
         console.log(`socket ${socket.id} has diconnected (${socket.handshake.address})`);
     });
 
-    sockets.push(socket);
+    //sockets.push(socket);
 
     console.log(`socket ${socket.id} has connected (${socket.handshake.address})`);
 });

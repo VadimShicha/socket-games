@@ -4,18 +4,21 @@ import NavBar from '../../components/NavBar';
 import AuthUser from '../../components/AuthUser';
 import { Navigate } from 'react-router';
 import DataManager from '../../dataManager';
+import Cookies from 'js-cookie';
 
 function SettingsPage()
 {
     const [shouldRedirect, setShouldRedirect] = useState(false);
+
+    const [reloader, setReloader] = useState(false);
     
     function logout()
     {
         sendPOST({requestID: "logout"}, function(data)
         {
             console.log("Logged out and deleted token");
+            Cookies.remove("logged_in");
             DataManager.token = "";
-            DataManager.authed = false;
             setShouldRedirect(true);
         });
     }
@@ -23,7 +26,6 @@ function SettingsPage()
     return (
         <>
             <NavBar page={3}></NavBar>
-            <AuthUser></AuthUser>
             {shouldRedirect && <Navigate to="/"></Navigate>}
             <div className="nav_bar_body">
                 <h2>Settings</h2>

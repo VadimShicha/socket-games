@@ -3,7 +3,7 @@ const digits = "0123456789";
 const symbols = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
 
 //MySQL config
-exports.database = "socket_games";
+exports.database = "trumpetgames";
 exports.usersTable = "users";
 exports.loginTokensTable = "login_tokens";
 
@@ -16,7 +16,7 @@ exports.gameInviteExpiration = 3 * 1 * 1000 //amount of milliseconds a game invi
 
 exports.loginTokenExpiration = 5 * 60 * 60 * 1000 //the amount of milliseconds a login token lasts for in the database
 
-exports.tokenLength = 16
+exports.tokenLength = 16;
 exports.tokenChars = lowerAlphabet + lowerAlphabet.toUpperCase() + digits;
 
 exports.nameMinLength = 1;

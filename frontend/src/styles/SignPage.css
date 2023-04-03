@@ -9,6 +9,11 @@
     border-radius: 20px;
 }
 
+.sign_form_message
+{
+    margin: 3px;
+}
+
 .sign_form_title
 {
     margin-top: 7px;

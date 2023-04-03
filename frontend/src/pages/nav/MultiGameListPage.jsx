@@ -7,6 +7,7 @@ import AuthUser from '../../components/AuthUser';
 import DataManager from '../../dataManager';
 import { socket } from '../../socket';
 import { Navigate } from 'react-router';
+import Cookies from 'js-cookie';
 
 function GameListPage()
 {
@@ -35,7 +36,7 @@ function GameListPage()
 
     function send(username)
     {
-        socket.emit("send_game_invite", {gameUrl: gameUrl, toUser: username, token: DataManager.token}, function(data)
+        socket.emit("send_game_invite", {gameUrl: gameUrl, toUser: username}, function(data)
         {
             //if success
             if(data[1] == 0)
@@ -96,9 +97,18 @@ function GameListPage()
         });
     }
 
+    if(!(Cookies.get("logged_in") === 'true'))
+        return (
+            <>
+                <NavBar page={1}></NavBar>
+                <div className="nav_bar_body">
+                    <h3>No support for non logged in users</h3>
+                </div>
+            </>
+        );
+
     return (
         <>
-            {/* <AuthUser></AuthUser> */}
             <NavBar page={1}></NavBar>
             {renderComponent}
             <div className="nav_bar_body">

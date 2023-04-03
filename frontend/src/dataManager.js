@@ -8,7 +8,6 @@ class DataManager
     static redirectRef = createRef();
     
     static token = "";
-    static authed = false;
     static gameUrlToTitle = function(gameUrl)
     {
         if(gameUrl == "first")

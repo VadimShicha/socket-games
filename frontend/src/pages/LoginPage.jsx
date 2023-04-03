@@ -9,7 +9,7 @@ function LoginPage(props)
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
 
-    const [message, setMessage] = useState("");
+    const [message, setMessage] = useState(<>&nbsp;</>);
 
     function login()
     {
@@ -19,16 +19,20 @@ function LoginPage(props)
         console.log(username);
         console.log(password);
 
+        //do a check to avoid sending a request to the server incase the user accidentally clicked
+        if(username == "" || password == "")
+        {
+            setMessage("Field(s) not filled out");
+            return;
+        }
+
         sendPOST({requestID: "login", username: username, password: password}, function(data)
         {
             console.log(data);
             setMessage(data.message);
 
             if(data.success)
-            {
-                DataManager.authed = true;
                 props.loginSuccess();
-            }
         });
     }
 
@@ -48,8 +52,8 @@ function LoginPage(props)
                     <label htmlFor="password">Password:</label>
                     <input type="password" onChange={e => setPassword(e.target.value)} placeholder="Password" id="password"></input>
                 </div>
+                <p className="sign_form_message">{message}</p>
                 <input type="submit" onClick={login} value="Login"></input>
-                <p>{message}</p>
             </form>
         </>
     )

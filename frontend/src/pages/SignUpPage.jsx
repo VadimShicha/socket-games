@@ -20,6 +20,13 @@ function SignUpPage()
         /* CODE IS FOR TEST PURPOSE ONLY */
         if(username==":bob")createExample("bob");else if(username==":sally")createExample("sally");else if(username==":both")createExample("both");
 
+        //do a check to avoid sending a request to the server incase the user accidentally clicked
+        if(firstName == "" || lastName == "" || username == "" || password == "" || confirmPassword == "")
+        {
+            setMessage("Field(s) not filled out");
+            return;
+        }
+
         sendPOST({requestID: "sign_up", firstName: firstName, lastName: lastName, username: username, password: password, confirmPassword: confirmPassword}, function(data)
         {
             console.log(data);

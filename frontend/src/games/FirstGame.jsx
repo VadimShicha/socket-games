@@ -46,6 +46,7 @@ class FirstGame extends React.Component
         this.runner = Matter.Runner.create();
 
         Matter.Runner.run(this.runner, this.engine);
+        document.addEventListener("keyup", this.keyUp);
 
         this.loaded = true;
     };
@@ -56,14 +57,24 @@ class FirstGame extends React.Component
             this.load();
     };
 
-    move(_this, direction)
+    move(direction)
     {
         let yVelocity = -0.15;
 
         if(direction == 0)
             yVelocity = -0.3;
 
-        Matter.Body.applyForce(_this.boxA, _this.boxA.position, Matter.Vector.create(0.1 * direction, yVelocity));
+        Matter.Body.applyForce(this.boxA, this.boxA.position, Matter.Vector.create(0.1 * direction, yVelocity));
+    }
+
+    keyUp = (e) =>
+    {
+        if(e.key == "a")
+            this.move(-1);
+        else if(e.key == "d")
+            this.move(1);
+        else if(e.key == " ")
+            this.move(0);
     }
 
     render()
@@ -71,9 +82,9 @@ class FirstGame extends React.Component
         return (
             <div>
                 <div ref={this.mainRef}></div>
-                <button onClick={() => this.move(this, -1)}>Left</button>
-                <button onClick={() => this.move(this, 0)}>Center</button>
-                <button onClick={() => this.move(this, 1)}>Right</button>
+                <button onClick={() => this.move(-1)}>Left</button>
+                <button onClick={() => this.move(0)}>Center</button>
+                <button onClick={() => this.move(1)}>Right</button>
             </div>
         );
     };

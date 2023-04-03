@@ -1,5 +1,8 @@
 const tools = require("./tools");
 const config = require("./config");
+const crypto = require("crypto");
+const {MongoClient} = require("mongodb");
+const client = new MongoClient(process.env.MONGO_URL);
 
 //create a new user (returns message, code)
 /* CODE - MESSAGE
@@ -16,7 +19,7 @@ const config = require("./config");
     10 - password too short or long
     11 - password and confirm password don't match
 */
-exports.createUser = function(firstName, lastName, username, password, confirmPassword, callback)
+exports.createUser = async function(firstName, lastName, username, password, confirmPassword, callback)
 {
     if(firstName == "" || lastName == "" || username == "" || password == "" || confirmPassword == "")
         {callback(true, ["Field not filled out", 1]); return;}
@@ -48,6 +51,18 @@ exports.createUser = function(firstName, lastName, username, password, confirmPa
     //make first and last names have proper capitalization
     firstName = firstName[0].toUpperCase() + firstName.slice(1).toLowerCase();
     lastName = lastName[0].toUpperCase() + lastName.slice(1).toLowerCase();
+
+    await client.connect();
+
+    client.db(config.database).collection(config.usersTable).insertOne(
+    {
+        uuid: crypto.randomUUID(),
+        firstName: firstName,
+        lastName: lastName,
+        username: username,
+        password: password
+    });
+    client.close();
 
     tools.runSQL(`SELECT username FROM ${config.usersTable} WHERE username = "${username}"`, function(err, data)
     {
@@ -193,6 +208,7 @@ exports.getUsernameWithToken = function(token, callback)
     {
         if(!err)
         {
+            console.log(data);
             if(data.length == 0)
             {
                 callback(true, ["Wrong token", 1]);

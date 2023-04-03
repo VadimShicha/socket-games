@@ -10,9 +10,10 @@
     top: 0px;
     height: fit-content;
     overflow: hidden;
-    background-image: url("/public/assets/plank_texture.svg");
+    background-color: #686464;
+    /* background-image: url("/public/assets/plank_texture.svg");
     background-repeat: repeat-x;
-    background-size: 192px calc(26px * 2px);
+    background-size: 192px calc(26px * 2px); */
 }
 
 .nav_bar_login_div_container
@@ -26,7 +27,7 @@
     position: fixed;
     right: 0px;
     width: 400px;
-    height: 220px;
+    height: 240px;
     border-bottom-left-radius: 25px;
     border-bottom-right-radius: 25px;
     transition: margin-top 0.3s;
@@ -45,7 +46,7 @@
 {
     position: fixed;
     top: 6px;
-    left: 42px;
+    left: 77px;
     font-size: 20px;
     padding: 0px;
     height: 40px;
@@ -70,9 +71,10 @@
 .nav_bar_image
 {
     position: fixed;
+    top: 6px;
     left: 0px;
-    width: 40px;
-    height: 40px;
+    width: 70px;
+    height: 28px;
 }
 
 li a
@@ -131,6 +133,7 @@ li a
 .nav_bar_menu_div
 {
     position: fixed;
+    top: 40px;
     right: 0px;
     height: fit-content;
     background-image: url("/public/assets/plank_texture.svg");
@@ -197,6 +200,7 @@ li a
 {
     display: inline-block;
     position: fixed;
+    cursor: pointer;
     border: none;
     color: #fffefa;
     background-color: transparent;
@@ -227,13 +231,13 @@ li a
 
 .nav_bar_login_button
 {
-    width: 80px;
-    right: 83px;
+    width: 85px;
+    right: 88px;
 }
 
 .nav_bar_sign_up_button
 {
-    width: 80px;
+    width: 100px;
     right: 0px;
 }
 
@@ -253,6 +257,11 @@ li a
     {
         display: none;
     }
+
+    .nav_bar_login_button, .nav_bar_sign_up_button
+    {
+        transform: translateX(-30px);
+    }
 }
 
 @media (min-width: 720px)
@@ -261,6 +270,4 @@ li a
     {
         display: none;
     }
-
-    
 }

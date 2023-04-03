@@ -117,7 +117,8 @@ function SocialPage(props)
 
     function getFriends()
     {
-        sendPOST({requestID: "get_friends", token: Cookies.get("token")}, function(data)
+        console.log(DataManager.token);
+        sendPOST({requestID: "get_friends"}, function(data)
         {
             if(data.success)
             {
@@ -160,7 +161,6 @@ function SocialPage(props)
     return (
         <div>
             <NavBar page={2}></NavBar>
-            <AuthUser></AuthUser>
             <div className="nav_bar_body">
                 <h2>Social</h2>
                 <div className="center_align social_action_div">

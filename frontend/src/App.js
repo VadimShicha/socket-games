@@ -20,8 +20,9 @@ import PopText from './components/PopText';
 import FirstMultiGame from './multi_games/FirstMultiGame';
 import {socket} from './socket';
 import './App.css';
+import Cookies from 'js-cookie';
 import TicTacToeMultiGame from './multi_games/TicTacToeMultiGame';
-import { sendPOST } from './tools';
+import { sendPOST, sendAsyncPOST } from './tools';
 import MultiGamePage from './pages/MultiGamePage';
 import NavBar from './components/NavBar';
 
@@ -37,17 +38,7 @@ function App()
         if(ranStart)
             return;
 
-        sendPOST({requestID: "get_login_token"}, function(data)
-        {
-            DataManager.token = data.token;
-            
-            if(data.token)
-                DataManager.authed = true;
-            else
-                DataManager.authed = false;
-
-            socket.emit("auth_user", {token: data.token});
-        });
+        console.log("AFTER");
 
         socket.on("game_invite_sent", function(data)
         {
