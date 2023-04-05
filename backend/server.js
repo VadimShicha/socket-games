@@ -45,33 +45,57 @@ function getCookieValue(cookie)
     return null;
 }
 
-app.post("/server", function(req, res)
+app.post("/server", async function(req, res)
 {
     console.log("POST REQUEST SENT");
     let cookieManager = CookieParser.parseFrom(!req.headers.cookie ? "" : req.headers.cookie);
 
     if(req.body["requestID"] == "sign_up")
     {
-        user.createUser(req.body["firstName"], req.body["lastName"], req.body["username"], req.body["password"], req.body["confirmPassword"], function(err, data)
-        {
-            if(data[1] == 0)
-            {
-                user.getLoginToken(req.body["username"], function(err, newData)
-                {
-                    if(!err)
-                    {
-                        cookieManager.setCookieBy("logged_in", "true");
-                        cookieManager.setCookieBy("token", newData);
-                        cookieManager.getCookieBy("token").setHttpOnly(true);
-                        cookieManager.setHeaders(res);
+        let data = await user.createUser(req.body["firstName"], req.body["lastName"], req.body["username"], req.body["password"], req.body["confirmPassword"]);
+        
+        console.log(data);
 
-                        res.send({message: data[0], code: data[1], success: true});
-                    }
-                });
-            }
-            else
-                res.send({message: data[0], code: data[1], success: false});
-        });
+        res.send({message: data[0], code: data[1]});
+        
+        // if(data[1] == 0)
+        // {
+        //     user.getLoginToken(req.body["username"], function(err, newData)
+        //     {
+        //         if(!err)
+        //         {
+        //             cookieManager.setCookieBy("logged_in", "true");
+        //             cookieManager.setCookieBy("token", newData);
+        //             cookieManager.getCookieBy("token").setHttpOnly(true);
+        //             cookieManager.setHeaders(res);
+
+        //             res.send({message: data[0], code: data[1], success: true});
+        //         }
+        //     });
+        // }
+        // else
+        //     res.send({message: data[0], code: data[1], success: false});
+        
+        // user.createUser(req.body["firstName"], req.body["lastName"], req.body["username"], req.body["password"], req.body["confirmPassword"], function(err, data)
+        // {
+        //     if(data[1] == 0)
+        //     {
+        //         user.getLoginToken(req.body["username"], function(err, newData)
+        //         {
+        //             if(!err)
+        //             {
+        //                 cookieManager.setCookieBy("logged_in", "true");
+        //                 cookieManager.setCookieBy("token", newData);
+        //                 cookieManager.getCookieBy("token").setHttpOnly(true);
+        //                 cookieManager.setHeaders(res);
+
+        //                 res.send({message: data[0], code: data[1], success: true});
+        //             }
+        //         });
+        //     }
+        //     else
+        //         res.send({message: data[0], code: data[1], success: false});
+        // });
     }
     else if(req.body["requestID"] == "login")
     {

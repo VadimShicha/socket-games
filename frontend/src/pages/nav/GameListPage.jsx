@@ -20,6 +20,8 @@ function GameListPage()
                     <span>
                         <GameItem info={"Camera follow test game"} gameUrl="camera" imgURL="/assets/camera_game_image.svg" title="Camera Follow Test"></GameItem>
                     </span>
+
+                    <GameItem info={"Racing"} gameUrl="racing" imgURL="/assets/camera_game_image.svg" title="Racing Game"></GameItem>
                 </div>
             </div>
         </>

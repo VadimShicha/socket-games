@@ -1,6 +1,7 @@
 const tools = require("./tools");
 const config = require("./config");
 const crypto = require("crypto");
+//const dbClient = require("./databaseClient");
 const {MongoClient} = require("mongodb");
 const client = new MongoClient(process.env.MONGO_URL);
 
@@ -18,72 +19,96 @@ const client = new MongoClient(process.env.MONGO_URL);
     9 - username taken
     10 - password too short or long
     11 - password and confirm password don't match
+    12 - Database error
 */
-exports.createUser = async function(firstName, lastName, username, password, confirmPassword, callback)
+exports.createUser = async function(firstName, lastName, username, password, confirmPassword)
 {
     if(firstName == "" || lastName == "" || username == "" || password == "" || confirmPassword == "")
-        {callback(true, ["Field not filled out", 1]); return;}
+        return ["Field not filled out", 1];
 
     //check if any of the fields have characters that aren't allowed
     if(!tools.isStringLegal(firstName, config.nameChars))
-        {callback(true, ["First name has characters which aren't allowed", 2]); return;}
+        return ["First name has characters which aren't allowed", 2];
     if(!tools.isStringLegal(lastName, config.nameChars))
-        {callback(true, ["Last name has characters which aren't allowed", 3]); return;}
+        return ["Last name has characters which aren't allowed", 3];
     if(!tools.isStringLegal(username, config.usernameChars))
-        {callback(true, ["Username has characters which aren't allowed", 4]);return;}
+        return ["Username has characters which aren't allowed", 4];
     if(!tools.isStringLegal(password, config.passwordChars))
-        {callback(true, ["Password has characters which aren't allowed", 5]);return;}
+        return ["Password has characters which aren't allowed", 5];
 
     //check if any of the fields have lengthes which is are too small or big
     if(firstName.length < config.nameMinLength || firstName.length > config.nameMaxLength)
-        {callback(true, ["First name needs to be " + config.nameMinLength.toString() + " - " + config.nameMinLength.toString() + " characters", 6]); return;}
+        return ["First name needs to be " + config.nameMinLength.toString() + " - " + config.nameMinLength.toString() + " characters", 6];
     if(lastName.length < config.nameMinLength || lastName.length > config.nameMaxLength)
-        {callback(true, ["Last name needs to be " + config.nameMinLength.toString() + " - " + config.nameMaxLength.toString() + " characters", 7]); return;}
+        return ["Last name needs to be " + config.nameMinLength.toString() + " - " + config.nameMaxLength.toString() + " characters", 7];
     if(username.length < config.usernameMinLength || username.length > config.usernameMaxLength)
-        {callback(true, ["Username needs to be " + config.usernameMinLength.toString() + " - " + config.usernameMaxLength.toString() + " characters", 8]); return;}
+        return ["Username needs to be " + config.usernameMinLength.toString() + " - " + config.usernameMaxLength.toString() + " characters", 8];
     if(password.length < config.passwordMinLength || password.length > config.passwordMaxLength)
-        {callback(true, ["Password needs to be " + config.passwordMinLength.toString() + " - " + config.passwordMaxLength.toString() + " characters", 10]); return;}
+        return ["Password needs to be " + config.passwordMinLength.toString() + " - " + config.passwordMaxLength.toString() + " characters", 10];
 
     //check if password and confirm password match
     if (password != confirmPassword)
-        {callback(true, ["Password and confirm password don't match", 11]); return;}
+        return ["Password and confirm password don't match", 11];
 
     //make first and last names have proper capitalization
     firstName = firstName[0].toUpperCase() + firstName.slice(1).toLowerCase();
     lastName = lastName[0].toUpperCase() + lastName.slice(1).toLowerCase();
 
-    await client.connect();
 
-    client.db(config.database).collection(config.usersTable).insertOne(
+    try
     {
-        uuid: crypto.randomUUID(),
-        firstName: firstName,
-        lastName: lastName,
-        username: username,
-        password: password
-    });
-    client.close();
+        await client.connect();
+    
+        let result = await client.db(config.database).collection(config.usersTable).findOne({username: username});
 
-    tools.runSQL(`SELECT username FROM ${config.usersTable} WHERE username = "${username}"`, function(err, data)
-    {
-        if(!err)
+        console.log(result);
+        
+        //check if the username given is taken
+        if(result)
         {
-            if(data.length == 0)
-            {
-                //'{"friends": [], "friend_requests": [], "game_invites": []}'
-                tools.runSQL(`INSERT INTO ${config.usersTable} VALUES ("${firstName}", "${lastName}", "${username}", "${password}", '{"friends": [], "friend_requests": [], "game_invites": []}')`, function(err, data)
-                {
-                    if(!err)
-                    {
-                        console.log(data);
-                        callback(null, ["Success", 0]);
-                    }
-                });
-            }
-            else
-                callback(true, ["Username is already taken", 9]);
+            await client.close();
+            return ["Username is already taken", 9];
         }
-    });
+
+        //add the user to the database
+        await client.db(config.database).collection(config.usersTable).insertOne(
+        {
+            uuid: crypto.randomUUID(),
+            firstName: firstName,
+            lastName: lastName,
+            username: username,
+            password: password
+        });
+
+        await client.close();
+        return ["Success", 0];
+    }
+    catch
+    {
+        return ["Unknown database error occurred", 12];
+    }
+    
+
+    // tools.runSQL(`SELECT username FROM ${config.usersTable} WHERE username = "${username}"`, function(err, data)
+    // {
+    //     if(!err)
+    //     {
+    //         if(data.length == 0)
+    //         {
+    //             //'{"friends": [], "friend_requests": [], "game_invites": []}'
+    //             tools.runSQL(`INSERT INTO ${config.usersTable} VALUES ("${firstName}", "${lastName}", "${username}", "${password}", '{"friends": [], "friend_requests": [], "game_invites": []}')`, function(err, data)
+    //             {
+    //                 if(!err)
+    //                 {
+    //                     console.log(data);
+    //                     callback(null, ["Success", 0]);
+    //                 }
+    //             });
+    //         }
+    //         else
+    //             callback(true, ["Username is already taken", 9]);
+    //     }
+    // });
 };
 
 //login into a user (returns message, code)
@@ -173,8 +198,40 @@ exports.deleteExpiredTokens = function(callback)
 };
 
 //gets a login token for the username or creates one if it doesn't exist
-exports.getLoginToken = function(username, callback)
+exports.getLoginToken = async function(username, callback)
 {
+    try
+    {
+        await client.connect();
+    
+        let result = await client.db(config.database).collection(config.usersTable).findOne({username: username});
+
+        console.log(result);
+        
+        //check if the username given is taken
+        if(result)
+        {
+            await client.close();
+            return ["Username is already taken", 9];
+        }
+
+        //add the user to the database
+        await client.db(config.database).collection(config.usersTable).insertOne(
+        {
+            uuid: crypto.randomUUID(),
+            firstName: firstName,
+            lastName: lastName,
+            username: username,
+            password: password
+        });
+
+        await client.close();
+        return ["Success", 0];
+    }
+    catch
+    {
+        return ["Unknown database error occurred", 12];
+    }
     //command to check if there already is a token for the username
     tools.runSQL(`SELECT token, username FROM ${config.loginTokensTable} WHERE username = "${username}"`, function(err, data)
     {
