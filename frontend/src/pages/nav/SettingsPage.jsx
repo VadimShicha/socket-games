@@ -16,6 +16,7 @@ function SettingsPage()
     {
         sendPOST({requestID: "logout"}, function(data)
         {
+            console.log(data);
             console.log("Logged out and deleted token");
             Cookies.remove("logged_in");
             DataManager.token = "";

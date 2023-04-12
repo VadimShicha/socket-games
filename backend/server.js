@@ -47,7 +47,6 @@ function getCookieValue(cookie)
 
 app.post("/server", async function(req, res)
 {
-    console.log("POST REQUEST SENT");
     let cookieManager = CookieParser.parseFrom(!req.headers.cookie ? "" : req.headers.cookie);
 
     if(req.body["requestID"] == "sign_up")
@@ -55,200 +54,167 @@ app.post("/server", async function(req, res)
         let data = await user.createUser(req.body["firstName"], req.body["lastName"], req.body["username"], req.body["password"], req.body["confirmPassword"]);
         
         console.log(data);
+        let success = false;
 
-        res.send({message: data[0], code: data[1]});
-        
-        // if(data[1] == 0)
-        // {
-        //     user.getLoginToken(req.body["username"], function(err, newData)
-        //     {
-        //         if(!err)
-        //         {
-        //             cookieManager.setCookieBy("logged_in", "true");
-        //             cookieManager.setCookieBy("token", newData);
-        //             cookieManager.getCookieBy("token").setHttpOnly(true);
-        //             cookieManager.setHeaders(res);
+        if(data[1] == 0)
+        {
+            let token = await user.getLoginToken(req.body["username"]);
+            console.log("token: ", token);
 
-        //             res.send({message: data[0], code: data[1], success: true});
-        //         }
-        //     });
-        // }
-        // else
-        //     res.send({message: data[0], code: data[1], success: false});
-        
-        // user.createUser(req.body["firstName"], req.body["lastName"], req.body["username"], req.body["password"], req.body["confirmPassword"], function(err, data)
-        // {
-        //     if(data[1] == 0)
-        //     {
-        //         user.getLoginToken(req.body["username"], function(err, newData)
-        //         {
-        //             if(!err)
-        //             {
-        //                 cookieManager.setCookieBy("logged_in", "true");
-        //                 cookieManager.setCookieBy("token", newData);
-        //                 cookieManager.getCookieBy("token").setHttpOnly(true);
-        //                 cookieManager.setHeaders(res);
+            if(token == null)
+            {
+                res.send({message: "A database error occurred", success: false});
+                return;
+            }
 
-        //                 res.send({message: data[0], code: data[1], success: true});
-        //             }
-        //         });
-        //     }
-        //     else
-        //         res.send({message: data[0], code: data[1], success: false});
-        // });
+            cookieManager.setCookieBy("logged_in", "true");
+            cookieManager.getCookieBy("logged_in").setMaxAge(config.loginTokenExpiration / 1000);
+            cookieManager.setCookieBy("token", token);
+            cookieManager.getCookieBy("token").setHttpOnly(true);
+            cookieManager.getCookieBy("token").setMaxAge(config.loginTokenExpiration / 1000);
+            cookieManager.setHeaders(res);
+            success = true;
+        }
+
+        res.send({message: data[0], code: data[1], success: success});
     }
     else if(req.body["requestID"] == "login")
     {
-        user.loginUser(req.body["username"], req.body["password"], function(err, data)
-        {
-            if(err)
-                res.send({message: data[0], code: data[1], success: false});
-            else
-            {
-                user.getLoginToken(req.body["username"], function(err, newData)
-                {
-                    cookieManager.setCookieBy("logged_in", "true");
-                    cookieManager.setCookieBy("token", newData);
-                    cookieManager.getCookieBy("token").setHttpOnly(true);
-                    cookieManager.setHeaders(res);
+        let result = await user.loginUser(req.body["username"], req.body["password"]);
 
-                    res.send({message: data[0], code: data[1], success: true});
-                });
+        let success = false;
+
+        if(result[1] == 0)
+        {
+            let token = await user.getLoginToken(req.body["username"]);
+            console.log("token: ", token);
+
+            if(token == null)
+            {
+                res.send({message: "A database error occurred", success: false});
+                return;
             }
-        });
+            
+            cookieManager.setCookieBy("logged_in", "true");
+            cookieManager.getCookieBy("logged_in").setMaxAge(config.loginTokenExpiration / 1000);
+            cookieManager.setCookieBy("token", token);
+            cookieManager.getCookieBy("token").setHttpOnly(true);
+            cookieManager.getCookieBy("token").setMaxAge(config.loginTokenExpiration / 1000);
+            cookieManager.setHeaders(res);
+            success = true;
+        }
+
+        res.send({message: result[0], code: result[1], success: success});
     }
     else if(req.body["requestID"] == "logout")
     {
-        user.logoutUser(getCookieValue(cookieManager.getCookieBy("token")), function(err)
+        let result = await user.getUsernameWithToken(getCookieValue(cookieManager.getCookieBy("token")));
+
+        if(result[1] == 0)
         {
-            if(!err)
+            result = await user.logoutUser(result);
+
+            if(result)
             {
                 cookieManager.getCookieBy("logged_in").setMaxAge(1);
                 cookieManager.getCookieBy("token").setMaxAge(1);
                 cookieManager.setHeaders(res);
-
-                res.send({success: true});
             }
-            else
-                res.send({success: false});
-        });
-    }
-    else if(req.body["requestID"] == "auth_token")
-    {
-        user.getUsernameWithToken(getCookieValue(cookieManager.getCookieBy("token")), function(err, data)
-        {
-            if(err)
-                res.send({success: false});
-            else
-                res.send({success: true, username: data});
-        });
+
+            res.send({success: true});
+        }
+        else
+            res.send({success: false});
     }
     else if(req.body["requestID"] == "get_login_token")
     {
         res.send({token: getCookieValue(cookieManager.getCookieBy("token"))});
     }
-    else if(req.body["requestID"] == "user_exists")
-    {
-        user.userExists(req.body["username"], function(err, data)
-        {
-            if(!err)
-                res.send({success: true});
-            else
-                res.send({success: false});
-        })
-    }
     else if(req.body["requestID"] == "send_friend_request")
     {
-        user.getUsernameWithToken(getCookieValue(cookieManager.getCookieBy("token")), function(err, data)
+        let result = await user.getUsernameWithToken(getCookieValue(cookieManager.getCookieBy("token")));
+        console.log(result);
+
+        if(result[1] == 0)
         {
-            if(!err)
-            {
-                user.sendFriendRequest(req.body["username"], data, function(err, data)
-                {
-                    let success = false;
-                    if(!err)
-                        success = true;
-                    res.send({message: data[0], code: data[1], success: success});
-                });
-            }
-            else
-                res.send({success: false});
-        });
+            let requestResult = await user.sendFriendRequest(req.body["username"], result[0]);
+            let success = false;
+
+            if(requestResult[1] == 0)
+                success = true;
+        
+            res.send({message: requestResult[0], code: requestResult[1], success: success});
+        }
+        else
+            res.send({success: false});
     }
     else if(req.body["requestID"] == "get_friends")
     {
-        //console.log(":" + getCookieValue(cookieManager.getCookieBy("token")) + ":");
-        user.getUsernameWithToken(getCookieValue(cookieManager.getCookieBy("token")), function(err, data)
-        {
-            if(!err)
-            {
-                user.getFriends(data, function(err, friendsData)
-                {
-                    if(!err)
-                        res.send({result: friendsData, success: true});
-                    else
-                        res.send({success: false});
+        let result = await user.getUsernameWithToken(getCookieValue(cookieManager.getCookieBy("token")));
 
-                    return;
-                });
-            }
+        if(result[1] == 0)
+        {
+            console.log("GET_FRIENDS")
+            console.log(result);
+            let friends = await user.getFriends(result[0]);
+        
+            if(friends[1] == 0)
+                res.send({result: friends[0], success: true});
             else
                 res.send({success: false});
-        });
+        }
+        else
+            res.send({success: false});
     }
     else if(req.body["requestID"] == "get_friend_requests")
     {
-        user.getUsernameWithToken(getCookieValue(cookieManager.getCookieBy("token")), function(err, data)
+        let result = await user.getUsernameWithToken(getCookieValue(cookieManager.getCookieBy("token")));
+
+        if(result[1] == 0)
         {
-            if(!err)
-            {
-                user.getFriendRequests(data, function(err, requestsData)
-                {
-                    if(!err)
-                        res.send({result: requestsData, success: true});
-                    else
-                        res.send({success: false});
-                });
-            }
+            let requests = await user.getFriendRequests(result[0]);
+            console.log("SDHDH");
+            console.log(requests);
+        
+            if(requests[1] == 0)
+                res.send({result: requests[0], success: true});
             else
                 res.send({success: false});
-        });
+        }
+        else
+            res.send({success: false});
     }
     else if(req.body["requestID"] == "accept_friend_request")
     {
-        user.getUsernameWithToken(getCookieValue(cookieManager.getCookieBy("token")), function(err, data)
+        let result = await user.getUsernameWithToken(getCookieValue(cookieManager.getCookieBy("token")));
+
+        if(result[1] == 0)
         {
-            if(!err)
-            {
-                user.acceptFriendRequest(data, req.body["username"], function(err, data)
-                {
-                    if(!err)
-                        res.send({success: true});
-                    else
-                        res.send({success: false});
-                });
-            }
+            let acceptResult = await user.acceptFriendRequest(result[0], req.body["username"]);
+
+            if(acceptResult[1] == 0)
+                res.send({success: true});
             else
                 res.send({success: false});
-        });
+        }
+        else
+            res.send({success: false});
     }
     else if(req.body["requestID"] == "decline_friend_request")
     {
-        user.getUsernameWithToken(getCookieValue(cookieManager.getCookieBy("token")), function(err, data)
+        let result = await user.getUsernameWithToken(getCookieValue(cookieManager.getCookieBy("token")));
+
+        if(result[1] == 0)
         {
-            if(!err)
-            {
-                user.declineFriendRequest(data, req.body["username"], function(err, data)
-                {
-                    if(!err)
-                        res.send({success: true});
-                    else
-                        res.send({success: false});
-                });
-            }
+            let acceptResult = await user.declineFriendRequest(result[0], req.body["username"]);
+            
+            if(acceptResult[1] == 0)
+                res.send({success: true});
             else
                 res.send({success: false});
-        });
+        }
+        else
+            res.send({success: false});
     }
     else
     {
@@ -261,147 +227,129 @@ server.listen(config.port, () => {});
 const io = socketio(server, {cors: corsConfig});
 
 let sockets = {};
+let guestAmount = 0;
 
-io.on("connection", (socket) =>
+io.on("connection", async(socket) =>
 {
-    // user.getUsernameWithToken(getCookieValue(cookieManager.getCookieBy("token")), function(err, data)
-    // {
-    //     if(err)
-    //         res.send({success: false});
-    //     else
-    //         res.send({success: true, username: data});
-    // });
-
     const cookie = socket.handshake.headers.cookie;
     console.log(tools.parseCookie(cookie, "token"));
 
-    let shouldReturn = false;
-    
-    user.getUsernameWithToken(tools.parseCookie(cookie, "token"), function(err, data)
-    {
-        if(err)
-        {
-            socket.emit("");
-            //shouldReturn =
-        }
-        
-        sockets[data] = socket;
-        socket.data.username = data;
-    });
+    let giveGuest = false; //indicator of whether to give a guest accound or not
 
-    socket.on("send_game_invite", (args, callback) =>
+    //if the user doesn't have a token cookie then give a guest account
+    if(tools.parseCookie(cookie, "token") == null)
+        giveGuest = true;
+    else
     {
-        user.getUsernameWithToken(tools.parseCookie(cookie, "token"), function(err, data)
+        let username = await user.getUsernameWithToken(tools.parseCookie(cookie, "token"));
+
+        if(username[1] == 0)
         {
-            if(err)
+            sockets[username[0]] = socket;
+            socket.data.username = username[0];
+        }
+        else
+            giveGuest = true; //if the user's token is invalid give a guest account
+    }
+
+    if(giveGuest)
+    {
+        let guestName = "guest" + guestAmount;
+        sockets[guestName] = socket;
+        socket.data.username = guestName;
+        guestAmount++;
+    }
+
+    socket.on("send_game_invite", async(args, callback) =>
+    {
+        let result = await user.getUsernameWithToken(tools.parseCookie(cookie, "token"));
+        console.log("BLAH: ", args.gameUrl);
+
+        if(result[1] == 0)
+        {
+            if(sockets[args.toUser] != undefined)
             {
-                callback(["Fail", -1]);
-                return;
-            }
-            
-            for(let i = 0; i < sockets.length; i++)
-            {
-                if(sockets[i].data.username == args.toUser)
-                {
-                    sockets[i].emit("game_invite_sent", {gameUrl: args.gameUrl, fromUser: data});
-                    console.log("SENT");
-                    callback(["Sent request to " + args.toUser, 0])
-                    return;
-                }
+                sockets[args.toUser].emit("game_invite_sent", {gameUrl: args.gameUrl, fromUser: result[0]});
+                console.log("SENT");
+                callback(["Sent request to " + args.toUser, 0])
             }
 
             callback(["User isn't online", 3]);
-        });
+        }
+        else
+            callback(["Fail", -1]);
     });
 
-    socket.on("auth_user", (args, callback) =>
-    {
-        user.getUsernameWithToken(tools.parseCookie(cookie, "token"), function(err, data)
-        {
-            if(err)
-                return;
-            
-            socket.data.username = data;
-        });
-    });
-    
-    socket.on("accept_game_invite", (args, callback) =>
+    socket.on("accept_game_invite", async(args, callback) =>
     {
         if(args.fromUser == undefined || args.gameUrl == undefined)
             return;
 
-        user.getUsernameWithToken(tools.parseCookie(cookie, "token"), function(err, data)
+        let result = await user.getUsernameWithToken(tools.parseCookie(cookie, "token"));
+
+        if(result[1] == 0)
         {
-            console.log(args);
-            if(!err)
+            let gameID = user.createToken(); //generate a game id
+
+            if(sockets[args.fromUser] != undefined)
             {
-                let gameID = user.createToken(); //generate a game id
+                let fromUserSocket = sockets[args.fromUser];
+                games.push([gameID, args.gameUrl, [fromUserSocket, socket], {}]); //create a new game
 
-                for(let i = 0; i < sockets.length; i++)
-                    if(sockets[i].data.username == args.fromUser)
-                    {
-                        games.push([gameID, args.gameUrl, [sockets[i], socket], {}]); //create a new game
-
-                        sockets[i].join("game-" + gameID); //from-user joins
-                        sockets[i].data.gameID = gameID;
-                        sockets[i].emit("send_to_game", {gameUrl: args.gameUrl, toUser: data});
-                    }
-
-                socket.join("game-" + gameID); //to-user joins
-                socket.data.gameID = gameID;
-
-                if(args.gameUrl == "first")
-                {
-                    let boxA = Matter.Bodies.rectangle(400, 200, 80, 80);
-                    let ground = Matter.Bodies.rectangle(400, 610, 810, 60, {isStatic: true});
-
-                    let engine = Matter.Engine.create();
-
-                    Matter.Composite.add(engine.world, [ground, boxA]);
-
-                    let runner = Matter.Runner.create();
-
-                    games[games.length - 1][3] = {boxA: boxA, ground: ground, runner: runner, engine: engine};
-
-                    Matter.Runner.run(runner, engine);
-                }
-                else if(args.gameUrl == "tic_tac_toe")
-                {
-                    games[games.length - 1][3] = {board: [[-1, -1, -1],[-1, -1, -1],[-1, -1, -1]], turn: Math.floor(Math.random() * 2)};
-                }
+                fromUserSocket.join("game-" + gameID); //from-user joins
+                fromUserSocket.data.gameID = gameID;
+                fromUserSocket.emit("send_to_game", {gameUrl: args.gameUrl, toUser: result[0]});
             }
-        });
+
+            socket.join("game-" + gameID); //to-user joins
+            socket.data.gameID = gameID;
+
+            if(args.gameUrl == "first")
+            {
+                let boxA = Matter.Bodies.rectangle(400, 200, 80, 80);
+                let ground = Matter.Bodies.rectangle(400, 610, 810, 60, {isStatic: true});
+
+                let engine = Matter.Engine.create();
+
+                Matter.Composite.add(engine.world, [ground, boxA]);
+
+                let runner = Matter.Runner.create();
+
+                games[games.length - 1][3] = {boxA: boxA, ground: ground, runner: runner, engine: engine};
+
+                Matter.Runner.run(runner, engine);
+            }
+            else if(args.gameUrl == "tic_tac_toe")
+            {
+                games[games.length - 1][3] = {board: [[-1, -1, -1],[-1, -1, -1],[-1, -1, -1]], turn: Math.floor(Math.random() * 2)};
+            } 
+        }
     });
 
-    socket.on("decline_game_invite", (args, callback) =>
+    socket.on("decline_game_invite", async(args, callback) =>
     {
-        user.getUsernameWithToken(tools.parseCookie(cookie, "token"), function(err, data)
+        let result = await user.getUsernameWithToken(tools.parseCookie(cookie, "token"));
+
+        if(result[1] == 0)
         {
-            if(!err)
-            {
-                for(let i = 0; i < sockets.length; i++)
-                    if(sockets[i].data.username == args.fromUser)
-                    {
-                        sockets[i].emit("game_invite_declined", {gameUrl: args.gameUrl, toUser: data});
-                    }
-            }
-        });
+            if(sockets[args.fromUser] != undefined)
+                sockets[args.fromUser].emit("game_invite_declined", {gameUrl: args.gameUrl, toUser: result[0]});
+            
+        }
     });
 
-    socket.on("cancel_game_invite", (args, callback) =>
+    socket.on("cancel_game_invite", async(args, callback) =>
     {
-        user.getUsernameWithToken(tools.parseCookie(cookie, "token"), function(err, data)
+        let result = await user.getUsernameWithToken(tools.parseCookie(cookie, "token"));
+
+        if(result[1] == 0)
         {
-            if(!err)
+            if(sockets[args.username] != undefined)
             {
-                for(let i = 0; i < sockets.length; i++)
-                    if(sockets[i].data.username == args.username)
-                    {
-                        sockets[i].emit("game_invite_canceled", {gameUrl: args.gameUrl, username: data});
-                        callback(["Success", 0]);
-                    }
+                sockets[args.username].emit("game_invite_canceled", {gameUrl: args.gameUrl, username: result[0]});
+                callback(["Success", 0]);
             }
-        });
+        }
     });
 
     socket.on("first_game_move", (args) =>
@@ -410,20 +358,18 @@ io.on("connection", (socket) =>
         {
             if(games[i][0] == args.gameID)
             {
-                
                 Matter.Body.applyForce(games[i][3].boxA, games[i][3].boxA.position, Matter.Vector.create(0, -0.3));
                 io.to("game-" + games[i][0]).emit("game_tick", {boxA: games[i][3].boxA.velocity});
             }
         }
     });
 
-    socket.on("rematch", (args) =>
+    socket.on("rematch", async(args) =>
     {
-        user.getUsernameWithToken(tools.parseCookie(cookie, "token"), function(err, data)
-        {
-            if(err)
-                return;
+        let result = await user.getUsernameWithToken(tools.parseCookie(cookie, "token"));
 
+        if(result[1] == 0)
+        {
             for(let i = 0; i < games.length; i++)
             {
                 if(games[i][0] == socket.data.gameID)
@@ -431,34 +377,31 @@ io.on("connection", (socket) =>
                     for(let j = 0; j < 2; j++)
                     {
                         if(games[i][2][i].data.username != socket.data.username)
-                        {
-                            sockets[i].emit("game_invite_sent", {gameUrl: games[i][1], fromUser: data});
-                        }
+                            sockets[i].emit("game_invite_sent", {gameUrl: games[i][1], fromUser: result[0]});
                     }
                 }
             }
-        });
+        }
     });
 
-    socket.on("tic_tac_toe_is_turn", (args, callback) =>
+    socket.on("tic_tac_toe_is_turn", async(args, callback) =>
     {
-        user.getUsernameWithToken(tools.parseCookie(cookie, "token"), function(err, data)
+        let result = await user.getUsernameWithToken(tools.parseCookie(cookie, "token"));
+
+        if(result[1] == 0)
         {
-            if(!err)
-            {
-                for(let i = 0; i < games.length; i++)
-                    if(games[i][0] == socket.data.gameID)
-                    {
-                        if(games[i][2][games[i][3].turn].data.username == data)
-                            callback(true);
-                        else
-                            callback(false);
-                    }
-            }  
-        });
+            for(let i = 0; i < games.length; i++)
+                if(games[i][0] == socket.data.gameID)
+                {
+                    if(games[i][2][games[i][3].turn].data.username == result[0])
+                        callback(true);
+                    else
+                        callback(false);
+                }
+        }
     });
 
-    socket.on("tic_tac_toe_move", (args, callback) =>
+    socket.on("tic_tac_toe_move", async(args, callback) =>
     {
         if(args.row < 0 || args.row > 3 || args.column < 0 || args.column > 3)
         {
@@ -466,12 +409,10 @@ io.on("connection", (socket) =>
             return;
         }
 
-        user.getUsernameWithToken(tools.parseCookie(cookie, "token"), function(err, data)
+        let result = await user.getUsernameWithToken(tools.parseCookie(cookie, "token"));
+
+        if(result[1] == 0)
         {
-            console.log(data);
-            if(err)
-                return;
-            
             for(let i = 0; i < games.length; i++)
             {
                 if(games[i][0] == socket.data.gameID)
@@ -482,7 +423,7 @@ io.on("connection", (socket) =>
                     console.log(turnIndex);
 
                     //check if it's the users turn
-                    if(turnName == data)
+                    if(turnName == result[0])
                     {
                         console.log(games[i][3].board[args.row][args.column]);
                         //check if the spot is empty
@@ -515,44 +456,22 @@ io.on("connection", (socket) =>
                     }
                 }
             }
-        });
+        }
     });
 
     socket.on("disconnect", (args) =>
     {
-        //find the socket that disconnected
-        for(let i = 0; i < sockets.length; i++)
-            if(sockets[i].handshake.address == socket.handshake.address)
-            {
-                sockets.splice(i, 1); //remove the socket from the socket list
-                break;
-            }
-        
+        delete sockets[socket.data.username];
 
-        console.log(`socket ${socket.id} has diconnected (${socket.handshake.address})`);
+        console.log(`\x1b[35msocket ${socket.data.username} has diconnected (${socket.handshake.address})\x1b[0m`);
     });
 
-    //sockets.push(socket);
-
-    console.log(`socket ${socket.id} has connected (${socket.handshake.address})`);
+    console.log(`\x1b[32msocket ${socket.data.username} has connected (${socket.handshake.address})\x1b[0m`);
 });
 
 setInterval(function()
 {
     console.log("Socket Count: " + sockets.length + " | Game Count: " + games.length);
-}, 500);
-
-setInterval(function()
-{
-    // for(let i = 0; i < games.length; i++)
-    // {
-    //     if(games[i][1] == "First")
-    //     {
-    //         // console.log(games[i][3].boxA.position);
-    //         // console.log(games[i][0]);
-    //         io.to("game-" + games[i][0]).emit("game_tick", {boxA: games[i][3].boxA.position});
-    //     }
-    // }
-}, 0);
+}, 750);
 
 console.log("\x1b[36mServer started on port " + config.port + "\x1b[0m");

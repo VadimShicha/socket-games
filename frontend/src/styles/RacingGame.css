@@ -1,0 +1,44 @@
+.game_pause_button
+{
+    width: 45px;
+    height: 45px;
+    top: 3px;
+    right: 3px;
+}
+
+.game_gas_bar
+{
+    width: fit-content;
+    bottom: 6px;
+    left: 3px;
+}
+
+.game_gas_bar_text
+{
+    position: absolute;
+    font-size: 23px;
+    margin: 0px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.game_coins_div
+{
+    top: 3px;
+}
+
+.game_coins_image
+{
+    position: absolute;
+    width: 35px;
+    height: 35px;
+    left: 3px;
+}
+
+.game_coins_text
+{
+    position: absolute;
+    margin: 0px;
+    left: 38px;
+}

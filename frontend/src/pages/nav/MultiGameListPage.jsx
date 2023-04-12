@@ -14,12 +14,13 @@ function GameListPage()
     const [inviteGameHidden, setInviteGameHidden] = useState(true);
     const [inviteGameWaiting, setInviteGameWaiting] = useState(false); //indicates whether the user is waiting for another user for a game invite
     const [hasFriends, setHasFriends] = useState(true); //indicates whether the user has friends
-    const [gameUrl, setGameUrl] = useState("");
     const [waitingUsername, setWaitingUsername] = useState(""); //the username you are waiting for
 
     const [inviteGameMessage, setInviteGameMessage] = useState("");
 
     const [renderComponent, setRenderComponent] = useState(<></>); //the component being rendered
+
+    let storedGameUrl = "";
 
     let ranStart = false;
 
@@ -29,14 +30,16 @@ function GameListPage()
         //checks if the user has any friends
         if(hasFriends)
         {
+            console.log("SDH");
             setInviteGameHidden(false); //shows the game invite form
-            setGameUrl(gameUrl); //stores the url that was of the game that was clicked
+            storedGameUrl = gameUrl //stores the url that was of the game that was clicked
         }
     }
 
     function send(username)
     {
-        socket.emit("send_game_invite", {gameUrl: gameUrl, toUser: username}, function(data)
+        console.log(storedGameUrl);
+        socket.emit("send_game_invite", {gameUrl: storedGameUrl, toUser: username}, function(data)
         {
             //if success
             if(data[1] == 0)
@@ -71,6 +74,7 @@ function GameListPage()
         //called when the user who the game invite was sent to accepted it
         socket.on("send_to_game", function(data)
         {
+            console.log(data);
             setRenderComponent(<Navigate to={"/multiplayer/game-" + data.gameUrl}></Navigate>); //navigate the user to the game page
         });
 
@@ -86,7 +90,7 @@ function GameListPage()
     //called when the user that sent the game invite canceled it
     function cancelGameInvite()
     {
-        socket.emit("cancel_game_invite", {gameUrl: gameUrl, username: waitingUsername, token: DataManager.token}, function(data)
+        socket.emit("cancel_game_invite", {gameUrl: storedGameUrl, username: waitingUsername, token: DataManager.token}, function(data)
         {
             if(data[1] == 0)
             {

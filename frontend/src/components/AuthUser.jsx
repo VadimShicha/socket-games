@@ -10,15 +10,15 @@ function AuthUser()
     const navigate = useNavigate();
     const [success, setSuccess] = useState(null);
 
-    if(window.location.pathname == "/" || window.location.pathname == "/multiplayer" || window.location.pathname == "/social" || window.location.pathname == "/settings")
-    {
-        //check if the login token is valid
-        sendPOST({requestID: "auth_token", token: Cookies.get("token")}, function(data)
-        {
-            //if the auth failed redirect to login page
-            setSuccess(data.success);
-        });
-    }
+    // if(window.location.pathname == "/" || window.location.pathname == "/multiplayer" || window.location.pathname == "/social" || window.location.pathname == "/settings")
+    // {
+    //     //check if the login token is valid
+    //     sendPOST({requestID: "auth_token", token: Cookies.get("token")}, function(data)
+    //     {
+    //         //if the auth failed redirect to login page
+    //         setSuccess(data.success);
+    //     });
+    // }
 
     useEffect(() =>
     {

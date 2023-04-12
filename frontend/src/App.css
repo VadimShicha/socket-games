@@ -54,13 +54,19 @@ body
     opacity: 1;
 }
 
-.action_button:hover
+.action_button_resizable
+{
+    border-width: 1px;
+    opacity: 1;
+}
+
+.action_button:hover, .action_button_resizable:hover
 {
     opacity: 0.85;
     cursor: pointer;
 }
 
-.action_button:active
+.action_button:active, .action_button_resizable:active
 {
     opacity: 0.6;
 }
@@ -103,6 +109,11 @@ body
 .loading_button
 {
     background: url("../public/assets/loading_box.svg");
+}
+
+.pause_button
+{
+    background: url("../public/assets/pause_box.svg");
 }
 
 .App-header

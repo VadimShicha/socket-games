@@ -14,7 +14,7 @@ exports.port = 5000;
 exports.gameInviteCheckDelay = 10 * 1000; //delay in milliseconds of checking if a game invite expired
 exports.gameInviteExpiration = 3 * 1 * 1000 //amount of milliseconds a game invite last before expiring
 
-exports.loginTokenExpiration = 5 * 60 * 60 * 1000 //the amount of milliseconds a login token lasts for in the database
+exports.loginTokenExpiration = 1 * 60 * 60 * 1000 //the amount of milliseconds a login token lasts for in the database
 
 exports.tokenLength = 16;
 exports.tokenChars = lowerAlphabet + lowerAlphabet.toUpperCase() + digits;

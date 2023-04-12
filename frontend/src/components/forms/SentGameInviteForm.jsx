@@ -9,7 +9,7 @@ class SendFriendRequestForm extends React.Component
     constructor(props)
     {
         super(props);
-        this.state = {opacity: 0, hidden: true, username: "", gameUrl: ""};
+        this.state = {opacity: 0, hidden: true, username: "", gameUrl: "", updater: false};
         this.showTimeoutID = null;
     }
 
@@ -26,7 +26,7 @@ class SendFriendRequestForm extends React.Component
             this.showTimeoutID = null;
         }
 
-        this.setState({opacity: 0, hidden: false, username: this.state.username, gameUrl: this.state.gameUrl});
+        this.setState({opacity: 0, hidden: false});
 
         setTimeout(this.setHiddenAfterHide.bind(this), 500, this);
     }
@@ -46,7 +46,7 @@ class SendFriendRequestForm extends React.Component
                     <p><b>{this.state.username}</b> invited you to play <b>{DataManager.gameUrlToTitle(this.state.gameUrl)}</b></p>
 
                     <div className="sent_game_invite_form_actions">
-                        <Link onClick={this.forceUpdate} to={"/multiplayer/game-" + this.state.gameUrl + "#"}><button onClick={() => {this.hide.bind(this); this.props.accept(this.state.gameUrl, this.state.username)}} className="action_button accept_button"></button></Link>
+                        <Link onClick={() => this.setState({updater: !this.state.updater})} to={"/multiplayer/game-" + this.state.gameUrl + "#"}><button onClick={() => {this.hide.bind(this); this.props.accept(this.state.gameUrl, this.state.username)}} className="action_button accept_button"></button></Link>
                         <button onClick={() => {this.hide.bind(this); this.props.decline(this.state.gameUrl, this.state.username)}} className="action_button decline_button"></button>
                     </div>
                 </div>

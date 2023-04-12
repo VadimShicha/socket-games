@@ -1,9 +1,7 @@
 const tools = require("./tools");
 const config = require("./config");
 const crypto = require("crypto");
-//const dbClient = require("./databaseClient");
-const {MongoClient} = require("mongodb");
-const client = new MongoClient(process.env.MONGO_URL);
+const dbClient = require("./databaseClient");
 
 //create a new user (returns message, code)
 /* CODE - MESSAGE
@@ -54,61 +52,23 @@ exports.createUser = async function(firstName, lastName, username, password, con
     firstName = firstName[0].toUpperCase() + firstName.slice(1).toLowerCase();
     lastName = lastName[0].toUpperCase() + lastName.slice(1).toLowerCase();
 
+    let result = await dbClient.findOne(config.usersTable, {username: username});
 
-    try
+    //check if the username given is taken
+    if(result)
+        return ["Username is already taken", 9];
+
+    //add the user to the database
+    await dbClient.insertOne(config.usersTable,
     {
-        await client.connect();
-    
-        let result = await client.db(config.database).collection(config.usersTable).findOne({username: username});
+        uuid: crypto.randomUUID(),
+        firstName: firstName,
+        lastName: lastName,
+        username: username,
+        password: password
+    });
 
-        console.log(result);
-        
-        //check if the username given is taken
-        if(result)
-        {
-            await client.close();
-            return ["Username is already taken", 9];
-        }
-
-        //add the user to the database
-        await client.db(config.database).collection(config.usersTable).insertOne(
-        {
-            uuid: crypto.randomUUID(),
-            firstName: firstName,
-            lastName: lastName,
-            username: username,
-            password: password
-        });
-
-        await client.close();
-        return ["Success", 0];
-    }
-    catch
-    {
-        return ["Unknown database error occurred", 12];
-    }
-    
-
-    // tools.runSQL(`SELECT username FROM ${config.usersTable} WHERE username = "${username}"`, function(err, data)
-    // {
-    //     if(!err)
-    //     {
-    //         if(data.length == 0)
-    //         {
-    //             //'{"friends": [], "friend_requests": [], "game_invites": []}'
-    //             tools.runSQL(`INSERT INTO ${config.usersTable} VALUES ("${firstName}", "${lastName}", "${username}", "${password}", '{"friends": [], "friend_requests": [], "game_invites": []}')`, function(err, data)
-    //             {
-    //                 if(!err)
-    //                 {
-    //                     console.log(data);
-    //                     callback(null, ["Success", 0]);
-    //                 }
-    //             });
-    //         }
-    //         else
-    //             callback(true, ["Username is already taken", 9]);
-    //     }
-    // });
+    return ["Success", 0];
 };
 
 //login into a user (returns message, code)
@@ -117,65 +77,37 @@ exports.createUser = async function(firstName, lastName, username, password, con
     1 - username doesn't exist
     2 - password is incorrect
 */
-exports.loginUser = function(username, password, callback)
+exports.loginUser = async function(username, password)
 {
-    tools.runSQL(`SELECT username FROM ${config.usersTable} WHERE username = "${username}"`, function(err, data)
-    {
-        if(!err)
-        {
-            if(data.length == 0)
-                {callback(true, ["Username doesn't exist", 1]); return;}
+    let result = await dbClient.findOne(config.usersTable, {username: username, password: password});
 
-            tools.runSQL(`SELECT password FROM ${config.usersTable} WHERE password = "${password}"`, function(err, data)
-            {
-                if(!err)
-                {
-                    if(data.length == 0)
-                        {callback(true, ["Password is incorrect", 2]); return;}
-
-                    callback(null, ["Success", 0]);
-                }
-            })
-        }
-    });
+    if(result == null)
+        return ["Username or password is incorrect"];
+    return ["Success", 0];
 };
 
-//logs out (callback only has 1 argument)
-exports.logoutUser = function(token, callback)
+//logs out a user
+exports.logoutUser = async function(username)
 {
-    exports.getUsernameWithToken(token, function(err, data)
-    {
-        if(!err)
-        {
-            exports.deleteLoginToken(data);
-            callback(null);
-            return;
-        }
-    });
+    let result = await dbClient.deleteOne(config.loginTokensTable, {username: username});
+
+    if(result.deletedCount > 0)
+        return true;
+    return false;
+    
 };
 
 //checks if a username exists
-exports.userExists = function(username, callback)
+exports.userExists = async function(username)
 {
-    tools.runSQL(`SELECT username FROM ${config.usersTable} WHERE username = "${username}"`, function(err, data)
-    {
-        if(!err)
-        {
-            if(data.length == 0)
-            {
-                callback(true, false);
-                return;
-            }
-            
-            callback(null, true);
-        }
-    });
+    let result = await dbClient.findOne(config.usersTable, {username: username});
+    return result;
 };
 
 //deletes a users login token
 exports.deleteLoginToken = function(username)
 {
-    tools.runSQL(`DELETE FROM ${config.loginTokensTable} WHERE username = ${username}`, function(err, data){});
+    //tools.runSQL(`DELETE FROM ${config.loginTokensTable} WHERE username = ${username}`, function(err, data){});
 };
 
 //generates a random token
@@ -191,67 +123,34 @@ exports.createToken = function()
 
 exports.deleteExpiredTokens = function(callback)
 {
-    tools.runSQL(`DELETE FROM ${config.loginTokensTable} WHERE date < ${Date.now() - config.loginTokenExpiration}`, function(err, data)
-    {
-        callback(err, data);
-    });
+    // tools.runSQL(`DELETE FROM ${config.loginTokensTable} WHERE date < ${Date.now() - config.loginTokenExpiration}`, function(err, data)
+    // {
+    //     callback(err, data);
+    // });
 };
 
 //gets a login token for the username or creates one if it doesn't exist
-exports.getLoginToken = async function(username, callback)
+exports.getLoginToken = async function(username)
 {
-    try
-    {
-        await client.connect();
+    //query to check if there already is a token for the username
+    let result = await dbClient.findOne(config.loginTokensTable, {username: username});
     
-        let result = await client.db(config.database).collection(config.usersTable).findOne({username: username});
+    //check if the token exists
+    if(result)
+        return result.token;
+    
 
-        console.log(result);
-        
-        //check if the username given is taken
-        if(result)
-        {
-            await client.close();
-            return ["Username is already taken", 9];
-        }
+    let token = exports.createToken();
 
-        //add the user to the database
-        await client.db(config.database).collection(config.usersTable).insertOne(
-        {
-            uuid: crypto.randomUUID(),
-            firstName: firstName,
-            lastName: lastName,
-            username: username,
-            password: password
-        });
-
-        await client.close();
-        return ["Success", 0];
-    }
-    catch
+    //add the user to the database
+    await dbClient.insertOne(config.loginTokensTable,
     {
-        return ["Unknown database error occurred", 12];
-    }
-    //command to check if there already is a token for the username
-    tools.runSQL(`SELECT token, username FROM ${config.loginTokensTable} WHERE username = "${username}"`, function(err, data)
-    {
-        if(!err)
-        {
-            if(data.length != 0)
-                {callback(null, data[0]["token"]); return;}
-
-            let token = exports.createToken();
-
-            tools.runSQL(`INSERT INTO ${config.loginTokensTable} VALUES ("${token}", "${username}", ${Date.now()})`, function(err, data)
-            {
-                if(!err)
-                {
-                    callback(null, token);
-                    return;
-                }
-            });
-        }
+        username: username,
+        token: token,
+        date: Date.now()
     });
+
+    return token;
 };
 
 //checks if a token is valid and returns it in the callback. If it fails returns the errors below:
@@ -259,28 +158,17 @@ exports.getLoginToken = async function(username, callback)
     1 - wrong token
     2 - expired token
 */
-exports.getUsernameWithToken = function(token, callback)
+exports.getUsernameWithToken = async function(token)
 {
-    tools.runSQL(`SELECT username, date FROM ${config.loginTokensTable} WHERE token = "${token}"`, function(err, data)
-    {
-        if(!err)
-        {
-            console.log(data);
-            if(data.length == 0)
-            {
-                callback(true, ["Wrong token", 1]);
-                return;
-            }
+    let result = await dbClient.findOne(config.loginTokensTable, {token: token});
 
-            if(data[0]["date"] + config.loginTokenExpiration < Date.now())
-            {
-                callback(true, ["Token has expired", 2])
-                return;
-            }
+    if(result == null)
+        return ["Token doesn't exist", 1];
 
-            callback(null, data[0]["username"]);
-        }
-    });
+    if(result.date + config.loginTokenExpiration < Date.now())
+        return ["Token has expired", 2];
+    
+    return [result.username, 0];
 };
 
 //sends a friend request to a user
@@ -292,195 +180,143 @@ exports.getUsernameWithToken = function(token, callback)
     4 - user is already your friend
     5 - request sent to self
 */
-exports.sendFriendRequest = function(toUsername, fromUsername, callback)
+exports.sendFriendRequest = async function(toUsername, fromUsername)
 {
     if(toUsername == fromUsername)
-        {callback(true, ["Can't send a friend request to yourself", 5]); return;}
+        return ["Can't send a friend request to yourself", 5];
 
-    exports.userExists(toUsername, function(err, data)
-    {
-        if(data == false)
-            {callback(true, ["Username doensn't exist", 1]); return;}
+    let userExists = await exports.userExists(toUsername);
 
-        //check if the user that tried to send a request does already have one from the other person
-        tools.runSQL(`SELECT data FROM ${config.usersTable} WHERE username = "${fromUsername}"`, function(err, data)
-        {
-            if(!err)
-            {
-                let parsedData = JSON.parse(data[0]["data"]);
-                let requestsArr = parsedData["friend_requests"];
-                let friendsArr = parsedData["friends"];
+    if(!userExists)
+        return ["Username doensn't exist", 1];
+    
+    let fromUser = await dbClient.findOne(config.usersTable, {username: fromUsername});
 
-                for(let i = 0; i < requestsArr.length; i++)
-                {
-                    if(toUsername == requestsArr[i])
-                        {callback(true, ["User already sent a friend request to you", 3]); return;}
-                }
+    if(fromUser.hasOwnProperty("friend_requests"))
+        //check if the user that tried to send a request already has one from the other person
+        for(let i = 0; i < fromUser.friend_requests.length; i++)
+            if(toUsername == fromUser.friend_requests[i])
+                return ["User already sent a friend request to you", 3];
 
-                for(let i = 0; i < friendsArr.length; i++)
-                {
-                    if(toUsername == friendsArr[i])
-                        {callback(true, ["User is already your friend", 4]); return;}
-                }
+    if(fromUser.hasOwnProperty("friends"))
+        for(let i = 0; i < fromUser.friends.length; i++)
+            if(toUsername == fromUser.friends[i])
+                return ["User is already your friend", 4];
 
-                tools.runSQL(`SELECT data FROM ${config.usersTable} WHERE username = "${toUsername}"`, function(toUserErr, toUserData)
-                {
-                    if(!toUserErr)
-                    {
-                        let toUserText = JSON.parse(toUserData[0]["data"]);
-                        let toUserFriendsArr = toUserText["friend_requests"];
+    let toUser = await dbClient.findOne(config.usersTable, {username: toUsername});
+    let toUserFriendRequests = toUser.friend_requests;
+    
+    if(!toUser.hasOwnProperty("friend_requests"))
+        toUserFriendRequests = [];
 
-                        for(let i = 0; i < toUserFriendsArr.length; i++)
-                        {
-                            if(toUserFriendsArr[i] == fromUsername)
-                                {callback(true, ["Request already sent", 2]); return;}
-                        }
+    for(let i = 0; i < toUserFriendRequests.length; i++)
+        if(fromUsername == toUserFriendRequests[i])
+            return ["Request already sent", 2];
 
-                        toUserFriendsArr.push(fromUsername);
-                        toUserText["friend_requests"] = toUserFriendsArr;
+    toUserFriendRequests.push(fromUsername);
+    await dbClient.updateOne(config.usersTable, {username: toUsername}, {$set: {friend_requests: toUserFriendRequests}});
 
-                        tools.runSQL(`UPDATE ${config.usersTable} SET data = '${JSON.stringify(toUserText)}' WHERE username = "${toUsername}"`, function(err, data)
-                        {
-                            if(!err)
-                                {callback(null, ["Friend request sent!", 0]); return;}
-                        });
-                    }
-                });
-            }
-        });
-    });
+    return ["Friend request sent!", 0];
 };
 
 //get all the friends of a user
-exports.getFriends = function(username, callback)
+exports.getFriends = async function(username)
 {
-    tools.runSQL(`SELECT data FROM ${config.usersTable} WHERE username = "${username}"`, function(err, data)
-    {
-        if(!err)
-        {
-            callback(null, JSON.parse(data[0]["data"])["friends"]);
-            return;
-        }
+    let result = await dbClient.findOne(config.usersTable, {username: username});
 
-        callback(true, err);
-    });
-};
+    if(!result.hasOwnProperty("friends"))
+        return ["User doesn't exist", 1];
 
-//get all the friends of a user
-exports.getFriends = function(username, callback)
-{
-    tools.runSQL(`SELECT data FROM ${config.usersTable} WHERE username = "${username}"`, function(err, data)
-    {
-        if(!err)
-        {
-            callback(null, JSON.parse(data[0]["data"])["friends"]);
-            return;
-        }
+    if(!result.friends)
+        return [[], 0];
 
-        callback(true, err);
-    });
+    return [result.friends, 0];
 };
 
 //get all friend requests of a user
-exports.getFriendRequests = function(username, callback)
+exports.getFriendRequests = async function(username)
 {
-    tools.runSQL(`SELECT data FROM ${config.usersTable} WHERE username = "${username}"`, function(err, data)
-    {
-        if(!err)
-        {
-            callback(null, JSON.parse(data[0]["data"])["friend_requests"]);
-            return;
-        }
+    let result = await dbClient.findOne(config.usersTable, {username: username});
 
-        callback(true, err);
-    });
+    if(!result.hasOwnProperty("friend_requests"))
+        return ["User doesn't exist", 1];
+
+    if(!result.friend_requests)
+        return [[], 2];
+
+    return [result.friend_requests, 0]; 
 };
 
 //accepts a friend request
 //acceptUsername is the user that got accepted by the username
-//(callback only has 1 argument)
-exports.acceptFriendRequest = function(username, acceptUsername, callback)
+exports.acceptFriendRequest = async function(username, acceptUsername)
 {
-    tools.runSQL(`SELECT username, data FROM ${config.usersTable} WHERE username IN ("${username}", "${acceptUsername}")`, function(err, data)
+    let userData = await dbClient.findOne(config.usersTable, {username: username});
+    let acceptUserData = await dbClient.findOne(config.usersTable, {username: acceptUsername});
+
+    if(userData == null || acceptUserData == null)
+        return ["Username doesn't exist", 1];
+
+    if(!userData.hasOwnProperty("friend_requests"))
+        return ["Request wasn't sent from user", 1];
+
+    let newRequests = userData.friend_requests; //array of the new requests that will be updated for the user
+    let newUserFriends = userData.hasOwnProperty("friends") ? userData.friends : [];
+    let newAcceptUserFriends = acceptUserData.hasOwnProperty("friends") ? acceptUserData.friends : [];
+
+    //remove the friend request
+    for(let i = 0; i < userData.friend_requests.length; i++)
     {
-        console.log(data);
-        if(!err)
+        if(userData.friend_requests[i] == acceptUsername)
         {
-            if(data.length == 0)
-                {callback(true); return;}
-
-            let usernameText = "";
-            let acceptUsernameText = "";
-
-            console.log("SDHDJ");
-            console.log(usernameText);
-            //console.log(data[0]["username"]);
-
-
-            for(let i = 0; i < 2; i++)
-            {
-                if(data[i]["username"] == username)
-                    usernameText = JSON.parse(data[i]["data"]);
-                else if(data[i]["username"] == acceptUsername)
-                    acceptUsernameText = JSON.parse(data[i]["data"]);
-            }
-            console.log(usernameText);
-
-            //remove the friend request
-            for(let i = 0; i < usernameText["friend_requests"].length; i++)
-                if(usernameText["friend_requests"][i] == acceptUsername)
-                    usernameText["friend_requests"].splice(i, 1);
-
-            console.log(usernameText);
-            usernameText["friends"].push(acceptUsername);
-            acceptUsernameText["friends"].push(username);
-            console.log(usernameText);
-
-            tools.runSQL(`UPDATE ${config.usersTable} SET data = '${JSON.stringify(usernameText)}' WHERE username = "${username}"`, function(err, data)
-            {
-                console.log(data);
-                if(!err)
-                    tools.runSQL(`UPDATE ${config.usersTable} SET data = '${JSON.stringify(acceptUsernameText)}' WHERE username = "${acceptUsername}"`, function(err, data)
-                    {
-                        if(!err)
-                            {callback(null); return;}
-                    });
-            });
+            newRequests.splice(i, 1);
+            break;
         }
-    });
+    }
+
+    newUserFriends.push(acceptUsername);
+    newAcceptUserFriends.push(username);
+
+    await dbClient.updateOne(config.usersTable, {username: username}, {$set: {friend_requests: newRequests, friends: newUserFriends}});
+    await dbClient.updateOne(config.usersTable, {username: acceptUsername}, {$set: {friends: newAcceptUserFriends}});
+
+    return ["Success", 0];
 };
 
 //declines a friend request
-//(callback only has 1 argument)
-exports.declineFriendRequest = function(username, declineUsername, callback)
+exports.declineFriendRequest = async function(username, declineUsername)
 {
-    tools.runSQL(`SELECT data FROM ${config.usersTable} WHERE username = "${username}"`, function(err, data)
+    let userData = await dbClient.findOne(config.usersTable, {username: username});
+
+    if(userData == null)
+        return ["User doesn't exist", 1];
+
+    //check if the user have any friend requests
+    if(!userData.hasOwnProperty("friend_requests"))
+        return ["User doesn't have any friend requests", 1];
+
+    let requestFound = false; //indicates whether a request was sent to user
+
+    //check if the request was sent to the user
+    for(let i = 0; i < text["friend_requests"].length; i++)
+        if(text["friend_requests"][i] == declineUsername)
+            requestFound = true;
+
+    if(!requestFound)
+        return ["Request wasn't sent from user", 1];
+
+    let newRequests = userData.friend_requests; //array of the new requests that will be updated for the user
+
+    //remove the friend request
+    for(let i = 0; i < userData.friend_requests.length; i++)
     {
-        
-        if(!err)
+        if(userData.friend_requests[i] == declineUsername)
         {
-            let text = JSON.parse(data[0]["data"]);
-
-            let found = false;
-            for(let i = 0; i < text["friend_requests"].length; i++)
-                if(text["friend_requests"][i] == declineUsername)
-                    found = true;
-
-            if(!found)
-                {callback(true); return;}
-            
-            //remove the friend request
-            for(let i = 0; i < text["friend_requests"].length; i++)
-                if(text["friend_requests"][i] == declineUsername)
-                    text["friend_requests"].splice(i, 1);
-            
-            tools.runSQL(`UPDATE ${config.usersTable} SET data = '${JSON.stringify(text)}' WHERE username = "${username}"`, function(err, data)
-            {
-                if(!err)
-                    {callback(null); return;}
-            });
+            newRequests.splice(i, 1);
+            break;
         }
-    });
-};
+    }
 
-//
+    await dbClient.updateOne(config.usersTable, {username: username}, {$set: {friend_requests: newRequests}});
+    return ["Success", 0];
+};
