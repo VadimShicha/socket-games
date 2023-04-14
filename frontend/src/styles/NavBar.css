@@ -1,11 +1,17 @@
-.nav_bar, .nav_bar_short
+.nav_bar_short
 {
     z-index: 3;
+}
+
+.nav_bar, .nav_bar_menu_div
+{
+    background-color: #686464;
 }
 
 .nav_bar
 {
     position: fixed;
+    z-index: 3;
     width: 100vw;
     top: 0px;
     height: fit-content;
@@ -133,12 +139,13 @@ li a
 .nav_bar_menu_div
 {
     position: fixed;
+    filter: brightness(90%);
     top: 40px;
     right: 0px;
     height: fit-content;
-    background-image: url("/public/assets/plank_texture.svg");
+    /* background-image: url("/public/assets/plank_texture.svg");
     background-repeat: repeat-y;
-    background-size: 50% calc(50% * 2px);
+    background-size: 50% calc(50% * 2px); */
 }
 
 .nav_bar_menu_div_nail

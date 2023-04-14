@@ -25,9 +25,9 @@ const corsConfig = {
     credentials: true
 };
 
-setInterval(function()
+setInterval(async function()
 {
-    user.deleteExpiredTokens(function(){});
+    await user.deleteExpiredTokens();
 }, 30 * 1000);
 
 let games = []; //[gameID/roomID, gameUrl, [sockets], gameData]
@@ -263,7 +263,7 @@ io.on("connection", async(socket) =>
     socket.on("send_game_invite", async(args, callback) =>
     {
         let result = await user.getUsernameWithToken(tools.parseCookie(cookie, "token"));
-        console.log("BLAH: ", args.gameUrl);
+        console.log("BLAH: ", result);
 
         if(result[1] == 0)
         {

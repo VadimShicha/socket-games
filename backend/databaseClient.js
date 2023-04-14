@@ -30,3 +30,8 @@ exports.deleteOne = async function(table, item)
 {
     return await client.db(dbName).collection(table).deleteOne(item);
 };
+
+exports.deleteMany = async function(table, item)
+{
+    return await client.db(dbName).collection(table).deleteMany(item);
+};

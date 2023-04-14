@@ -4,10 +4,12 @@ import '../../../src/styles/RacingGame.css';
 import Matter from 'matter-js';
 import Wheel from './wheel.svg';
 import BikeBody from './bike_body.svg';
+import BikeBodyFlipped from './bike_body_flipped.svg';
 import GarageTexture from './garage_texture.svg';
 import ProgressBar from '../../components/ProgressBar';
 import Cactus from './cactus.svg';
 import TrumpetCoin from './trumpet_coin.svg';
+import GasStation from './gas_station.svg';
 
 function toDegrees(radians)
 {
@@ -23,6 +25,7 @@ const wheelOptions = {
     mass: 5,
     render:
     {
+        // fillStyle: "transparent",
         lineWidth: 0,
         sprite:
         {
@@ -63,15 +66,16 @@ const cactusOptions = {
     isStatic: true,
     render:
     {
-        lineWidth: 0,
-        sprite:
-        {
-            texture: Cactus,
-            xScale: 0.5,
-            yScale: 0.5
-        }
+        lineWidth: 0
     }
 };
+
+const smallCactusOptions = {render: {sprite: {texture: Cactus, xScale: 0.5, yScale: 0.5}}};
+const mediumCactusOptions = {render: {sprite: {texture: Cactus, xScale: 0.75, yScale: 0.75}}};
+const bigCactusOptions = {render: {sprite: {texture: Cactus, xScale: 1, yScale: 1}}};
+
+const garagePosition = {x: 0, y: 0};
+const gasStationPosition = {x: 5900, y: -795};
 
 class RacingGame extends React.Component
 {
@@ -83,7 +87,7 @@ class RacingGame extends React.Component
 
         this.scene = "Home";
 
-        this.state = {carGas: 100, carGasColor: "limegreen"}; //0 - 100
+        this.state = {coins: 500, carGas: 100, carGasColor: "limegreen", inGasStation: true}; //0 - 100
 
         this.engine = null;
         this.renderer = null;
@@ -94,7 +98,7 @@ class RacingGame extends React.Component
     {
         if(scene == "Home")
         {
-            Matter.Composite.remove(this.engine.world, [this.homeGround, this.homeRightBorderWall, this.homeGarageLeftWall, this.homeGarageRoof, this.homeGarageTopRoof, this.homeGarageBackground]);
+            Matter.Composite.remove(this.engine.world, [this.homeGround, this.homeGarageRoof, this.homeGarageTopRoof, this.homeGarageBackground]);
             Matter.Composite.remove(this.engine.world, this.cactuses);
         }
         else if(scene == "Game")
@@ -111,7 +115,18 @@ class RacingGame extends React.Component
 
         if(scene == "Home")
         {
-            this.homeGround = Matter.Bodies.rectangle(0, 525, 5000, 500,
+            // let homeGroundVertices = [{x: -0, y: 500}, {x: -0, y: 0}, {x: 30000, y: 0}, {x: 30000, y: 500}];
+            // this.homeGround = Matter.Bodies.fromVertices(0, 525, homeGroundVertices,
+            // {
+            //     isStatic: true,
+            //     render:
+            //     {
+            //         fillStyle: "moccasin",
+            //         lineWidth: 0
+            //     }
+            // });
+
+            this.homeGround = Matter.Bodies.rectangle(0, 525, 20000, 500,
             {
                 isStatic: true,
                 render:
@@ -121,25 +136,62 @@ class RacingGame extends React.Component
                 }
             });
 
-            this.homeRightBorderWall = Matter.Bodies.rectangle(2500, 0, 20, 2000, {isStatic: true, render: {fillStyle: "gainsboro"}});
+            let homeGrouldHillVertices = [{x: 0, y: 0}, {x: 2000, y: 0}, {x: 2000, y: -800}];
+
+            this.homeGroundHill = Matter.Bodies.fromVertices(4000, 15, homeGrouldHillVertices,
+            {
+                isStatic: true,
+                render:
+                {
+                    fillStyle: "moccasin",
+                    strokeStyle: "moccasin",
+                    lineWidth: 3
+                }
+            });
+
+            this.homeHillGround = Matter.Bodies.rectangle(6165, -120, 3000, 800,
+            {
+                isStatic: true,
+                render:
+                {
+                    fillStyle: "moccasin",
+                    lineWidth: 0
+                }
+            });
+
+            this.homeRightBorderWall = Matter.Bodies.rectangle(9000, 0, 20, 2000, {isStatic: true, render: {fillStyle: "gainsboro"}});
 
             //Matter.Bodies.fromVertices(150, -5, [{x: -210, y: -15}, {x: 150, y: -100}, {x: 500, y: -15}], {isStatic: true, render: {fillStyle: "gainsboro"}});
 
-            this.homeGarageLeftWall = Matter.Bodies.rectangle(-200, 135, 20, 280, {isStatic: true, render: {fillStyle: "gainsboro"}});
-            this.homeGarageRoof = Matter.Bodies.rectangle(150, 5, 700, 20, {isStatic: true, render: {fillStyle: "gainsboro"}});
-            this.homeGarageTopRoof = Matter.Bodies.fromVertices(150, -35, [{x: -210, y: 0}, {x: 150, y: -100}, {x: 500, y: 0}], {isStatic: true, render: {fillStyle: "gainsboro"}});
-            this.homeGarageBackground = Matter.Bodies.rectangle(150, 135, 700, 280,
+            //this.homeGarageLeftWall = Matter.Bodies.rectangle(-200, 135, 20, 280, {isStatic: true, render: {fillStyle: "gainsboro"}});
+            this.homeGarageRoof = Matter.Bodies.rectangle(garagePosition.x, garagePosition.y + 5, 700, 20, {isStatic: true, render: {fillStyle: "gainsboro"}});
+            this.homeGarageTopRoof = Matter.Bodies.fromVertices(garagePosition.x, garagePosition.y - 35, [{x: garagePosition.x -360, y: garagePosition.y}, {x: garagePosition.x, y: garagePosition.y -100}, {x: garagePosition.x + 350, y: garagePosition.y}], {isStatic: true, render: {fillStyle: "gainsboro"}});
+            this.homeGarageBackground = Matter.Bodies.rectangle(garagePosition.x, garagePosition.y + 135, 700, 280,
             {
                 isStatic: true,
                 render: {fillStyle: "gray", sprite: {texture: GarageTexture, xScale: 4.6, yScale: 1.86}},
                 collisionFilter: {group: -1, mask: 0}
             });
 
+            this.gasStation = Matter.Bodies.rectangle(gasStationPosition.x, gasStationPosition.y + 50, 800, 420,
+            {
+                isStatic: true,
+                render: {sprite: {texture: GasStation, xScale: 3, yScale: 3}},
+                collisionFilter: {group: -1, mask: 0}
+            });
+
             this.cactuses = [];
-            this.cactuses.push(Matter.Bodies.rectangle(900, 237, 100, 100, cactusOptions));
-            this.cactuses.push(Matter.Bodies.rectangle(1320, 237, 100, 100, cactusOptions));
-            this.cactuses.push(Matter.Bodies.rectangle(1840, 237, 100, 100, cactusOptions));
-            this.cactuses.push(Matter.Bodies.rectangle(2150, 237, 100, 100, cactusOptions));
+            this.cactuses.push(Matter.Bodies.rectangle(900, 237, 100, 100, {...cactusOptions, ...smallCactusOptions}));
+            this.cactuses.push(Matter.Bodies.rectangle(1320, 237, 100, 100, {...cactusOptions, ...smallCactusOptions}));
+            this.cactuses.push(Matter.Bodies.rectangle(1840, 237, 100, 100, {...cactusOptions, ...smallCactusOptions}));
+            this.cactuses.push(Matter.Bodies.rectangle(2150, 237, 100, 100, {...cactusOptions, ...smallCactusOptions}));
+            this.cactuses.push(Matter.Bodies.rectangle(2600, 237, 100, 100, {...cactusOptions, ...smallCactusOptions}));
+            this.cactuses.push(Matter.Bodies.rectangle(3010, 100, 100, 100, {...cactusOptions, ...smallCactusOptions, ...{angle: toRadians(-21.8014095)}}));//
+            this.cactuses.push(Matter.Bodies.rectangle(3570, 237, 100, 100, {...cactusOptions, ...smallCactusOptions}));
+            this.cactuses.push(Matter.Bodies.rectangle(4110, 237, 100, 100, {...cactusOptions, ...smallCactusOptions}));
+            this.cactuses.push(Matter.Bodies.rectangle(4600, 237, 100, 100, {...cactusOptions, ...smallCactusOptions}));
+
+            let center = Matter.Bodies.rectangle(0, 0, 10, 10, {isStatic: true, render: {fillStyle: "red"}});
 
             Matter.Composite.clear(this.engine.world);
             
@@ -148,10 +200,13 @@ class RacingGame extends React.Component
             [
                 this.homeGarageBackground,
                 this.homeGround,
+                this.homeGroundHill,
+                this.homeHillGround,
                 this.homeRightBorderWall,
-                this.homeGarageLeftWall,
                 this.homeGarageRoof,
                 this.homeGarageTopRoof,
+                this.gasStation,
+                center
             ]);
             Matter.Composite.add(this.engine.world, this.cactuses);
 
@@ -233,9 +288,9 @@ class RacingGame extends React.Component
         });
 
         this.leftWheel = Matter.Bodies.circle(0, 250, 25, wheelOptions);
-        this.rightWheel = Matter.Bodies.circle(150, 250, 25, wheelOptions);
+        this.rightWheel = Matter.Bodies.circle(165, 250, 25, wheelOptions);
 
-        this.body = Matter.Bodies.rectangle(75, 200, 250, 40, bodyOptions);
+        this.body = Matter.Bodies.rectangle(85, 200, 250, 40, bodyOptions);
         this.leftWheelConstraint1 = Matter.Constraint.create(Object.assign({
             bodyA: this.body,
             bodyB: this.leftWheel,
@@ -273,6 +328,7 @@ class RacingGame extends React.Component
         setInterval(this.look, 1, this);
 
         document.addEventListener("keypress", this.keyUp);
+        document.addEventListener("keydown", this.keyDown);
     };
 
     keyUp = (e) =>
@@ -285,9 +341,23 @@ class RacingGame extends React.Component
             this.carBrake();
     }
 
+    keyDown = (e) =>
+    {
+        if(e.key == "f")
+        {
+            if(Matter.Collision.collides(this.body, this.gasStation))
+                this.setState({inGasStation: true});
+        }
+        else if(e.key == "Escape")
+        {
+            if(this.state.inGasStation)
+                this.setState({inGasStation: false});
+        }
+    }
+
     look = () =>
     {
-        Matter.Render.lookAt(this.renderer, this.body, {x: 500, y:500});
+        Matter.Render.lookAt(this.renderer, this.body, {x: 500, y: 500});
     }
 
     setCarGas(gas)
@@ -304,12 +374,17 @@ class RacingGame extends React.Component
 
     carMove = (direction) =>
     {
-        let power = 11;
+        let power = 15;
 
         if(this.state.carGas <= 0)
             power = 3;
         else
             this.setCarGas(this.state.carGas - 0.1);
+
+        if(this.leftWheel.velocity.x < -3)
+            this.body.render.sprite.texture = BikeBodyFlipped;
+        else if(this.leftWheel.velocity.x > 3)
+            this.body.render.sprite.texture = BikeBody;
 
         Matter.Body.setVelocity(this.leftWheel, {x: power * direction, y: 0});
         Matter.Body.setVelocity(this.rightWheel, {x: power * direction, y: 0});
@@ -321,8 +396,46 @@ class RacingGame extends React.Component
         //Matter.Body.rotate(this.body, toRadians(toDegrees(this.body.angle) - 10), this.body.position, true);
         //Matter.Body.setVelocity(this.rightWheel, {x: 20, y: -30});
         //Matter.Body.setVelocity(this.body, {x: 0, y: 30});
-        // Matter.Body.setVelocity(this.leftWheel, {x: this.leftWheel.position.x / 8, y: 0});
-        // Matter.Body.setVelocity(this.rightWheel, {x: this.rightWheel.position.x / 8, y: 0});
+        //Matter.Body.setVelocity(this.leftWheel, {x: this.leftWheel.position.x / 8, y: 0});
+        //Matter.Body.setVelocity(this.rightWheel, {x: this.rightWheel.position.x / 8, y: 0});
+    }
+
+    gasStationBuy = (index) =>
+    {
+        if(this.state.carGas == 100)
+            return;
+
+        let newGas = 0;
+
+        if(index == 0)
+        {
+            if(this.state.coins < 60)
+                return;
+
+            newGas = this.state.carGas + 25;
+            this.setState({coins: this.state.coins - 60});
+        }
+        else if(index == 1)
+        {
+            if(this.state.coins < 110)
+                return;
+
+            newGas = this.state.carGas + 50;
+            this.setState({coins: this.state.coins - 110});
+        }
+        else if(index == 2)
+        {
+            if(this.state.coins < 200)
+                return;
+
+            newGas = 100;
+            this.setState({coins: this.state.coins - 200});
+        }
+
+        if(newGas > 100)
+            newGas = 100;
+
+        this.setCarGas(newGas);
     }
 
     componentDidMount()
@@ -338,11 +451,43 @@ class RacingGame extends React.Component
                 <div ref={this.mainRef} className="game_div center_align" style={{width: "fit-content"}}>
                     <div className="game_ui_div">
                         <button className="game_pause_button action_button_resizable pause_button" onClick={() => this.loadScene("Game")}></button>
-                        {/* <input className="game_gas_input" type="range" min={0} max={1} step={0.001} value={this.state.carGas}></input> */}
                         
+                        <p className="game_press_to_interact">Press [F] to interact</p>
+                        <div className="game_gas_station_ui_div" hidden={!this.state.inGasStation}>
+                            <h1>Biker's Gas</h1>
+                            <h4>Any extra fuel will not be added to you vehicle</h4>
+                            <div className="game_gas_station_ui_sections center_align">
+                                <button className="game_gas_station_ui_close decline_button" onClick={() => this.setState({inGasStation: false})}></button>
+                                <div className="game_gas_station_ui_section">
+                                    <h2>Add 25%</h2>
+                                    <p>Adds 25% percent of your fuel storage to your vehicle</p>
+                                    <button onClick={this.gasStationBuy.bind(this, 0)}>
+                                        <img srcSet={TrumpetCoin}></img>
+                                        <p>60</p> 
+                                    </button>
+                                </div>
+                                <div className="game_gas_station_ui_section">
+                                    <h2>Add 50%</h2>
+                                    <p>Adds 50% percent of your fuel storage to your vehicle</p>
+                                    <button onClick={this.gasStationBuy.bind(this, 1)}>
+                                        <img srcSet={TrumpetCoin}></img>
+                                        <p>110</p>
+                                    </button>
+                                </div>
+                                <div className="game_gas_station_ui_section">
+                                    <h2>Fill Up</h2>
+                                    <p>Fills up your vehicle all the way</p>
+                                    <button onClick={this.gasStationBuy.bind(this, 2)}>
+                                        <img srcSet={TrumpetCoin}></img>
+                                        <p>200</p>
+                                    </button>
+                                </div> 
+                            </div>
+                        </div>
+
                         <div className="game_coins_div">
                             <img className="game_coins_image" srcSet={TrumpetCoin}></img>
-                            <h2 className="game_coins_text">17251827318275</h2>
+                            <p className="game_coins_text">{this.state.coins}</p>
                         </div>
                         
                         <div className="game_gas_bar">

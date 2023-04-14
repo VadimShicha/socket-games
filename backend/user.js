@@ -121,8 +121,9 @@ exports.createToken = function()
     return token;
 };
 
-exports.deleteExpiredTokens = function(callback)
+exports.deleteExpiredTokens = async function()
 {
+    await dbClient.deleteMany(config.loginTokensTable, {date: {$lt: Date.now() - config.loginTokenExpiration}});
     // tools.runSQL(`DELETE FROM ${config.loginTokensTable} WHERE date < ${Date.now() - config.loginTokenExpiration}`, function(err, data)
     // {
     //     callback(err, data);

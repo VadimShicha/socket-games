@@ -8,6 +8,7 @@ import DataManager from '../../dataManager';
 import { socket } from '../../socket';
 import { Navigate } from 'react-router';
 import Cookies from 'js-cookie';
+import "../../styles/MultiGameListPage.css";
 
 function GameListPage()
 {
