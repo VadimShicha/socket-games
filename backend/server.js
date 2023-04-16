@@ -30,7 +30,7 @@ setInterval(async function()
     await user.deleteExpiredTokens();
 }, 30 * 1000);
 
-let games = []; //[gameID/roomID, gameUrl, [sockets], gameData]
+let games = {}; //[gameUrl, [sockets], gameData]
 
 app.use(cors(corsConfig));
 
@@ -242,6 +242,7 @@ io.on("connection", async(socket) =>
     else
     {
         let username = await user.getUsernameWithToken(tools.parseCookie(cookie, "token"));
+        console.log(username);
 
         if(username[1] == 0)
         {
@@ -294,7 +295,7 @@ io.on("connection", async(socket) =>
             if(sockets[args.fromUser] != undefined)
             {
                 let fromUserSocket = sockets[args.fromUser];
-                games.push([gameID, args.gameUrl, [fromUserSocket, socket], {}]); //create a new game
+                games[gameID] = [args.gameUrl, [fromUserSocket, socket], {}]; //create a new game
 
                 fromUserSocket.join("game-" + gameID); //from-user joins
                 fromUserSocket.data.gameID = gameID;
@@ -315,13 +316,14 @@ io.on("connection", async(socket) =>
 
                 let runner = Matter.Runner.create();
 
-                games[games.length - 1][3] = {boxA: boxA, ground: ground, runner: runner, engine: engine};
+                games[gameID][2] = {boxA: boxA, ground: ground, runner: runner, engine: engine};
 
                 Matter.Runner.run(runner, engine);
             }
             else if(args.gameUrl == "tic_tac_toe")
             {
-                games[games.length - 1][3] = {board: [[-1, -1, -1],[-1, -1, -1],[-1, -1, -1]], turn: Math.floor(Math.random() * 2)};
+                games[gameID][2] = new TicTacToe();
+                //io.to("game-" + gameID).emit("tic_tac_toe_load", {turnIndex: games[gameID][2].getTurn()});
             } 
         }
     });
@@ -354,50 +356,71 @@ io.on("connection", async(socket) =>
 
     socket.on("first_game_move", (args) =>
     {
-        for(let i = 0; i < games.length; i++)
-        {
-            if(games[i][0] == args.gameID)
-            {
-                Matter.Body.applyForce(games[i][3].boxA, games[i][3].boxA.position, Matter.Vector.create(0, -0.3));
-                io.to("game-" + games[i][0]).emit("game_tick", {boxA: games[i][3].boxA.velocity});
-            }
-        }
+        // for(let i = 0; i < games.length; i++)
+        // {
+        //     if(games[i][0] == args.gameID)
+        //     {
+        //         Matter.Body.applyForce(games[i][3].boxA, games[i][3].boxA.position, Matter.Vector.create(0, -0.3));
+        //         io.to("game-" + games[i][0]).emit("game_tick", {boxA: games[i][3].boxA.velocity});
+        //     }
+        // }
     });
 
     socket.on("rematch", async(args) =>
     {
-        let result = await user.getUsernameWithToken(tools.parseCookie(cookie, "token"));
+        // let result = await user.getUsernameWithToken(tools.parseCookie(cookie, "token"));
 
-        if(result[1] == 0)
-        {
-            for(let i = 0; i < games.length; i++)
-            {
-                if(games[i][0] == socket.data.gameID)
-                {
-                    for(let j = 0; j < 2; j++)
-                    {
-                        if(games[i][2][i].data.username != socket.data.username)
-                            sockets[i].emit("game_invite_sent", {gameUrl: games[i][1], fromUser: result[0]});
-                    }
-                }
-            }
-        }
+        // if(result[1] == 0)
+        // {
+        //     for(let i = 0; i < games.length; i++)
+        //     {
+        //         if(games[i][0] == socket.data.gameID)
+        //         {
+        //             for(let j = 0; j < 2; j++)
+        //             {
+        //                 if(games[i][2][i].data.username != socket.data.username)
+        //                     sockets[i].emit("game_invite_sent", {gameUrl: games[i][1], fromUser: result[0]});
+        //             }
+        //         }
+        //     }
+        // }
     });
 
     socket.on("tic_tac_toe_is_turn", async(args, callback) =>
     {
-        let result = await user.getUsernameWithToken(tools.parseCookie(cookie, "token"));
+        // let result = await user.getUsernameWithToken(tools.parseCookie(cookie, "token"));
 
-        if(result[1] == 0)
+        // if(result[1] == 0)
+        // {
+        //     for(let i = 0; i < games.length; i++)
+        //         if(games[i][0] == socket.data.gameID)
+        //         {
+        //             if(games[i][2][games[i][3].turn].data.username == result[0])
+        //                 callback(true);
+        //             else
+        //                 callback(false);
+        //         }
+        // }
+    });
+
+    socket.on("tic_tac_toe_get_load", async(callback) =>
+    {
+        console.log(sockets[socket.data.username] == undefined);
+        //console.log(games[sockets[socket.data.username].data.gameID] == undefined);
+        //check if the user exists and if the game exists
+        if(sockets[socket.data.username] == undefined || games[sockets[socket.data.username].data.gameID] == undefined)
+            callback({success: false});
+        else
         {
-            for(let i = 0; i < games.length; i++)
-                if(games[i][0] == socket.data.gameID)
-                {
-                    if(games[i][2][games[i][3].turn].data.username == result[0])
-                        callback(true);
-                    else
-                        callback(false);
-                }
+            let playerIndex = 0;
+            let game = games[sockets[socket.data.username].data.gameID];
+
+            if(game[1][1].data.username == socket.data.username)
+                playerIndex = 1;
+
+            console.log("LOAD: " + playerIndex + " TURN: " + game[2].getTurn());
+
+            callback({success: true, playerIndex: playerIndex, turnIndex: game[2].getTurn()});
         }
     });
 
@@ -409,53 +432,89 @@ io.on("connection", async(socket) =>
             return;
         }
 
-        let result = await user.getUsernameWithToken(tools.parseCookie(cookie, "token"));
+        //let result = await user.getUsernameWithToken(tools.parseCookie(cookie, "token"));
 
-        if(result[1] == 0)
+        //if(result[1] == 0)
         {
-            for(let i = 0; i < games.length; i++)
+            let game = games[socket.data.gameID];
+
+            console.log(game);
+            console.log(socket.data);
+
+            //check if the game ID is invalid
+            if(game == undefined)
+                return;
+            
+            let turnIndex = game[2].getTurn();
+
+            let thisTurn = 0; //the turn of the player who sent the request
+            if(game[1][1].data.username == socket.data.username)
+                thisTurn = 1;
+
+            if(!game[2].move(thisTurn, args.row, args.column))
+                return;
+
+            let status = game[2].getStatus();
+            game[2].switchTurn();
+
+            for(let playerIndex = 0; playerIndex < 2; playerIndex++)
             {
-                if(games[i][0] == socket.data.gameID)
-                {
-                    let turnName = games[i][2][games[i][3].turn].data.username;
-                    let turnIndex = games[i][3].turn;
-                    console.log(turnName);
-                    console.log(turnIndex);
+                let statusMessage = "";
 
-                    //check if it's the users turn
-                    if(turnName == result[0])
-                    {
-                        console.log(games[i][3].board[args.row][args.column]);
-                        //check if the spot is empty
-                        if(games[i][3].board[args.row][args.column] == -1)
-                        {
-                            games[i][3].board[args.row][args.column] = turnIndex; //place where the player selected
+                if(status == playerIndex)
+                    statusMessage = "You won!";
+                else if(status == game[2].getOppositePlayer(playerIndex))
+                    statusMessage = "You lost";
+                else if(status == -1)
+                    statusMessage = "The game is still going";
+                else if(status == -2)
+                    statusMessage = "The game is a draw";
 
-                            let status = TicTacToe.checkStatus(games[i][3].board);
-
-                            for(let playerIndex = 0; playerIndex < 2; playerIndex++)
-                            {
-                                let statusMessage = "";
-
-                                if(status == playerIndex)
-                                    statusMessage = "You won!";
-                                else if(status == TicTacToe.getOppositePlayer(playerIndex))
-                                    statusMessage = "You lost";
-                                else if(status == -1)
-                                    statusMessage = "The game is still going";
-                                else if(status == -2)
-                                    statusMessage = "The game is a draw";
-
-                                games[i][2][playerIndex].emit("tic_tac_toe_status", {status: status, statusMessage: statusMessage});
-                            }
-
-                            games[i][3].turn = TicTacToe.getOppositePlayer(turnIndex); //change the turn to the next player
-
-                            io.to("game-" + games[i][0]).emit("tic_tac_toe_tick", {board: games[i][3].board});
-                        }
-                    }
-                }
+                game[1][playerIndex].emit("tic_tac_toe_tick", {board: game[2].getBoard(), turnIndex: game[2].getTurn(), status: status, statusMessage: statusMessage});
             }
+
+            //game[2].turn = TicTacToe.getOppositePlayer(turnIndex); //change the turn to the next player
+
+            //io.to("game-" + game[0]).emit("tic_tac_toe_tick", {board: game[2].getBoard(), turnIndex: game[2].getTurn()});
+
+            // // check if it's the users turn
+            // if(turnName == result[0])
+            // {
+            //     // console.log(game[2].board[args.row][args.column]);
+            //     // //check if the spot is empty
+            //     // if(game[2].board[args.row][args.column] == -1)
+            //     // {
+            //     //     game[2].board[args.row][args.column] = turnIndex; //place where the player selected
+
+            //     //     let status = TicTacToe.checkStatus(game[2].board);
+
+            //     //     for(let playerIndex = 0; playerIndex < 2; playerIndex++)
+            //     //     {
+            //     //         let statusMessage = "";
+
+            //     //         if(status == playerIndex)
+            //     //             statusMessage = "You won!";
+            //     //         else if(status == TicTacToe.getOppositePlayer(playerIndex))
+            //     //             statusMessage = "You lost";
+            //     //         else if(status == -1)
+            //     //             statusMessage = "The game is still going";
+            //     //         else if(status == -2)
+            //     //             statusMessage = "The game is a draw";
+
+            //     //         game[1][playerIndex].emit("tic_tac_toe_status", {status: status, statusMessage: statusMessage});
+            //     //     }
+
+            //     //     // setTimeout(function()
+            //     //     // {
+            //     //     //     game[2].turn = TicTacToe.getOppositePlayer(turnIndex);
+            //     //     // }, 8000, [games, turnIndex]);
+
+            //     //     game[2].turn = TicTacToe.getOppositePlayer(turnIndex); //change the turn to the next player
+
+            //     //     io.to("game-" + game[0]).emit("tic_tac_toe_tick", {board: game[2].board, turnIndex: game[2].turn});
+            //     // }
+            // }
+            
         }
     });
 

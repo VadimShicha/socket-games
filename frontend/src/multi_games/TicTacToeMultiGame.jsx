@@ -10,20 +10,12 @@ class TicTacToeMultiGame extends React.Component
     {
         super(props);
         this.state = {tableBody: <></>, turnText: "===============", status: -1, statusMessage: ""};
-        this.board = [[-1, -1, -1],[-1, -1, -1],[-1, -1, -1]];
-        //-1 EMPTY
-        //0 X
-        //1 O
+        this.board = [[-1, -1, -1],[-1, -1, -1],[-1, -1, -1]];//-1 EMPTY   0 X   1 O
+        this.playerIndex = -1;
+        this.thisTurn = false; //indicates if it's this user's turn (just a quick check incase they clicked accidentially to not send a requests)
+
         this.loaded = false;
     };
-
-    rematch()
-    {
-        socket.emit("rematch", {token: DataManager.token}, function(data)
-        {
-
-        });
-    }
 
     //gets the class name for x and o image
     getClassByValue(value)
@@ -53,52 +45,61 @@ class TicTacToeMultiGame extends React.Component
 
     tableCellClick(row, column)
     {
-        socket.emit("tic_tac_toe_move", {token: DataManager.token, row: row, column: column}, function(data)
+        //checks if it's the user's turn to not send extra requests
+        //(this is NOT the official check. It will be checked in the server again)
+        if(this.thisTurn)
         {
-            this.updateTable();
-        });
+            socket.emit("tic_tac_toe_move", {row: row, column: column}, function(data)
+            {
+                this.updateTable();
+            }.bind(this));
+        }
     }
 
-    updateTurn()
+    updateTurn(turnIndex)
     {
-        socket.emit("tic_tac_toe_is_turn", {token: DataManager.token}, function(data)
+        if(turnIndex == this.playerIndex)
         {
-            console.log(data);
-            if(data)
-                this.setState({turnText: "Your turn"});
-            else
-                this.setState({turnText: "Waiting for opponent"});
-        }.bind(this));
-    }
-
-    tick(data)
-    {
-        this.board = data.board;
-        this.updateTurn();
-        this.updateTable();
-    }
-
-    status(data)
-    {
-        this.setState({status: data.status, statusMessage: data.statusMessage});
-        if(data.status != -1)
-            DataManager.popTextRef.current.show(data.statusMessage);
+            this.setState({turnText: "Your turn"});
+            this.thisTurn = true;
+        } 
+        else
+        {
+            this.setState({turnText: "Waiting for opponent"});
+            this.thisTurn = false;
+        }
     }
 
     load()
     {
-        this.updateTurn();
         this.updateTable();
-        socket.on("tic_tac_toe_tick", this.tick.bind(this));
-        socket.on("tic_tac_toe_status", this.status.bind(this));
+
+        socket.emit("tic_tac_toe_get_load", function(data)
+        {
+            console.log(data);
+            if(!data.success)
+                alert("Wrong game");
+
+            this.playerIndex = data.playerIndex;
+            this.updateTurn(data.turnIndex);
+        }.bind(this));
+
+        socket.on("tic_tac_toe_tick", function(data)
+        {
+            console.log(data);
+            this.board = data.board;
+            this.updateTurn(data.turnIndex);
+            this.updateTable();
+            this.setState({status: data.status, statusMessage: data.statusMessage});
+            if(data.status != -1)
+                DataManager.popTextRef.current.show(data.statusMessage);
+        }.bind(this));
     }
 
     componentDidMount()
     {
         if(this.loaded)
             return;
-
-        console.log("LOAD");
 
         this.load();
         this.loaded = true;

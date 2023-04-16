@@ -20,6 +20,19 @@ function GameListPage()
     const [inviteGameMessage, setInviteGameMessage] = useState("");
 
     const [renderComponent, setRenderComponent] = useState(<></>); //the component being rendered
+    const [oldGamesHidden, setOldGamesHidden] = useState(true);
+
+    useEffect(() =>
+    {
+        let listener = document.addEventListener("keyup", (e) =>
+        {
+            if(e.shiftKey && e.key == "~")
+                setOldGamesHidden(!oldGamesHidden);
+        });
+
+        return() => {document.removeEventListener("keyup", listener)};
+
+    }, []);
 
     let storedGameUrl = "";
 
@@ -123,7 +136,10 @@ function GameListPage()
                 <InviteGameForm hidden={inviteGameHidden} cancelRequest={cancelGameInvite} waiting={inviteGameWaiting} send={send} close={() => setInviteGameHidden(true)} message={inviteGameMessage} active={!inviteGameHidden}></InviteGameForm>
                 
                 <div className="game_items">
-                    <GameItem playHidden={!hasFriends} multi={true} info={"First 2-player game\n\nThis game is made to test multiplayer."} play={play} imgURL="../assets/first_multi_game.png" gameUrl="first" title="First"></GameItem>
+                    <span hidden={oldGamesHidden}>
+                        <GameItem playHidden={!hasFriends} multi={true} info={"First 2-player game\n\nThis game is made to test multiplayer."} play={play} imgURL="../assets/first_multi_game.png" gameUrl="first" title="First"></GameItem>
+                    </span>
+                    
                     <GameItem playHidden={!hasFriends} multi={true} info={"Tic Tac Toe\n\nPlayed on a board that looks like this:\n\n   |   |   \n---+---+---\n   |   |   \n---+---+---\n   |   |   \n\nYou and your opponent take turns placing X's and O's. First to get a 3 in a row wins! If neither get a 3 in a row the game ends in a draw.\n\n\nMade on 3/26/2023"} play={play} imgURL="../assets/tic_tac_toe.svg" gameUrl="tic_tac_toe" title="Tic Tac Toe"></GameItem>
                 </div>
             </div>

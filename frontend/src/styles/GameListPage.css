@@ -9,6 +9,12 @@
     padding-bottom: 300px;
 }
 
+.game_items > *
+{
+    box-sizing: content-box;
+    width: fit-content;
+}
+
 /* @media (max-width: 450px)
 {
     .game_item_div

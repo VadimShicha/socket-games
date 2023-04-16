@@ -123,7 +123,8 @@ exports.createToken = function()
 
 exports.deleteExpiredTokens = async function()
 {
-    await dbClient.deleteMany(config.loginTokensTable, {date: {$lt: Date.now() - config.loginTokenExpiration}});
+    let result = await dbClient.deleteMany(config.loginTokensTable, {date: {$lt: Date.now() - config.loginTokenExpiration}});
+    console.log("Deleted ", result.deletedCount, " expired tokens");
     // tools.runSQL(`DELETE FROM ${config.loginTokensTable} WHERE date < ${Date.now() - config.loginTokenExpiration}`, function(err, data)
     // {
     //     callback(err, data);

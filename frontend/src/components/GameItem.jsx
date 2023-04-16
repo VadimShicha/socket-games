@@ -37,7 +37,7 @@ function GameItem(props)
         <div className="game_item_div">
             {shouldRedirect && <Navigate to={"/game-" + props.gameUrl}></Navigate>}
             <div className="game_item_frame_div">
-                <img className="game_item_frame" hidden={inInfo != false} src={props.imgURL}></img>
+                <img alt={props.title + " icon"} className="game_item_frame" hidden={inInfo != false} src={props.imgURL}></img>
                 <div className="game_item_frame" hidden={inInfo != true}>
                     <textarea className="game_item_textarea" readOnly defaultValue={props.info}></textarea>
                 </div>

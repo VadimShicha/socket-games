@@ -66,7 +66,7 @@ function NavBar(props)
             </div>
             <div className="nav_bar">
                 <ul className="nav_bar_ul">
-                    <img onClick={() => {setIsExploding(true);}} className="nav_bar_image" src="/assets/trumpet_long.svg"></img>
+                    <img alt="Trumpet Icon" onClick={() => {setIsExploding(true);}} className="nav_bar_image" src="/assets/trumpet_long.svg"></img>
                     <li className="nav_bar_title nav_bar_li nav_bar_regular"><Link className="nav_bar_title_a" to="/"><b>Trumpet Games</b></Link></li>
                     
                     <li className={`${classNames[0][0]} nav_bar_text nav_bar_regular`}><Link to="/">Singleplayer</Link></li>
