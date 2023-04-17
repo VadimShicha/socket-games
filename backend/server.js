@@ -272,7 +272,8 @@ io.on("connection", async(socket) =>
             {
                 sockets[args.toUser].emit("game_invite_sent", {gameUrl: args.gameUrl, fromUser: result[0]});
                 console.log("SENT");
-                callback(["Sent request to " + args.toUser, 0])
+                callback(["Sent request to " + args.toUser, 0]);
+                return;
             }
 
             callback(["User isn't online", 3]);
@@ -301,9 +302,14 @@ io.on("connection", async(socket) =>
                 fromUserSocket.data.gameID = gameID;
                 fromUserSocket.emit("send_to_game", {gameUrl: args.gameUrl, toUser: result[0]});
             }
+            else
+            {
+                callback(["Failed to send game invite", 1]);
+                return;
+            }
 
+            sockets[socket.data.username].data.gameID = gameID; //must be done this way. The gameID needs to be updated in the sockets list
             socket.join("game-" + gameID); //to-user joins
-            socket.data.gameID = gameID;
 
             if(args.gameUrl == "first")
             {
@@ -325,6 +331,8 @@ io.on("connection", async(socket) =>
                 games[gameID][2] = new TicTacToe();
                 //io.to("game-" + gameID).emit("tic_tac_toe_load", {turnIndex: games[gameID][2].getTurn()});
             } 
+
+            callback(["Success", 0]);
         }
     });
 
@@ -405,7 +413,7 @@ io.on("connection", async(socket) =>
 
     socket.on("tic_tac_toe_get_load", async(callback) =>
     {
-        console.log(sockets[socket.data.username] == undefined);
+        console.log(sockets[socket.data.username].data);
         //console.log(games[sockets[socket.data.username].data.gameID] == undefined);
         //check if the user exists and if the game exists
         if(sockets[socket.data.username] == undefined || games[sockets[socket.data.username].data.gameID] == undefined)
@@ -419,6 +427,13 @@ io.on("connection", async(socket) =>
                 playerIndex = 1;
 
             console.log("LOAD: " + playerIndex + " TURN: " + game[2].getTurn());
+            game[2].startTime();
+
+            game[2].onLoseTime(function()
+            {
+                for(let i = 0; i < 2; i++)
+                    game[1][i].emit("tic_tac_toe_tick", {turnIndex: game[2].getTurn()});
+            }.bind(game));
 
             callback({success: true, playerIndex: playerIndex, turnIndex: game[2].getTurn()});
         }
@@ -456,6 +471,8 @@ io.on("connection", async(socket) =>
 
             let status = game[2].getStatus();
             game[2].switchTurn();
+
+            game[2].startTime();
 
             for(let playerIndex = 0; playerIndex < 2; playerIndex++)
             {

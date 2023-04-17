@@ -34,3 +34,34 @@
 {
     background-image: url("/public/assets/tic_tac_toe/o.svg");
 }
+
+.tic_tac_toe_time
+{
+    position: absolute;
+    border: 2px solid black;
+    display: inline-block;
+    width: fit-content;
+    min-width: 80px;
+    height: 45px;
+    left: 10px;
+    top: 50px;
+}
+
+.tic_tac_toe_time > img
+{
+    float: left;
+    width: 45px;
+    height: 45px;
+    margin-left: 3px;
+}
+
+.tic_tac_toe_time > p
+{
+    height: fit-content;
+    width: 50%;
+    text-align: left;
+    margin-left: 53px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    font-size: 30px;
+}

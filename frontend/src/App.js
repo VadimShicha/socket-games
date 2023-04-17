@@ -22,7 +22,7 @@ import FirstMultiGame from './multi_games/FirstMultiGame';
 import {socket} from './socket';
 import './App.css';
 import Cookies from 'js-cookie';
-import TicTacToeMultiGame from './multi_games/TicTacToeMultiGame';
+import TicTacToeMultiGame from './multi_games/TicTacToe/TicTacToeMultiGame';
 import { sendPOST, sendAsyncPOST } from './tools';
 import MultiGamePage from './pages/MultiGamePage';
 import NavBar from './components/NavBar';
@@ -65,9 +65,13 @@ function App()
     {
         removeGameInvite(gameUrl, username);
 
-        socket.emit("accept_game_invite", {gameUrl: gameUrl, fromUser: username, token: DataManager.token});
+        socket.emit("accept_game_invite", {gameUrl: gameUrl, fromUser: username, token: DataManager.token}, function(data)
+        {
+            if(data[1] != 0)
+                DataManager.popTextRef.current.show("Failed to create game");
+        });
 
-        return redirect("/login");
+        //return redirect("/login");
     }
 
     function declineGameInvite(gameUrl, username)

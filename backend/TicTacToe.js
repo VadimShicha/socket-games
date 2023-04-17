@@ -6,6 +6,7 @@ module.exports = class TicTacToe
         this.turn = Math.floor(Math.random() * 2);
         this.timeSinceLastMove = Date.now();
         this.timeoutID = null;
+        this.onLoseTimeFunc = function(){};
     }
 
     getTurn()
@@ -13,18 +14,38 @@ module.exports = class TicTacToe
         return this.turn;
     }
 
+    onLoseTime(func)
+    {
+        this.switchTurn();
+        this.onLoseTimeFunc = func;
+    }
+
+    startTime()
+    {
+        if(this.timeoutID != null)
+        {
+            clearTimeout(this.timeoutID);
+            this.timeoutID = null;
+        }
+
+        this.timeoutID = setTimeout(function()
+        {
+            this.onLoseTimeFunc();
+        }.bind(this), 9000);
+    }
+
     move(turnIndex, row, column)
     {
-        clearTimeout(this.timeoutID);
+        if(this.timeoutID != null)
+        {
+            clearTimeout(this.timeoutID);
+            this.timeoutID = null;
+        }
 
         if(this.board[row][column] == -1 && turnIndex == this.turn)
         {
             this.board[row][column] = turnIndex;
-
-            this.timeoutID = setTimeout(function()
-            {
-                switchTurn();
-            }.bind(this), 8000);
+            this.startTime(turnIndex);
 
             return true;
         }

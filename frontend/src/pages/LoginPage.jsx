@@ -3,6 +3,7 @@ import {sendPOST} from '../tools'
 import "../styles/SignPage.css";
 import { Link, Navigate } from 'react-router-dom';
 import DataManager from '../dataManager';
+import {socket} from '../socket';
 
 function LoginPage(props)
 {
@@ -30,6 +31,10 @@ function LoginPage(props)
         {
             console.log(data);
             setMessage(data.message);
+        
+            //reconnect the socket to rerun the socket init code
+            socket.disconnect();
+            socket.connect();
 
             if(data.success)
                 props.loginSuccess();

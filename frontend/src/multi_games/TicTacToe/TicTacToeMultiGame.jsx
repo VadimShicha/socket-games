@@ -1,19 +1,22 @@
 import React from 'react';
-import { socket } from '../socket';
-import "../styles/TicTacToeMultiGame.css";
-import DataManager from '../dataManager';
-import GameOverForm from '../components/forms/GameOverForm';
+import { socket } from '../../socket';
+import "../../styles/TicTacToeMultiGame.css";
+import DataManager from '../../dataManager';
+import GameOverForm from '../../components/forms/GameOverForm';
+import { Navigate } from 'react-router';
+import TimerIcon from './timer_icon.svg';
 
 class TicTacToeMultiGame extends React.Component
 {
     constructor(props)
     {
         super(props);
-        this.state = {tableBody: <></>, turnText: "===============", status: -1, statusMessage: ""};
+        this.state = {tableBody: <></>, turnText: "===============", status: -1, statusMessage: "", timeLeft: 8, wrongGame: false};
         this.board = [[-1, -1, -1],[-1, -1, -1],[-1, -1, -1]];//-1 EMPTY   0 X   1 O
         this.playerIndex = -1;
         this.thisTurn = false; //indicates if it's this user's turn (just a quick check incase they clicked accidentially to not send a requests)
 
+        this.countdownID = null;
         this.loaded = false;
     };
 
@@ -49,6 +52,10 @@ class TicTacToeMultiGame extends React.Component
         //(this is NOT the official check. It will be checked in the server again)
         if(this.thisTurn)
         {
+            this.setState({timeLeft: 8});
+            if(this.countdownID != null)
+                clearTimeout(this.countdownID);
+
             socket.emit("tic_tac_toe_move", {row: row, column: column}, function(data)
             {
                 this.updateTable();
@@ -61,11 +68,19 @@ class TicTacToeMultiGame extends React.Component
         if(turnIndex == this.playerIndex)
         {
             this.setState({turnText: "Your turn"});
+
+            this.countdownID = setInterval(function()
+            {
+                if(this.state.timeLeft > 0)
+                    this.setState({timeLeft: this.state.timeLeft - 1});
+            }.bind(this), 1000);
+
             this.thisTurn = true;
         } 
         else
         {
-            this.setState({turnText: "Waiting for opponent"});
+            this.setState({turnText: "Waiting for opponent..."});
+
             this.thisTurn = false;
         }
     }
@@ -78,7 +93,10 @@ class TicTacToeMultiGame extends React.Component
         {
             console.log(data);
             if(!data.success)
-                alert("Wrong game");
+            {
+                DataManager.popTextRef.current.show("Invalid game");
+                this.setState({wrongGame: true});
+            }
 
             this.playerIndex = data.playerIndex;
             this.updateTurn(data.turnIndex);
@@ -87,12 +105,23 @@ class TicTacToeMultiGame extends React.Component
         socket.on("tic_tac_toe_tick", function(data)
         {
             console.log(data);
-            this.board = data.board;
-            this.updateTurn(data.turnIndex);
+
+            this.setState({timeLeft: 8});
+            if(this.countdownID != null)
+                clearTimeout(this.countdownID);
+
+            if(data.board != undefined)
+                this.board = data.board;
+            if(data.turnIndex != undefined)
+                this.updateTurn(data.turnIndex);
             this.updateTable();
-            this.setState({status: data.status, statusMessage: data.statusMessage});
-            if(data.status != -1)
-                DataManager.popTextRef.current.show(data.statusMessage);
+
+            if(data.status != undefined && data.statusMessage != undefined)
+            {
+                this.setState({status: data.status, statusMessage: data.statusMessage});
+                if(data.status != -1)
+                    DataManager.popTextRef.current.show(data.statusMessage);
+            }
         }.bind(this));
     }
 
@@ -109,7 +138,12 @@ class TicTacToeMultiGame extends React.Component
     {
         return (
             <div>
+                {this.state.wrongGame && <Navigate to="/multiplayer"></Navigate>}
                 <GameOverForm status={this.state.status} statusMessage={this.state.statusMessage} rematch={this.rematch}></GameOverForm>
+                <div className="tic_tac_toe_time">
+                    <img srcSet={TimerIcon}></img>
+                    <p>{this.state.timeLeft}</p>
+                </div>
                 <h2>Tic Tac Toe</h2>
                 <p>{this.state.turnText}</p>
                 <table className="tic_tac_toe_table center_align">
