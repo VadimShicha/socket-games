@@ -35,10 +35,11 @@
 .game_item_play_button
 {
     width: fit-content;
-    margin: 5px;
+    margin: 3px;
 }
 
 .game_item_info_button
 {
     width: fit-content;
+    margin: 3px;
 }

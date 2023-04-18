@@ -44,7 +44,7 @@
     min-width: 80px;
     height: 45px;
     left: 10px;
-    top: 50px;
+    top: 120px;
 }
 
 .tic_tac_toe_time > img
@@ -61,7 +61,7 @@
     width: 50%;
     text-align: left;
     margin-left: 53px;
-    margin-top: 0px;
+    margin-top: 4px;
     margin-bottom: 0px;
     font-size: 30px;
 }

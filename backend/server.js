@@ -308,6 +308,7 @@ io.on("connection", async(socket) =>
                 return;
             }
 
+            socket.data.gameID = gameID;
             sockets[socket.data.username].data.gameID = gameID; //must be done this way. The gameID needs to be updated in the sockets list
             socket.join("game-" + gameID); //to-user joins
 
@@ -329,7 +330,15 @@ io.on("connection", async(socket) =>
             else if(args.gameUrl == "tic_tac_toe")
             {
                 games[gameID][2] = new TicTacToe();
-                //io.to("game-" + gameID).emit("tic_tac_toe_load", {turnIndex: games[gameID][2].getTurn()});
+
+                let game = games[gameID];
+                game[2].startTime();
+
+                game[2].onLoseTime(function()
+                {
+                    for(let i = 0; i < 2; i++)
+                        game[1][i].emit("tic_tac_toe_tick", {turnIndex: game[2].getTurn()});
+                }.bind(game));
             } 
 
             callback(["Success", 0]);
@@ -411,8 +420,9 @@ io.on("connection", async(socket) =>
         // }
     });
 
-    socket.on("tic_tac_toe_get_load", async(callback) =>
+    socket.on("get_game_load", async(callback) =>
     {
+        console.log("tic_tac_toe_get_load");
         console.log(sockets[socket.data.username].data);
         //console.log(games[sockets[socket.data.username].data.gameID] == undefined);
         //check if the user exists and if the game exists
@@ -420,22 +430,20 @@ io.on("connection", async(socket) =>
             callback({success: false});
         else
         {
-            let playerIndex = 0;
             let game = games[sockets[socket.data.username].data.gameID];
+            let names = [game[1][0].data.username, game[1][1].data.username];
 
-            if(game[1][1].data.username == socket.data.username)
-                playerIndex = 1;
-
-            console.log("LOAD: " + playerIndex + " TURN: " + game[2].getTurn());
-            game[2].startTime();
-
-            game[2].onLoseTime(function()
+            if(game[0] == "tic_tac_toe")
             {
-                for(let i = 0; i < 2; i++)
-                    game[1][i].emit("tic_tac_toe_tick", {turnIndex: game[2].getTurn()});
-            }.bind(game));
+                let playerIndex = 0;
 
-            callback({success: true, playerIndex: playerIndex, turnIndex: game[2].getTurn()});
+                if(game[1][1].data.username == socket.data.username)
+                    playerIndex = 1;
+
+                console.log("LOAD: " + playerIndex + " TURN: " + game[2].getTurn());
+                
+                callback({success: true, usernames: names, playerIndex: playerIndex, turnIndex: game[2].getTurn()});
+            }
         }
     });
 
@@ -486,6 +494,12 @@ io.on("connection", async(socket) =>
                     statusMessage = "The game is still going";
                 else if(status == -2)
                     statusMessage = "The game is a draw";
+
+                //if the game ended
+                if(status != -1)
+                {
+                    delete game[1][playerIndex].gameID;
+                }
 
                 game[1][playerIndex].emit("tic_tac_toe_tick", {board: game[2].getBoard(), turnIndex: game[2].getTurn(), status: status, statusMessage: statusMessage});
             }

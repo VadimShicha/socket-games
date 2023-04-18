@@ -5,13 +5,14 @@ import DataManager from '../../dataManager';
 import GameOverForm from '../../components/forms/GameOverForm';
 import { Navigate } from 'react-router';
 import TimerIcon from './timer_icon.svg';
+import GamePage from '../../pages/GamePage';
 
 class TicTacToeMultiGame extends React.Component
 {
     constructor(props)
     {
         super(props);
-        this.state = {tableBody: <></>, turnText: "===============", status: -1, statusMessage: "", timeLeft: 8, wrongGame: false};
+        this.state = {tableBody: <></>, turnText: "===============", status: -1, statusMessage: "", usernames: ["You", "Opponent"], timeLeft: 8, wrongGame: false};
         this.board = [[-1, -1, -1],[-1, -1, -1],[-1, -1, -1]];//-1 EMPTY   0 X   1 O
         this.playerIndex = -1;
         this.thisTurn = false; //indicates if it's this user's turn (just a quick check incase they clicked accidentially to not send a requests)
@@ -79,6 +80,9 @@ class TicTacToeMultiGame extends React.Component
         } 
         else
         {
+            if(this.countdownID != null)
+                clearTimeout(this.countdownID);
+
             this.setState({turnText: "Waiting for opponent..."});
 
             this.thisTurn = false;
@@ -89,17 +93,21 @@ class TicTacToeMultiGame extends React.Component
     {
         this.updateTable();
 
-        socket.emit("tic_tac_toe_get_load", function(data)
+        socket.emit("get_game_load", function(data)
         {
             console.log(data);
-            if(!data.success)
+            if(data.success)
+            {
+                this.setState({usernames: data.usernames});
+                this.playerIndex = data.playerIndex;
+                this.updateTurn(data.turnIndex);
+            }
+            else
             {
                 DataManager.popTextRef.current.show("Invalid game");
                 this.setState({wrongGame: true});
             }
-
-            this.playerIndex = data.playerIndex;
-            this.updateTurn(data.turnIndex);
+            
         }.bind(this));
 
         socket.on("tic_tac_toe_tick", function(data)
@@ -138,7 +146,8 @@ class TicTacToeMultiGame extends React.Component
     {
         return (
             <div>
-                {this.state.wrongGame && <Navigate to="/multiplayer"></Navigate>}
+                <GamePage usernames={this.state.usernames} profileImages={["/assets/tic_tac_toe/x.svg", "/assets/tic_tac_toe/o.svg"]}></GamePage>
+                {this.state.wrongGame && false && <Navigate to="/multiplayer"></Navigate>}
                 <GameOverForm status={this.state.status} statusMessage={this.state.statusMessage} rematch={this.rematch}></GameOverForm>
                 <div className="tic_tac_toe_time">
                     <img srcSet={TimerIcon}></img>

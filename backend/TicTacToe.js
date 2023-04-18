@@ -16,7 +16,6 @@ module.exports = class TicTacToe
 
     onLoseTime(func)
     {
-        this.switchTurn();
         this.onLoseTimeFunc = func;
     }
 
@@ -30,6 +29,7 @@ module.exports = class TicTacToe
 
         this.timeoutID = setTimeout(function()
         {
+            this.switchTurn();
             this.onLoseTimeFunc();
         }.bind(this), 9000);
     }

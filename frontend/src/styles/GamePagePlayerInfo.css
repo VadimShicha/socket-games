@@ -1,0 +1,26 @@
+.game_page_player_info
+{
+    position: absolute;
+    display: flex;
+    align-items: center;
+    border: 3px solid black;
+    max-width: 300px;
+    min-width: 180px;
+    height: 60px;
+}
+
+.game_page_player_info > img
+{
+    outline: 2px solid black;
+    width: 60px;
+    height: 60px;
+}
+
+.game_page_player_info > p
+{
+    width: fit-content;
+    text-align: center;
+    font-size: 25px;
+    margin-left: 8px;
+    margin-right: 8px;
+}

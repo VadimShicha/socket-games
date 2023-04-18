@@ -115,15 +115,15 @@ function GameListPage()
         });
     }
 
-    if(!(Cookies.get("logged_in") === 'true'))
-        return (
-            <>
-                <NavBar page={1}></NavBar>
-                <div className="nav_bar_body">
-                    <h3>No support for non logged in users</h3>
-                </div>
-            </>
-        );
+    // if(!(Cookies.get("logged_in") === 'true'))
+    //     return (
+    //         <>
+    //             <NavBar page={1}></NavBar>
+    //             <div className="nav_bar_body">
+    //                 <h3>No support for non logged in users</h3>
+    //             </div>
+    //         </>
+    //     );
 
     return (
         <>
