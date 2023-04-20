@@ -45,6 +45,44 @@ function getCookieValue(cookie)
     return null;
 }
 
+function isValidGameUrl(gameUrl)
+{
+    if(gameUrl == "first" || gameUrl == "tic_tac_toe")
+        return true;
+    return false;
+}
+
+function setupGame(game)
+{
+    if(game[0] == "first")
+    {
+        let boxA = Matter.Bodies.rectangle(400, 200, 80, 80);
+        let ground = Matter.Bodies.rectangle(400, 610, 810, 60, {isStatic: true});
+
+        let engine = Matter.Engine.create();
+
+        Matter.Composite.add(engine.world, [ground, boxA]);
+
+        let runner = Matter.Runner.create();
+
+        game[2] = {boxA: boxA, ground: ground, runner: runner, engine: engine};
+
+        Matter.Runner.run(runner, engine);
+    }
+    else if(game[0] == "tic_tac_toe")
+    {
+        game[2] = new TicTacToe();
+
+        game[2].startTime();
+
+        game[2].onLoseTime(function()
+        {
+            for(let i = 0; i < 2; i++)
+                game[1][i].emit("tic_tac_toe_tick", {turnIndex: game[2].getTurn()});
+        }.bind(game));
+    }
+}
+
 app.post("/server", async function(req, res)
 {
     let cookieManager = CookieParser.parseFrom(!req.headers.cookie ? "" : req.headers.cookie);
@@ -112,16 +150,18 @@ app.post("/server", async function(req, res)
 
         if(result[1] == 0)
         {
-            result = await user.logoutUser(result);
+            let logoutResult = await user.logoutUser(result[0]);
 
-            if(result)
+            if(logoutResult)
             {
                 cookieManager.getCookieBy("logged_in").setMaxAge(1);
                 cookieManager.getCookieBy("token").setMaxAge(1);
                 cookieManager.setHeaders(res);
+                res.send({success: true});
+                return;
             }
 
-            res.send({success: true});
+            res.send({success: false});
         }
         else
             res.send({success: false});
@@ -227,6 +267,7 @@ server.listen(config.port, () => {});
 const io = socketio(server, {cors: corsConfig});
 
 let sockets = {};
+let socketsSearching = [];
 let guestAmount = 0;
 
 io.on("connection", async(socket) =>
@@ -261,6 +302,44 @@ io.on("connection", async(socket) =>
         guestAmount++;
     }
 
+    socket.on("search_for_game", async(args, callback) =>
+    {
+        if(!isValidGameUrl(args.gameUrl))
+        {
+            callback(["Not a valid game URL", 1]);
+            return;
+        }
+
+        for(let i = 0; i < socketsSearching.length; i++)
+            if(socketsSearching[i] == socket)
+            {
+                callback(["Already searching", 1]);
+                return;
+            }
+
+        socketsSearching.push(socket);
+
+        if(socketsSearching.length >= 2)
+        {
+            let gameID = user.createToken(); //generate a game id
+
+            games[gameID] = [args.gameUrl, [socketsSearching[0], socketsSearching[1]], {}];
+
+            for(let i = 0; i < 2; i++)
+            {
+                socketsSearching[i].join("game-" + gameID);
+                socketsSearching[i].data.gameID = gameID;
+                socketsSearching[i].emit("send_to_game", {gameUrl: args.gameUrl});
+            }
+
+            setupGame(games[gameID]);
+
+            socketsSearching.splice(0, 2);
+        }
+        
+        callback(["Searching", 0]);
+    });
+
     socket.on("send_game_invite", async(args, callback) =>
     {
         let result = await user.getUsernameWithToken(tools.parseCookie(cookie, "token"));
@@ -284,7 +363,7 @@ io.on("connection", async(socket) =>
 
     socket.on("accept_game_invite", async(args, callback) =>
     {
-        if(args.fromUser == undefined || args.gameUrl == undefined)
+        if(args.fromUser == undefined || args.gameUrl == undefined || !isValidGameUrl(args.gameUrl))
             return;
 
         let result = await user.getUsernameWithToken(tools.parseCookie(cookie, "token"));
@@ -312,34 +391,7 @@ io.on("connection", async(socket) =>
             sockets[socket.data.username].data.gameID = gameID; //must be done this way. The gameID needs to be updated in the sockets list
             socket.join("game-" + gameID); //to-user joins
 
-            if(args.gameUrl == "first")
-            {
-                let boxA = Matter.Bodies.rectangle(400, 200, 80, 80);
-                let ground = Matter.Bodies.rectangle(400, 610, 810, 60, {isStatic: true});
-
-                let engine = Matter.Engine.create();
-
-                Matter.Composite.add(engine.world, [ground, boxA]);
-
-                let runner = Matter.Runner.create();
-
-                games[gameID][2] = {boxA: boxA, ground: ground, runner: runner, engine: engine};
-
-                Matter.Runner.run(runner, engine);
-            }
-            else if(args.gameUrl == "tic_tac_toe")
-            {
-                games[gameID][2] = new TicTacToe();
-
-                let game = games[gameID];
-                game[2].startTime();
-
-                game[2].onLoseTime(function()
-                {
-                    for(let i = 0; i < 2; i++)
-                        game[1][i].emit("tic_tac_toe_tick", {turnIndex: game[2].getTurn()});
-                }.bind(game));
-            } 
+            setupGame(games[gameID]);
 
             callback(["Success", 0]);
         }

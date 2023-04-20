@@ -90,6 +90,7 @@ exports.loginUser = async function(username, password)
 exports.logoutUser = async function(username)
 {
     let result = await dbClient.deleteOne(config.loginTokensTable, {username: username});
+    console.log(result);
 
     if(result.deletedCount > 0)
         return true;

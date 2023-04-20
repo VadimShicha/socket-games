@@ -99,7 +99,7 @@ function App()
                     <Route path="/game-camera" element={<><GamePage/><CameraGame/></>}></Route>
                     <Route path="/game-racing" element={<><GamePage/><RacingGame/></>}></Route>
 
-                    <Route path="/multiplayer/game-first" element={<><GamePage/><FirstMultiGame/></>}></Route>
+                    <Route path="/multiplayer/game-first" element={<><MultiGamePage/><FirstMultiGame/></>}></Route>
                     <Route path="/multiplayer/game-tic_tac_toe" element={<TicTacToeMultiGame/>}></Route>
 
                     <Route path="/color-palette" element={<ColorPalettePage></ColorPalettePage>}></Route>

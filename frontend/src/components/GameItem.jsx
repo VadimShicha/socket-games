@@ -11,14 +11,6 @@ function GameItem(props)
 
     const [shouldRedirect, setShouldRedirect] = useState(false);
 
-    function play()
-    {
-        if(props.multi)
-            props.play(props.gameUrl);
-        else
-            setShouldRedirect(true);
-    }
-
     function info()
     {
         if(inInfo)
@@ -46,8 +38,9 @@ function GameItem(props)
             
             <br></br>
             <h4 className="game_item_name">{props.title}</h4><br></br><br></br>
-            <button className="game_item_play_button" hidden={props.playHidden} onClick={play}>{playText}</button>
-            <button className="game_item_play_button" hidden={Cookies.get("logged_in") !== 'true'} onClick={play}>Invite</button>
+            <button className="game_item_play_button" hidden={props.multi} onClick={() => setShouldRedirect(true)}>Play</button>
+            <button className="game_item_play_button" hidden={!props.multi} onClick={() => props.playRandom(props.gameUrl)}>Play random</button>
+            <button className="game_item_play_button" hidden={!props.multi || props.playHidden || Cookies.get("logged_in") !== 'true'} onClick={() => props.play(props.gameUrl)}>Invite</button>
             <button className="game_item_info_button" onClick={info}>{infoText}</button>
         </div>
     );

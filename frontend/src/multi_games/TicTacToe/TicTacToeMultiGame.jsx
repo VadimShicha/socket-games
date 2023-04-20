@@ -5,7 +5,7 @@ import DataManager from '../../dataManager';
 import GameOverForm from '../../components/forms/GameOverForm';
 import { Navigate } from 'react-router';
 import TimerIcon from './timer_icon.svg';
-import GamePage from '../../pages/GamePage';
+import MultiGamePage from '../../pages/MultiGamePage';
 
 class TicTacToeMultiGame extends React.Component
 {
@@ -146,7 +146,7 @@ class TicTacToeMultiGame extends React.Component
     {
         return (
             <div>
-                <GamePage usernames={this.state.usernames} profileImages={["/assets/tic_tac_toe/x.svg", "/assets/tic_tac_toe/o.svg"]}></GamePage>
+                <MultiGamePage usernames={this.state.usernames} profileImages={["/assets/tic_tac_toe/x.svg", "/assets/tic_tac_toe/o.svg"]}></MultiGamePage>
                 {this.state.wrongGame && false && <Navigate to="/multiplayer"></Navigate>}
                 <GameOverForm status={this.state.status} statusMessage={this.state.statusMessage} rematch={this.rematch}></GameOverForm>
                 <div className="tic_tac_toe_time">
