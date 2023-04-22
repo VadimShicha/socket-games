@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect, useRef, createRef} from 'react';
 import {BrowserRouter, Routes, Route} from 'react-router-dom';
 import {redirect} from 'react-router-dom';
 import SentGameInviteForm from "./components/forms/SentGameInviteForm";
@@ -26,11 +26,14 @@ import TicTacToeMultiGame from './multi_games/TicTacToe/TicTacToeMultiGame';
 import { sendPOST, sendAsyncPOST } from './tools';
 import MultiGamePage from './pages/MultiGamePage';
 import NavBar from './components/NavBar';
+import PrintablesPage from './pages/PrintablesPage';
+import LinkNumbersPrintable from './pages/printables/LinkNumbersPrintable';
 
 function App()
 {
     const [gameInvites, setGameInvites] = useState([]);
     const sentGameInviteRef = useRef(null);
+    const [reloader, setReloader] = useState(false);
 
     let ranStart = false;
 
@@ -102,7 +105,9 @@ function App()
                     <Route path="/multiplayer/game-first" element={<><MultiGamePage/><FirstMultiGame/></>}></Route>
                     <Route path="/multiplayer/game-tic_tac_toe" element={<TicTacToeMultiGame/>}></Route>
 
-                    <Route path="/color-palette" element={<ColorPalettePage></ColorPalettePage>}></Route>
+                    <Route path="/color-palette" element={<ColorPalettePage/>}></Route>
+                    <Route path="/printables" element={<PrintablesPage/>}></Route>
+                    <Route path="/printables/link-numbers" element={<LinkNumbersPrintable/>}></Route>
 
                     <Route path="*" element={<NotFoundPage/>}></Route>
 

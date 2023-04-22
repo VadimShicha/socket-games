@@ -35,6 +35,23 @@ body
     background-repeat: repeat;
 }
 
+@media screen
+{
+    .printable {display: none;}
+    .non_printable {display: block;}
+}
+
+@media print
+{
+    .printable {display: block;}
+    .non_printable {display: none;}
+    body canvas
+    {
+        width: calc(100% - 2px);
+        height: calc(100% - 2px);
+    }
+}
+
 .nav_bar_body
 {
     margin-top: 40px;
