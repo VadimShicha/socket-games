@@ -35,6 +35,27 @@ body
     background-repeat: repeat;
 }
 
+.printable_ui_logo_div
+{
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    bottom: 10px;
+    left: 10px;
+}
+
+.printable_ui_logo_div > img
+{
+    max-width: 70px;
+    height: 28px;
+}
+
+.printable_ui_logo_div > p
+{
+    margin: 0px;
+}
+
 @media screen
 {
     .printable {display: none;}
@@ -45,11 +66,6 @@ body
 {
     .printable {display: block;}
     .non_printable {display: none;}
-    body canvas
-    {
-        width: calc(100% - 2px);
-        height: calc(100% - 2px);
-    }
 }
 
 .nav_bar_body
