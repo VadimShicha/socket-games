@@ -17,6 +17,11 @@ export function sendPOST(obj, func)
     });
 };
 
+export function userOnMobile()
+{
+    return window.navigator.userAgent.toLowerCase().includes("mobi") || window.navigator.userAgent.toLowerCase().includes("tablet");
+}
+
 export async function sendAsyncPOST(obj)
 {
     const res = await window.fetch(process.env.REACT_APP_API_URL + '/server',

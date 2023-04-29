@@ -123,7 +123,6 @@ function LinkNumbersPrintable(props)
                         <img src="/assets/trumpet.svg"></img>
                         <p>trumpetgames.com/printables</p>
                     </div>
-                    
                 </div>
                 
                 <canvas width="1052px" height="812px" ref={canvasRef}></canvas>

@@ -2,6 +2,7 @@ import React, {useState, useEffect} from 'react';
 import "../styles/GameItem.css";
 import { Navigate } from 'react-router';
 import Cookies from 'js-cookie';
+import {userOnMobile} from "../tools";
 
 function GameItem(props)
 {
@@ -26,6 +27,14 @@ function GameItem(props)
         setPlayText(props.multi ? "Play random" : "Play");
     }, [props.multi]);
 
+    function playSingleGame()
+    {
+        if(userOnMobile())
+            alert("This game is not supported on mobile devices");
+        else
+            setShouldRedirect(true)
+    }
+
     return (
         <div className="game_item_div">
             {shouldRedirect && <Navigate to={"/game-" + props.gameUrl}></Navigate>}
@@ -38,7 +47,7 @@ function GameItem(props)
             
             <br></br>
             <h4 className="game_item_name">{props.title}</h4><br></br><br></br>
-            <button className="game_item_play_button" hidden={props.multi} onClick={() => setShouldRedirect(true)}>Play</button>
+            <button className="game_item_play_button" hidden={props.multi} onClick={playSingleGame}>Play</button>
             <button className="game_item_play_button" hidden={!props.multi} onClick={() => props.playRandom(props.gameUrl)}>Play random</button>
             <button className="game_item_play_button" hidden={!props.multi || props.playHidden || Cookies.get("logged_in") !== 'true'} onClick={() => props.play(props.gameUrl)}>Invite</button>
             <button className="game_item_info_button" onClick={info}>{infoText}</button>

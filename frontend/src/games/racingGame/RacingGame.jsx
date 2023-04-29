@@ -11,6 +11,7 @@ import Cactus from './cactus.svg';
 import TrumpetCoin from './trumpet_coin.svg';
 import GasStation from './gas_station.svg';
 import WheelShop from './wheel_shop.svg';
+import Garage from './garage.svg';
 
 function toDegrees(radians)
 {
@@ -100,7 +101,15 @@ class RacingGame extends React.Component
     {
         if(scene == "Home")
         {
-            Matter.Composite.remove(this.engine.world, [this.homeGround, this.homeGarageRoof, this.homeGarageTopRoof, this.homeGarageBackground]);
+            Matter.Composite.remove(this.engine.world, [
+                this.homeGround,
+                this.homeGarage,
+                this.homeGroundHill,
+                this.homeHillGround,
+                this.homeRightBorderWall,
+                this.gasStation,
+                this.wheelShop,
+            ]);
             Matter.Composite.remove(this.engine.world, this.cactuses);
         }
         else if(scene == "Game")
@@ -164,33 +173,40 @@ class RacingGame extends React.Component
 
             //Matter.Bodies.fromVertices(150, -5, [{x: -210, y: -15}, {x: 150, y: -100}, {x: 500, y: -15}], {isStatic: true, render: {fillStyle: "gainsboro"}});
 
-            this.homeGarageLeftWall = Matter.Bodies.rectangle(garagePosition.x - 350, 135, 20, 280,
+            // this.homeGarageLeftWall = Matter.Bodies.rectangle(garagePosition.x - 350, 135, 20, 280,
+            // {
+            //     isStatic: true,
+            //     render: {fillStyle: "#dcdcdcd3"},
+            //     collisionFilter: {group: -1, mask: 0}
+            // });
+            // this.homeGarageRightWall = Matter.Bodies.rectangle(garagePosition.x + 350, 135, 20, 280,
+            // {
+            //     isStatic: true,
+            //     render: {fillStyle: "#dcdcdcd3"},
+            //     collisionFilter: {group: -1, mask: 0}
+            // });
+            // this.homeGarageRoof = Matter.Bodies.rectangle(garagePosition.x, garagePosition.y + 5, 700, 20,
+            // {
+            //     isStatic: true,
+            //     render: {fillStyle: "#dcdcdc"}
+            // });
+            // this.homeGarageTopRoof = Matter.Bodies.fromVertices(garagePosition.x, garagePosition.y - 35,
+            // [{x: garagePosition.x -350, y: garagePosition.y}, {x: garagePosition.x, y: garagePosition.y -100}, {x: garagePosition.x + 350, y: garagePosition.y}],
+            // {
+            //     isStatic: true,
+            //     render: {fillStyle: "#dcdcdc"}
+            // });
+            // this.homeGarageBackground = Matter.Bodies.rectangle(garagePosition.x, garagePosition.y + 135, 700, 280,
+            // {
+            //     isStatic: true,
+            //     render: {fillStyle: "gray", sprite: {texture: GarageTexture, xScale: 4.6, yScale: 1.86}},
+            //     collisionFilter: {group: -1, mask: 0}
+            // });
+
+            this.homeGarage = Matter.Bodies.rectangle(garagePosition.x, garagePosition.y + 50, 700, 400,
             {
                 isStatic: true,
-                render: {fillStyle: "#dcdcdcd3"},
-                collisionFilter: {group: -1, mask: 0}
-            });
-            this.homeGarageRightWall = Matter.Bodies.rectangle(garagePosition.x + 350, 135, 20, 280,
-            {
-                isStatic: true,
-                render: {fillStyle: "#dcdcdcd3"},
-                collisionFilter: {group: -1, mask: 0}
-            });
-            this.homeGarageRoof = Matter.Bodies.rectangle(garagePosition.x, garagePosition.y + 5, 700, 20,
-            {
-                isStatic: true,
-                render: {fillStyle: "#dcdcdc"}
-            });
-            this.homeGarageTopRoof = Matter.Bodies.fromVertices(garagePosition.x, garagePosition.y - 35,
-            [{x: garagePosition.x -350, y: garagePosition.y}, {x: garagePosition.x, y: garagePosition.y -100}, {x: garagePosition.x + 350, y: garagePosition.y}],
-            {
-                isStatic: true,
-                render: {fillStyle: "#dcdcdc"}
-            });
-            this.homeGarageBackground = Matter.Bodies.rectangle(garagePosition.x, garagePosition.y + 135, 700, 280,
-            {
-                isStatic: true,
-                render: {fillStyle: "gray", sprite: {texture: GarageTexture, xScale: 4.6, yScale: 1.86}},
+                render: {sprite: {texture: Garage, xScale: 3, yScale: 3}},
                 collisionFilter: {group: -1, mask: 0}
             });
 
@@ -226,15 +242,11 @@ class RacingGame extends React.Component
 
             Matter.Composite.add(this.engine.world,
             [
-                this.homeGarageBackground,
-                this.homeGarageLeftWall,
-                this.homeGarageRightWall,
+                this.homeGarage,
                 this.homeGround,
                 this.homeGroundHill,
                 this.homeHillGround,
                 this.homeRightBorderWall,
-                this.homeGarageRoof,
-                this.homeGarageTopRoof,
                 this.gasStation,
                 this.wheelShop,
                 center
@@ -265,7 +277,7 @@ class RacingGame extends React.Component
                 else if(Math.floor(Math.random() * 17) == 0)
                     isHill = 10;
 
-                groundVertices.push({x: i * 125, y: (Math.floor(Math.random() * 80) + (isHill > 0 ? 200 : 0) - (isHill > 0 && isHill < 4 ? 400 : 0))});
+                groundVertices.push({x: i * 125, y: (Math.floor(Math.random() * 60) + (isHill > 0 ? 200 : 0) - ((isHill > 0 && isHill < 4) || (isHill > 8) ? 300 : 0))});
             }
 
             groundVertices.push({x: 10000, y: 800});
