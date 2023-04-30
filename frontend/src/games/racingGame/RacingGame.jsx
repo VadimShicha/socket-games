@@ -2,7 +2,12 @@ import React, {createRef} from 'react';
 import '../../../src/styles/GamePage.css';
 import '../../../src/styles/RacingGame.css';
 import Matter from 'matter-js';
-import Wheel from './assets/wheel.svg';
+import Wheel from './assets/wheels/wheel.svg';
+import RoadWheel from './assets/wheels/road_wheel.svg';
+import MudWheel from './assets/wheels/mud_wheel.svg';
+import SandWheel from './assets/wheels/sand_wheel.svg';
+import SnowWheel from './assets/wheels/snow_wheel.svg';
+import WetWheel from './assets/wheels/wet_wheel.svg';
 import BikeBodyRed from './assets/bike_bodies/bike_body_red.svg';
 import BikeBodyRedFlipped from './assets/bike_bodies/bike_body_red_flipped.svg';
 import BikeBodyGreen from './assets/bike_bodies/bike_body_green.svg';
@@ -17,6 +22,7 @@ import UpgradeIcon from './assets/upgrade_icon.svg';
 import RaceIcon from './assets/race_icon.svg';
 import LeftArrow from './assets/left_arrow.svg';
 
+const BikeWheels = [Wheel, RoadWheel, MudWheel, SandWheel, SnowWheel, WetWheel];
 const BikeBodies = [BikeBodyRed, BikeBodyGreen];
 const BikeBodiesFlipped = [BikeBodyRedFlipped, BikeBodyGreenFlipped];
 
@@ -97,7 +103,7 @@ class RacingGame extends React.Component
 
         this.scene = "Home";
 
-        this.state = {coins: 500, carGas: 100, carGasColor: "limegreen", items: {wheels: []}, currentUI: 0, currentUIData: [""], bikeBodyIndex: 0}; //0 - 100
+        this.state = {coins: 500, carGas: 100, carGasColor: "limegreen", items: {wheels: [0]}, currentUI: 0, currentUIData: [""], bikeBodyIndex: 0, bikeWheelsIndex: 0}; //0 - 100
 
         this.engine = null;
         this.renderer = null;
@@ -431,7 +437,7 @@ class RacingGame extends React.Component
 
     carMove = (direction) =>
     {
-        let power = 15;
+        let power = 30; //15
 
         if(this.state.carGas <= 0)
             power = 3;
@@ -508,6 +514,14 @@ class RacingGame extends React.Component
             this.body.render.sprite.texture = BikeBodies[this.state.bikeBodyIndex];
     }
 
+    setBikeWheels(index)
+    {
+        this.setState({bikeWheelsIndex: index});
+
+        this.leftWheel.render.sprite.texture = BikeWheels[index];
+        this.rightWheel.render.sprite.texture = BikeWheels[index];
+    }
+
     componentDidMount()
     {
         if(!this.loaded)
@@ -560,6 +574,34 @@ class RacingGame extends React.Component
                                     </button>
                                 </div>
                             </div>
+                            <div hidden={this.state.currentUIData[0] !== "Wheels"}>
+                                <div className="game_form_ui_sections center_align">
+                                    <button className="game_garage_ui_section" onClick={() => this.setBikeWheels(0)}>
+                                        <img srcSet={BikeWheels[0]}></img>
+                                        <h2>Default Wheels</h2>
+                                    </button>
+                                    <button hidden={!this.state.items.wheels.includes(1)} onClick={() => this.setBikeWheels(1)} className="game_garage_ui_section">
+                                        <img srcSet={BikeWheels[1]}></img>
+                                        <h2>Road Wheels</h2>
+                                    </button>
+                                    <button hidden={!this.state.items.wheels.includes(2)} onClick={() => this.setBikeWheels(2)} className="game_garage_ui_section">
+                                        <img srcSet={BikeWheels[2]}></img>
+                                        <h2>Mud Wheels</h2>
+                                    </button>
+                                    <button hidden={!this.state.items.wheels.includes(3)} onClick={() => this.setBikeWheels(3)} className="game_garage_ui_section">
+                                        <img srcSet={BikeWheels[3]}></img>
+                                        <h2>Sand Wheels</h2>
+                                    </button>
+                                    <button hidden={!this.state.items.wheels.includes(4)} onClick={() => this.setBikeWheels(4)} className="game_garage_ui_section">
+                                        <img srcSet={BikeWheels[4]}></img>
+                                        <h2>Snow Wheels</h2>
+                                    </button>
+                                    <button hidden={!this.state.items.wheels.includes(5)} onClick={() => this.setBikeWheels(5)} className="game_garage_ui_section">
+                                        <img srcSet={BikeWheels[5]}></img>
+                                        <h2>Wet Wheels</h2>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                         <div className="game_form_ui_div" hidden={this.state.currentUI != 2}>
                             <h1>Biker's Gas</h1>
@@ -605,10 +647,10 @@ class RacingGame extends React.Component
                             <div className="game_form_ui_sections center_align">
                                 <div className="game_wheel_shop_ui_section">
                                     <h3>Road Wheels</h3>
-                                    <img alt="Tough Wheels" className="center_align" srcSet={Wheel}></img>
+                                    <img alt="Tough Wheels" className="center_align" srcSet={BikeWheels[1]}></img>
                                     <p>+20% speed on roads</p>
-                                    <div className="game_ui_buy_button_div" hidden={this.state.items.wheels.includes(0)}>
-                                        <button onClick={this.wheelShopBuy.bind(this, 0)}>
+                                    <div className="game_ui_buy_button_div" hidden={this.state.items.wheels.includes(1)}>
+                                        <button onClick={this.wheelShopBuy.bind(this, 1)}>
                                             <img alt="coin" srcSet={TrumpetCoin}></img>
                                             <p>500</p> 
                                         </button>
@@ -616,10 +658,10 @@ class RacingGame extends React.Component
                                 </div>
                                 <div className="game_wheel_shop_ui_section">
                                     <h3>Mud Wheels</h3>
-                                    <img alt="Grippy Wheels" className="center_align" srcSet={Wheel}></img>
+                                    <img alt="Grippy Wheels" className="center_align" srcSet={BikeWheels[2]}></img>
                                     <p>+60% speed on wet terrain</p>
-                                    <div className="game_ui_buy_button_div" hidden={this.state.items.wheels.includes(1)}>
-                                        <button onClick={this.wheelShopBuy.bind(this, 1)}>
+                                    <div className="game_ui_buy_button_div" hidden={this.state.items.wheels.includes(2)}>
+                                        <button onClick={this.wheelShopBuy.bind(this, 2)}>
                                             <img alt="coin" srcSet={TrumpetCoin}></img>
                                             <p>650</p> 
                                         </button>
@@ -627,10 +669,10 @@ class RacingGame extends React.Component
                                 </div>
                                 <div className="game_wheel_shop_ui_section">
                                     <h3>Sand Wheels</h3>
-                                    <img alt="Hill Wheels" className="center_align" srcSet={Wheel}></img>
+                                    <img alt="Hill Wheels" className="center_align" srcSet={BikeWheels[3]}></img>
                                     <p>+60% speed in the desert</p>
-                                    <div className="game_ui_buy_button_div" hidden={this.state.items.wheels.includes(2)}>
-                                        <button onClick={this.wheelShopBuy.bind(this, 2)}>
+                                    <div className="game_ui_buy_button_div" hidden={this.state.items.wheels.includes(3)}>
+                                        <button onClick={this.wheelShopBuy.bind(this, 3)}>
                                             <img srcSet={TrumpetCoin}></img>
                                             <p>850</p> 
                                         </button>
@@ -638,10 +680,10 @@ class RacingGame extends React.Component
                                 </div>
                                 <div className="game_wheel_shop_ui_section">
                                     <h3>Snow Wheels</h3>
-                                    <img alt="Snow Wheels" className="center_align" srcSet={Wheel}></img>
+                                    <img alt="Snow Wheels" className="center_align" srcSet={BikeWheels[4]}></img>
                                     <p>+60% speed on snow and ice</p>
-                                    <div className="game_ui_buy_button_div" hidden={this.state.items.wheels.includes(3)}>
-                                        <button onClick={this.wheelShopBuy.bind(this, 3)}>
+                                    <div className="game_ui_buy_button_div" hidden={this.state.items.wheels.includes(4)}>
+                                        <button onClick={this.wheelShopBuy.bind(this, 4)}>
                                             <img alt="coin" srcSet={TrumpetCoin}></img>
                                             <p>1000</p> 
                                         </button>
@@ -649,10 +691,10 @@ class RacingGame extends React.Component
                                 </div>
                                 <div className="game_wheel_shop_ui_section">
                                     <h3>Wet Wheels</h3>
-                                    <img alt="Mountain Wheels" className="center_align" srcSet={Wheel}></img>
+                                    <img alt="Mountain Wheels" className="center_align" srcSet={BikeWheels[5]}></img>
                                     <p>+75% speed in water</p>
-                                    <div className="game_ui_buy_button_div" hidden={this.state.items.wheels.includes(4)}>
-                                        <button onClick={this.wheelShopBuy.bind(this, 4)}>
+                                    <div className="game_ui_buy_button_div" hidden={this.state.items.wheels.includes(5)}>
+                                        <button onClick={this.wheelShopBuy.bind(this, 5)}>
                                             <img alt="coin" srcSet={TrumpetCoin}></img>
                                             <p>1400</p> 
                                         </button>
