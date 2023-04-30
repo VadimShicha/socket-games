@@ -2,16 +2,23 @@ import React, {createRef} from 'react';
 import '../../../src/styles/GamePage.css';
 import '../../../src/styles/RacingGame.css';
 import Matter from 'matter-js';
-import Wheel from './wheel.svg';
-import BikeBody from './bike_body.svg';
-import BikeBodyFlipped from './bike_body_flipped.svg';
-import GarageTexture from './garage_texture.svg';
+import Wheel from './assets/wheel.svg';
+import BikeBodyRed from './assets/bike_bodies/bike_body_red.svg';
+import BikeBodyRedFlipped from './assets/bike_bodies/bike_body_red_flipped.svg';
+import BikeBodyGreen from './assets/bike_bodies/bike_body_green.svg';
+import BikeBodyGreenFlipped from './assets/bike_bodies/bike_body_green_flipped.svg';
 import ProgressBar from '../../components/ProgressBar';
-import Cactus from './cactus.svg';
-import TrumpetCoin from './trumpet_coin.svg';
-import GasStation from './gas_station.svg';
-import WheelShop from './wheel_shop.svg';
-import Garage from './garage.svg';
+import Cactus from './assets/cactus.svg';
+import TrumpetCoin from './assets/trumpet_coin.svg';
+import GasStation from './assets/gas_station.svg';
+import WheelShop from './assets/wheel_shop.svg';
+import Garage from './assets/garage.svg';
+import UpgradeIcon from './assets/upgrade_icon.svg';
+import RaceIcon from './assets/race_icon.svg';
+import LeftArrow from './assets/left_arrow.svg';
+
+const BikeBodies = [BikeBodyRed, BikeBodyGreen];
+const BikeBodiesFlipped = [BikeBodyRedFlipped, BikeBodyGreenFlipped];
 
 function toDegrees(radians)
 {
@@ -58,7 +65,7 @@ const bodyOptions = {
         fillStyle: "coral",
         sprite:
         {
-            texture: BikeBody
+            texture: BikeBodyRed
         }
     }
 };
@@ -90,7 +97,7 @@ class RacingGame extends React.Component
 
         this.scene = "Home";
 
-        this.state = {coins: 500, carGas: 100, carGasColor: "limegreen", items: {wheels: []}, currentUI: 2}; //0 - 100
+        this.state = {coins: 500, carGas: 100, carGasColor: "limegreen", items: {wheels: []}, currentUI: 0, currentUIData: [""], bikeBodyIndex: 0}; //0 - 100
 
         this.engine = null;
         this.renderer = null;
@@ -120,6 +127,8 @@ class RacingGame extends React.Component
 
     loadScene(scene)
     {
+        this.setCurrentUI(0); //close any opened UI
+
         if(this.scene != scene)
             this.unloadScene(this.scene); //unload the old scene
 
@@ -389,15 +398,17 @@ class RacingGame extends React.Component
     {
         if(e.key == "f")
         {
-            if(Matter.Collision.collides(this.body, this.gasStation))
-                this.setState({currentUI: 1});
+            if(Matter.Collision.collides(this.body, this.homeGarage))
+                this.setCurrentUI(1);
+            else if(Matter.Collision.collides(this.body, this.gasStation))
+                this.setCurrentUI(2);
             else if(Matter.Collision.collides(this.body, this.wheelShop))
-                this.setState({currentUI: 2});
+                this.setCurrentUI(3);
         }
         else if(e.key == "Escape")
         {
             if(this.state.currentUI != 0)
-                this.setState({currentUI: 0});
+                this.setCurrentUI(0);
         }
     }
 
@@ -427,10 +438,7 @@ class RacingGame extends React.Component
         else
             this.setCarGas(this.state.carGas - 0.1);
 
-        if(this.leftWheel.velocity.x < -3)
-            this.body.render.sprite.texture = BikeBodyFlipped;
-        else if(this.leftWheel.velocity.x > 3)
-            this.body.render.sprite.texture = BikeBody;
+        this.updateBikeBody(this.state.bikeBodyIndex);
 
         Matter.Body.setVelocity(this.leftWheel, {x: power * direction, y: 0});
         Matter.Body.setVelocity(this.rightWheel, {x: power * direction, y: 0});
@@ -479,6 +487,27 @@ class RacingGame extends React.Component
         this.setState({items: {wheels: this.state.items.wheels.concat([index])}});
     }
 
+    setCurrentUI(index)
+    {
+        this.setState({currentUI: index, currentUIData: [""]});
+    }
+
+    setBikeBody(index)
+    {
+        this.setState({bikeBodyIndex: index});
+
+        this.body.render.sprite.texture = BikeBodies[index];
+        this.updateBikeBody();
+    }
+
+    updateBikeBody()
+    {
+        if(this.leftWheel.velocity.x < -3)
+            this.body.render.sprite.texture = BikeBodiesFlipped[this.state.bikeBodyIndex];
+        else if(this.leftWheel.velocity.x > 3)
+            this.body.render.sprite.texture = BikeBodies[this.state.bikeBodyIndex];
+    }
+
     componentDidMount()
     {
         if(!this.loaded)
@@ -491,13 +520,51 @@ class RacingGame extends React.Component
             <div>
                 <div ref={this.mainRef} className="game_div center_align" style={{width: "fit-content"}}>
                     <div className="game_ui_div">
-                        <button className="game_pause_button action_button_resizable pause_button" onClick={() => this.loadScene("Game")}></button>
+                        <button className="game_pause_button action_button_resizable pause_button"></button>
                         
                         {/* <p className="game_press_to_interact">Press [F] to interact</p> */}
                         <div className="game_form_ui_div" hidden={this.state.currentUI != 1}>
+                            <h1>{this.state.currentUIData[0] == "" ? "Garage" : this.state.currentUIData[0]}</h1>
+                            <button className="game_form_ui_close decline_button" onClick={() => this.setCurrentUI(0)}></button>
+                            <button hidden={this.state.currentUIData[0] == ""} className="game_form_ui_back" style={{backgroundImage: `url(${LeftArrow})`}} onClick={() => this.setState({currentUIData: [""]})}></button>
+                            <div hidden={this.state.currentUIData[0] !== ""}>
+                                <div className="game_form_ui_sections center_align">
+                                    <button onClick={() => this.setState({currentUIData: ["Upgrades"]})} className="game_garage_ui_section">
+                                        <img srcSet={UpgradeIcon}></img>
+                                        <h2>Upgrades</h2>
+                                    </button>
+                                    <button onClick={() => this.setState({currentUIData: ["Body"]})} className="game_garage_ui_section">
+                                        <img srcSet={BikeBodyRed}></img>
+                                        <h2>Body</h2>
+                                    </button>
+                                    <button onClick={() => this.setState({currentUIData: ["Wheels"]})} className="game_garage_ui_section">
+                                        <img srcSet={Wheel}></img>
+                                        <h2>Wheels</h2>
+                                    </button>
+                                    <button onClick={() => this.loadScene("Game")} className="game_garage_ui_section">
+                                        <img srcSet={RaceIcon}></img>
+                                        <h2>Start Race</h2>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div hidden={this.state.currentUIData[0] !== "Body"}>
+                                <div className="game_form_ui_sections center_align">
+                                    <button onClick={() => this.setBikeBody(0)} className="game_garage_ui_section">
+                                        <img srcSet={BikeBodyRed}></img>
+                                        <h2>Red</h2>
+                                    </button>
+                                    <button onClick={() => this.setBikeBody(1)} className="game_garage_ui_section">
+                                        <img srcSet={BikeBodyGreen}></img>
+                                        <h2>Green</h2>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="game_form_ui_div" hidden={this.state.currentUI != 2}>
                             <h1>Biker's Gas</h1>
-                            <h4>Any extra fuel will not be added to you vehicle</h4>
-                            <button className="game_form_ui_close decline_button" onClick={() => this.setState({currentUI: 0})}></button>
+                            <h4>Any extra fuel will not be added to your vehicle</h4>
+                            <button className="game_form_ui_close decline_button" onClick={() => this.setCurrentUI(0)}></button>
                             <div className="game_form_ui_sections center_align">
                                 <div className="game_gas_station_ui_section">
                                     <h2>Add 25%</h2>
@@ -531,10 +598,10 @@ class RacingGame extends React.Component
                                 </div> 
                             </div>
                         </div>
-                        <div className="game_form_ui_div" hidden={this.state.currentUI != 2}>
+                        <div className="game_form_ui_div" hidden={this.state.currentUI != 3}>
                             <h1>Wheelie Wheels</h1>
                             <h4>Apply wheels that fit your terrain needs</h4>
-                            <button className="game_form_ui_close decline_button" onClick={() => this.setState({currentUI: 0})}></button>
+                            <button className="game_form_ui_close decline_button" onClick={() => this.setCurrentUI(0)}></button>
                             <div className="game_form_ui_sections center_align">
                                 <div className="game_wheel_shop_ui_section">
                                     <h3>Road Wheels</h3>

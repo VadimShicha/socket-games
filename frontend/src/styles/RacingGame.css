@@ -67,6 +67,18 @@
     cursor: pointer;
 }
 
+.game_form_ui_back
+{
+    position: absolute;
+    border: none;
+    background-color: transparent;
+    width: 80px;
+    height: 40px;
+    left: 20px;
+    top: 20px;
+    cursor: pointer;
+}
+
 .game_form_ui_div *
 {
     /* margin: 0px; */
@@ -91,6 +103,36 @@
     background-color: cadetblue;
     width: 180px;
     height: 300px;
+}
+
+.game_garage_ui_section
+{
+    background-color: rgb(166, 206, 207);
+    border: none;
+    width: 180px;
+    height: 180px;
+    cursor: pointer;
+}
+
+.game_garage_ui_section > img
+{
+    width: 70%;
+    height: 70%;
+}
+
+.game_garage_ui_section > h2
+{
+    margin: 5px;
+}
+
+.game_garage_ui_section:hover
+{
+    filter: brightness(92%);
+}
+
+.game_garage_ui_section:active
+{
+    filter: brightness(88%);
 }
 
 .game_form_ui_sections > div
