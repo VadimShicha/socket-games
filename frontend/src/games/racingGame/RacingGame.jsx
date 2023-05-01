@@ -17,8 +17,12 @@ import Cactus from './assets/cactus.svg';
 import TrumpetCoin from './assets/trumpet_coin.svg';
 import GasStation from './assets/gas_station.svg';
 import WheelShop from './assets/wheel_shop.svg';
+import BodyShop from './assets/body_shop.svg';
 import Garage from './assets/garage.svg';
 import UpgradeIcon from './assets/upgrade_icon.svg';
+import EngineIcon from './assets/engine_icon.svg';
+import SuspensionIcon from './assets/suspension_icon.svg';
+import GasIcon from './assets/gas_icon.svg';
 import RaceIcon from './assets/race_icon.svg';
 import LeftArrow from './assets/left_arrow.svg';
 
@@ -92,6 +96,7 @@ const bigCactusOptions = {render: {sprite: {texture: Cactus, xScale: 1, yScale: 
 const garagePosition = {x: 0, y: 0};
 const gasStationPosition = {x: 5900, y: -795};
 const wheelShopPosition = {x: -3000, y: 0};
+const bodyShopPostion = {x: -5600, y: 0};
 
 class RacingGame extends React.Component
 {
@@ -103,7 +108,7 @@ class RacingGame extends React.Component
 
         this.scene = "Home";
 
-        this.state = {coins: 500, carGas: 100, carGasColor: "limegreen", items: {wheels: [0]}, currentUI: 0, currentUIData: [""], bikeBodyIndex: 0, bikeWheelsIndex: 0}; //0 - 100
+        this.state = {coins: 500, carGas: 100, carGasColor: "limegreen", items: {wheels: [0], bodies: [0]}, currentUI: 0, currentUIData: [""], bikeBodyIndex: 0, bikeWheelsIndex: 0}; //0 - 100
 
         this.engine = null;
         this.renderer = null;
@@ -122,6 +127,7 @@ class RacingGame extends React.Component
                 this.homeRightBorderWall,
                 this.gasStation,
                 this.wheelShop,
+                this.bodyShop
             ]);
             Matter.Composite.remove(this.engine.world, this.cactuses);
         }
@@ -239,6 +245,13 @@ class RacingGame extends React.Component
                 collisionFilter: {group: -1, mask: 0}
             });
 
+            this.bodyShop = Matter.Bodies.rectangle(bodyShopPostion.x, bodyShopPostion.y + 50, 800, 420,
+            {
+                isStatic: true,
+                render: {sprite: {texture: BodyShop, xScale: 3, yScale: 3}},
+                collisionFilter: {group: -1, mask: 0}
+            });
+
             this.cactuses = [];
             this.cactuses.push(Matter.Bodies.rectangle(900, 237, 100, 100, {...cactusOptions, ...smallCactusOptions}));
             this.cactuses.push(Matter.Bodies.rectangle(1320, 237, 100, 100, {...cactusOptions, ...smallCactusOptions}));
@@ -264,6 +277,7 @@ class RacingGame extends React.Component
                 this.homeRightBorderWall,
                 this.gasStation,
                 this.wheelShop,
+                this.bodyShop,
                 center
             ]);
             Matter.Composite.add(this.engine.world, this.cactuses);
@@ -410,6 +424,8 @@ class RacingGame extends React.Component
                 this.setCurrentUI(2);
             else if(Matter.Collision.collides(this.body, this.wheelShop))
                 this.setCurrentUI(3);
+            else if(Matter.Collision.collides(this.body, this.bodyShop))
+                this.setCurrentUI(4);
         }
         else if(e.key == "Escape")
         {
@@ -493,6 +509,11 @@ class RacingGame extends React.Component
         this.setState({items: {wheels: this.state.items.wheels.concat([index])}});
     }
 
+    bikeShopBuy = (index) =>
+    {
+        this.setState({items: {wheels: this.state.items.wheels, bodies: this.state.items.bodies.concat([index])}});
+    }
+
     setCurrentUI(index)
     {
         this.setState({currentUI: index, currentUIData: [""]});
@@ -562,14 +583,34 @@ class RacingGame extends React.Component
                                 </div>
                             </div>
 
+                            <div hidden={this.state.currentUIData[0] !== "Upgrades"}>
+                                <div className="game_form_ui_sections center_align">
+                                    <button onClick={() => this.setBikeBody(0)} className="game_garage_ui_section">
+                                        <img srcSet={EngineIcon}></img>
+                                        <h2>Engine</h2>
+                                    </button>
+                                    <button onClick={() => this.setBikeBody(0)} className="game_garage_ui_section">
+                                        <img srcSet={SuspensionIcon}></img>
+                                        <h2>Suspension</h2>
+                                    </button>
+                                    <button onClick={() => this.setBikeBody(0)} className="game_garage_ui_section">
+                                        <img srcSet={BikeWheels[2]}></img>
+                                        <h2>Traction</h2>
+                                    </button>
+                                    <button onClick={() => this.setBikeBody(0)} className="game_garage_ui_section">
+                                        <img srcSet={GasIcon}></img>
+                                        <h2>Gas Efficiency</h2>
+                                    </button>
+                                </div>
+                            </div>
                             <div hidden={this.state.currentUIData[0] !== "Body"}>
                                 <div className="game_form_ui_sections center_align">
                                     <button onClick={() => this.setBikeBody(0)} className="game_garage_ui_section">
-                                        <img srcSet={BikeBodyRed}></img>
+                                        <img srcSet={BikeBodies[0]}></img>
                                         <h2>Red</h2>
                                     </button>
-                                    <button onClick={() => this.setBikeBody(1)} className="game_garage_ui_section">
-                                        <img srcSet={BikeBodyGreen}></img>
+                                    <button hidden={!this.state.items.bodies.includes(1)} onClick={() => this.setBikeBody(1)} className="game_garage_ui_section">
+                                        <img srcSet={BikeBodies[1]}></img>
                                         <h2>Green</h2>
                                     </button>
                                 </div>
@@ -697,6 +738,24 @@ class RacingGame extends React.Component
                                         <button onClick={this.wheelShopBuy.bind(this, 5)}>
                                             <img alt="coin" srcSet={TrumpetCoin}></img>
                                             <p>1400</p> 
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="game_form_ui_div" hidden={this.state.currentUI != 4}>
+                            <h1>Bob's Bodies</h1>
+                            <h4>Fresh bike bodies!</h4>
+                            <button className="game_form_ui_close decline_button" onClick={() => this.setCurrentUI(0)}></button>
+                            <div className="game_form_ui_sections center_align">
+                                <div className="game_body_shop_ui_section">
+                                    <h2>Green Body</h2>
+                                    <img alt="Green Body" className="center_align" srcSet={BikeBodies[1]}></img>
+                                    <p>Default body in green</p>
+                                    <div className="game_ui_buy_button_div" hidden={this.state.items.bodies.includes(1)}>
+                                        <button onClick={this.bikeShopBuy.bind(this, 1)}>
+                                            <img alt="coin" srcSet={TrumpetCoin}></img>
+                                            <p>400</p>
                                         </button>
                                     </div>
                                 </div>

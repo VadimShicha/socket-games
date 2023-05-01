@@ -105,6 +105,13 @@
     height: 300px;
 }
 
+.game_body_shop_ui_section
+{
+    background-color: dimgray;
+    width: 180px;
+    height: 300px;
+}
+
 .game_garage_ui_section
 {
     background-color: rgb(166, 206, 207);
