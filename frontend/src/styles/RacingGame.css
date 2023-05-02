@@ -123,11 +123,11 @@
 
 .game_garage_ui_section > img
 {
-    width: 70%;
-    height: 70%;
+    width: 65%;
+    height: 65%;
 }
 
-.game_garage_ui_section > h2
+.game_garage_ui_section > h2, .game_garage_ui_section > p
 {
     margin: 5px;
 }

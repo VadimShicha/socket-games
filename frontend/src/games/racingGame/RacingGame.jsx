@@ -12,6 +12,8 @@ import BikeBodyRed from './assets/bike_bodies/bike_body_red.svg';
 import BikeBodyRedFlipped from './assets/bike_bodies/bike_body_red_flipped.svg';
 import BikeBodyGreen from './assets/bike_bodies/bike_body_green.svg';
 import BikeBodyGreenFlipped from './assets/bike_bodies/bike_body_green_flipped.svg';
+import BikeBodyBlue from './assets/bike_bodies/bike_body_blue.svg'; 
+import BikeBodyBlueFlipped from './assets/bike_bodies/bike_body_blue_flipped.svg'; 
 import ProgressBar from '../../components/ProgressBar';
 import Cactus from './assets/cactus.svg';
 import TrumpetCoin from './assets/trumpet_coin.svg';
@@ -27,8 +29,8 @@ import RaceIcon from './assets/race_icon.svg';
 import LeftArrow from './assets/left_arrow.svg';
 
 const BikeWheels = [Wheel, RoadWheel, MudWheel, SandWheel, SnowWheel, WetWheel];
-const BikeBodies = [BikeBodyRed, BikeBodyGreen];
-const BikeBodiesFlipped = [BikeBodyRedFlipped, BikeBodyGreenFlipped];
+const BikeBodies = [BikeBodyRed, BikeBodyGreen, BikeBodyBlue];
+const BikeBodiesFlipped = [BikeBodyRedFlipped, BikeBodyGreenFlipped, BikeBodyBlueFlipped];
 
 function toDegrees(radians)
 {
@@ -56,8 +58,8 @@ const wheelOptions = {
 };
 
 const wheelConstraintOptions = {
-    stiffness: 1,
-    damping: 1,
+    stiffness: 0.1,
+    damping: 0.2,
     render:
     {
         lineWidth: 0,
@@ -98,6 +100,11 @@ const gasStationPosition = {x: 5900, y: -795};
 const wheelShopPosition = {x: -3000, y: 0};
 const bodyShopPostion = {x: -5600, y: 0};
 
+const maxUpgradeLevel = 16;
+
+const bikeWheelCosts = [0, 500, 650, 850, 1000, 1400];
+const bikeBodyCosts = [0, 400, 600];
+
 class RacingGame extends React.Component
 {
     constructor(props)
@@ -108,7 +115,7 @@ class RacingGame extends React.Component
 
         this.scene = "Home";
 
-        this.state = {coins: 500, carGas: 100, carGasColor: "limegreen", items: {wheels: [0], bodies: [0]}, currentUI: 0, currentUIData: [""], bikeBodyIndex: 0, bikeWheelsIndex: 0}; //0 - 100
+        this.state = {coins: 500 + 9500, carGas: 100, carGasColor: "limegreen", items: {wheels: [0], bodies: [0]}, upgrades: [0, 0, 0, 0], currentUI: 0, currentUIData: [""], bikeBodyIndex: 0, bikeWheelsIndex: 0}; //0 - 100
 
         this.engine = null;
         this.renderer = null;
@@ -121,6 +128,7 @@ class RacingGame extends React.Component
         {
             Matter.Composite.remove(this.engine.world, [
                 this.homeGround,
+                this.homeGroundLeftHill,
                 this.homeGarage,
                 this.homeGroundHill,
                 this.homeHillGround,
@@ -187,6 +195,19 @@ class RacingGame extends React.Component
                 {
                     fillStyle: "moccasin",
                     lineWidth: 0
+                }
+            });
+
+            let homeGroundLeftHillVertices = [{x: -4000, y: 500}, {x: -4200, y: -150}, {x: -4400, y: -200}, {x: -4700, y: -80}, {x: -4900, y: 500}];
+
+            this.homeGroundLeftHill = Matter.Bodies.fromVertices(-4000, 0, homeGroundLeftHillVertices,
+            {
+                isStatic: true,
+                render:
+                {
+                    fillStyle: "gainsboro",
+                    strokeStyle: "gainsboro",
+                    lineWidth: 3
                 }
             });
 
@@ -271,6 +292,7 @@ class RacingGame extends React.Component
             Matter.Composite.add(this.engine.world,
             [
                 this.homeGarage,
+                this.homeGroundLeftHill,
                 this.homeGround,
                 this.homeGroundHill,
                 this.homeHillGround,
@@ -286,34 +308,47 @@ class RacingGame extends React.Component
         }
         else if(scene == "Game")
         {
-            this.ground = Matter.Bodies.rectangle(400, 1890, 5000, 500,
+            let firstY = 800;
+
+            this.ground = Matter.Bodies.rectangle(0, firstY, 1000, 1000,
             {
                 isStatic: true,
                 render:
                 {
-                    fillStyle: "moccasin",
+                    fillStyle: "oldlace",
                     lineWidth: 0
                 }
             });
 
-            let groundVertices = [{x: 0, y: 800}];
+            this.gameLeftBorderWall = Matter.Bodies.rectangle(-500, 0, 50, 3000,
+            {
+                isStatic: true,
+                render:
+                {
+                    fillStyle: "gainsboro",
+                    lineWidth: 0
+                }
+            });
+
+            let groundVertices = [{x: -200, y: firstY - 100}];
             let isHill = 0;
 
-            for(let i = 0; i < 80; i++)
+
+            for(let i = 1; i < 80; i++)
             {
                 if(isHill > 0)
                     isHill -= 1;
                 else if(Math.floor(Math.random() * 17) == 0)
                     isHill = 10;
 
-                groundVertices.push({x: i * 125, y: (Math.floor(Math.random() * 60) + (isHill > 0 ? 200 : 0) - ((isHill > 0 && isHill < 4) || (isHill > 8) ? 300 : 0))});
+                groundVertices.push({x: i * 125, y: (Math.floor(Math.random() * 60) + (isHill > 0 ? 200 : 0) - ((isHill > 0 && isHill < 4) || (isHill > 8) ? 200 : 0))});
             }
 
             groundVertices.push({x: 10000, y: 800});
 
             groundVertices = Matter.Vertices.chamfer(groundVertices, 25);
 
-            this.topGround = Matter.Bodies.fromVertices(0, 600, groundVertices, {
+            this.topGround = Matter.Bodies.fromVertices(5000, 600, groundVertices, {
                 isStatic: true,
                 render:
                 {
@@ -323,7 +358,7 @@ class RacingGame extends React.Component
                 }
             });
 
-            Matter.Composite.add(this.engine.world, [this.ground, this.topGround]);
+            Matter.Composite.add(this.engine.world, [this.topGround, this.ground, this.gameLeftBorderWall]);
         }
         this.scene = scene;
     }
@@ -453,12 +488,12 @@ class RacingGame extends React.Component
 
     carMove = (direction) =>
     {
-        let power = 30; //15
+        let power = 15 + (this.state.upgrades[0] / 1.46);
 
         if(this.state.carGas <= 0)
             power = 3;
         else
-            this.setCarGas(this.state.carGas - 0.1);
+            this.setCarGas(this.state.carGas - (0.1 - (this.state.upgrades[3] / 290)));
 
         this.updateBikeBody(this.state.bikeBodyIndex);
 
@@ -506,12 +541,20 @@ class RacingGame extends React.Component
 
     wheelShopBuy = (index) =>
     {
-        this.setState({items: {wheels: this.state.items.wheels.concat([index])}});
+        if(this.state.coins >= bikeWheelCosts[index])
+        {
+            this.setState({coins: this.state.coins - bikeWheelCosts[index]});
+            this.setState({items: {wheels: this.state.items.wheels.concat([index]), bodies: this.state.items.bodies}});
+        }
     }
 
-    bikeShopBuy = (index) =>
+    bodyShopBuy = (index) =>
     {
-        this.setState({items: {wheels: this.state.items.wheels, bodies: this.state.items.bodies.concat([index])}});
+        if(this.state.coins >= bikeBodyCosts[index])
+        {
+            this.setState({coins: this.state.coins - bikeBodyCosts[index]});
+            this.setState({items: {wheels: this.state.items.wheels, bodies: this.state.items.bodies.concat([index])}});
+        }
     }
 
     setCurrentUI(index)
@@ -525,6 +568,27 @@ class RacingGame extends React.Component
 
         this.body.render.sprite.texture = BikeBodies[index];
         this.updateBikeBody();
+    }
+
+    upgradeBike(index)
+    {
+        let newUpgrades = this.state.upgrades;
+
+        if(this.state.upgrades[index] < 16)
+        {
+            newUpgrades[index]++;
+            this.setState({upgrades: newUpgrades});
+
+            if(index == 1)
+            {
+                let newStiffness = wheelConstraintOptions.stiffness + (this.state.upgrades[index] / (maxUpgradeLevel * 2));
+
+                this.leftWheelConstraint1.stiffness = newStiffness;
+                this.leftWheelConstraint2.stiffness = newStiffness;
+                this.rightWheelConstraint1.stiffness = newStiffness;
+                this.rightWheelConstraint2.stiffness = newStiffness;
+            }
+        }
     }
 
     updateBikeBody()
@@ -585,20 +649,24 @@ class RacingGame extends React.Component
 
                             <div hidden={this.state.currentUIData[0] !== "Upgrades"}>
                                 <div className="game_form_ui_sections center_align">
-                                    <button onClick={() => this.setBikeBody(0)} className="game_garage_ui_section">
+                                    <button onClick={() => this.upgradeBike(0)} className="game_garage_ui_section">
                                         <img srcSet={EngineIcon}></img>
+                                        <p>{this.state.upgrades[0] < maxUpgradeLevel ? this.state.upgrades[0] + "/" + maxUpgradeLevel : "MAX"}</p>
                                         <h2>Engine</h2>
                                     </button>
-                                    <button onClick={() => this.setBikeBody(0)} className="game_garage_ui_section">
+                                    <button onClick={() => this.upgradeBike(1)} className="game_garage_ui_section">
                                         <img srcSet={SuspensionIcon}></img>
+                                        <p>{this.state.upgrades[1] < maxUpgradeLevel ? this.state.upgrades[1] + "/" + maxUpgradeLevel : "MAX"}</p>
                                         <h2>Suspension</h2>
                                     </button>
-                                    <button onClick={() => this.setBikeBody(0)} className="game_garage_ui_section">
+                                    <button onClick={() => this.upgradeBike(2)} className="game_garage_ui_section">
                                         <img srcSet={BikeWheels[2]}></img>
+                                        <p>{this.state.upgrades[2] < maxUpgradeLevel ? this.state.upgrades[2] + "/" + maxUpgradeLevel : "MAX"}</p>
                                         <h2>Traction</h2>
                                     </button>
-                                    <button onClick={() => this.setBikeBody(0)} className="game_garage_ui_section">
+                                    <button onClick={() => this.upgradeBike(3)} className="game_garage_ui_section">
                                         <img srcSet={GasIcon}></img>
+                                        <p>{this.state.upgrades[3] < maxUpgradeLevel ? this.state.upgrades[3] + "/" + maxUpgradeLevel : "MAX"}</p>
                                         <h2>Gas Efficiency</h2>
                                     </button>
                                 </div>
@@ -612,6 +680,10 @@ class RacingGame extends React.Component
                                     <button hidden={!this.state.items.bodies.includes(1)} onClick={() => this.setBikeBody(1)} className="game_garage_ui_section">
                                         <img srcSet={BikeBodies[1]}></img>
                                         <h2>Green</h2>
+                                    </button>
+                                    <button hidden={!this.state.items.bodies.includes(2)} onClick={() => this.setBikeBody(2)} className="game_garage_ui_section">
+                                        <img srcSet={BikeBodies[2]}></img>
+                                        <h2>Blue</h2>
                                     </button>
                                 </div>
                             </div>
@@ -693,7 +765,7 @@ class RacingGame extends React.Component
                                     <div className="game_ui_buy_button_div" hidden={this.state.items.wheels.includes(1)}>
                                         <button onClick={this.wheelShopBuy.bind(this, 1)}>
                                             <img alt="coin" srcSet={TrumpetCoin}></img>
-                                            <p>500</p> 
+                                            <p>{bikeWheelCosts[1]}</p> 
                                         </button>
                                     </div>
                                 </div>
@@ -704,7 +776,7 @@ class RacingGame extends React.Component
                                     <div className="game_ui_buy_button_div" hidden={this.state.items.wheels.includes(2)}>
                                         <button onClick={this.wheelShopBuy.bind(this, 2)}>
                                             <img alt="coin" srcSet={TrumpetCoin}></img>
-                                            <p>650</p> 
+                                            <p>{bikeWheelCosts[2]}</p> 
                                         </button>
                                     </div>
                                 </div>
@@ -715,7 +787,7 @@ class RacingGame extends React.Component
                                     <div className="game_ui_buy_button_div" hidden={this.state.items.wheels.includes(3)}>
                                         <button onClick={this.wheelShopBuy.bind(this, 3)}>
                                             <img srcSet={TrumpetCoin}></img>
-                                            <p>850</p> 
+                                            <p>{bikeWheelCosts[3]}</p> 
                                         </button>
                                     </div>
                                 </div>
@@ -726,7 +798,7 @@ class RacingGame extends React.Component
                                     <div className="game_ui_buy_button_div" hidden={this.state.items.wheels.includes(4)}>
                                         <button onClick={this.wheelShopBuy.bind(this, 4)}>
                                             <img alt="coin" srcSet={TrumpetCoin}></img>
-                                            <p>1000</p> 
+                                            <p>{bikeWheelCosts[4]}</p> 
                                         </button>
                                     </div>
                                 </div>
@@ -737,7 +809,7 @@ class RacingGame extends React.Component
                                     <div className="game_ui_buy_button_div" hidden={this.state.items.wheels.includes(5)}>
                                         <button onClick={this.wheelShopBuy.bind(this, 5)}>
                                             <img alt="coin" srcSet={TrumpetCoin}></img>
-                                            <p>1400</p> 
+                                            <p>{bikeWheelCosts[5]}</p> 
                                         </button>
                                     </div>
                                 </div>
@@ -753,9 +825,20 @@ class RacingGame extends React.Component
                                     <img alt="Green Body" className="center_align" srcSet={BikeBodies[1]}></img>
                                     <p>Default body in green</p>
                                     <div className="game_ui_buy_button_div" hidden={this.state.items.bodies.includes(1)}>
-                                        <button onClick={this.bikeShopBuy.bind(this, 1)}>
+                                        <button onClick={this.bodyShopBuy.bind(this, 1)}>
                                             <img alt="coin" srcSet={TrumpetCoin}></img>
-                                            <p>400</p>
+                                            <p>{bikeBodyCosts[1]}</p>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div className="game_body_shop_ui_section">
+                                    <h2>Blue Body</h2>
+                                    <img alt="Blue Body" className="center_align" srcSet={BikeBodies[2]}></img>
+                                    <p>Default body in blue</p>
+                                    <div className="game_ui_buy_button_div" hidden={this.state.items.bodies.includes(2)}>
+                                        <button onClick={this.bodyShopBuy.bind(this, 2)}>
+                                            <img alt="coin" srcSet={TrumpetCoin}></img>
+                                            <p>{bikeBodyCosts[2]}</p>
                                         </button>
                                     </div>
                                 </div>
