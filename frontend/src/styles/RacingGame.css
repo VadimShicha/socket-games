@@ -84,6 +84,54 @@
     /* margin: 0px; */
 }
 
+.game_ui_race_map
+{
+    width: 500px;
+    height: 10px;
+    border-radius: 5px;
+    background-color: gainsboro;
+    top: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.game_ui_race_map_icon
+{
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    top: -10px;
+}
+
+.game_ui_race_map_start
+{
+    left: -10px;
+}
+
+.game_ui_race_map_finish
+{
+    right: -10px;
+}
+
+.game_ui_countdown
+{
+    width: fit-content;
+    height: fit-content;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.game_ui_countdown > p
+{
+    font-size: 180px;
+    font-family: fantasy;
+    color: orange;
+    -webkit-text-fill-color: yellow;
+    -webkit-text-stroke: 5px;
+    transition: font-size 1s;
+}
+
 .game_form_ui_sections
 {
     display: flex;

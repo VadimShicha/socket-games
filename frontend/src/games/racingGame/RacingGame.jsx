@@ -27,6 +27,9 @@ import SuspensionIcon from './assets/suspension_icon.svg';
 import GasIcon from './assets/gas_icon.svg';
 import RaceIcon from './assets/race_icon.svg';
 import LeftArrow from './assets/left_arrow.svg';
+import RaceChecker from './assets/race_checker.svg';
+import RaceStartIcon from './assets/race_start_icon.svg';
+import RaceMarkerIcon from './assets/race_marker_icon.svg';
 
 const BikeWheels = [Wheel, RoadWheel, MudWheel, SandWheel, SnowWheel, WetWheel];
 const BikeBodies = [BikeBodyRed, BikeBodyGreen, BikeBodyBlue];
@@ -115,7 +118,22 @@ class RacingGame extends React.Component
 
         this.scene = "Home";
 
-        this.state = {coins: 500 + 9500, carGas: 100, carGasColor: "limegreen", items: {wheels: [0], bodies: [0]}, upgrades: [0, 0, 0, 0], currentUI: 0, currentUIData: [""], bikeBodyIndex: 0, bikeWheelsIndex: 0}; //0 - 100
+        this.state = {
+            coins: 500 + 9500,
+            countdown: 3,
+            countdownID: "",
+            currentRaceLength: 10000,
+            carGas: 100,
+            carGasColor: "limegreen",
+            items: {wheels: [0], bodies: [0]},
+            upgrades: [0, 0, 0, 0],
+            currentUI: 0,
+            currentUIData: [""],
+            bikeBodyIndex: 0,
+            bikeWheelsIndex: 0
+        };
+
+        this.body = {position: {x: 0}};
 
         this.engine = null;
         this.renderer = null;
@@ -320,6 +338,22 @@ class RacingGame extends React.Component
                 }
             });
 
+            this.groundChecker = Matter.Bodies.rectangle(0, firstY - 450, 1000, 100,
+            {
+                isStatic: true,
+                render:
+                {
+                    sprite:
+                    {
+                        texture: RaceChecker,
+                        xScale: 3.3333,
+                        yScale: 3.3333
+                    }
+                }
+            });
+
+            
+
             this.gameLeftBorderWall = Matter.Bodies.rectangle(-500, 0, 50, 3000,
             {
                 isStatic: true,
@@ -358,9 +392,39 @@ class RacingGame extends React.Component
                 }
             });
 
-            Matter.Composite.add(this.engine.world, [this.topGround, this.ground, this.gameLeftBorderWall]);
+            this.startCountdown(3000, function()
+            {
+                
+            });
+
+            this.setBikePosition({x: 0, y: 0}, false);
+            
+            Matter.Composite.add(this.engine.world, [this.topGround, this.ground, this.groundChecker, this.gameLeftBorderWall]);
         }
         this.scene = scene;
+    }
+
+    startCountdown(time, callback)
+    {
+        let countdownID = setInterval(() =>
+        {
+            this.setState({countdown: this.state.countdown - 1});
+  
+            //callback called at 1 second to not have a wait on 0 seconds
+            if(this.state.countdown == 1)
+            {
+                callback();
+                
+                //made to show a "start" message at 0 seconds
+                setTimeout(() =>
+                {
+                    clearInterval(countdownID);
+                    this.setState({countdownID: ""});
+                }, 500);
+            }
+        }, 1000);
+
+        this.setState({countdownID: countdownID, countdown: time / 1000});
     }
 
     addDefaultsToWorld()
@@ -440,7 +504,7 @@ class RacingGame extends React.Component
 
     keyUp = (e) =>
     {
-        if(this.state.currentUI == 0)
+        if(this.state.currentUI == 0 && this.state.countdownID == "")
         {
             if(e.key == "a")
                 this.carMove(-1);
@@ -453,14 +517,17 @@ class RacingGame extends React.Component
     {
         if(e.key == "f")
         {
-            if(Matter.Collision.collides(this.body, this.homeGarage))
-                this.setCurrentUI(1);
-            else if(Matter.Collision.collides(this.body, this.gasStation))
-                this.setCurrentUI(2);
-            else if(Matter.Collision.collides(this.body, this.wheelShop))
-                this.setCurrentUI(3);
-            else if(Matter.Collision.collides(this.body, this.bodyShop))
-                this.setCurrentUI(4);
+            if(this.scene == "Home")
+            {
+                if(Matter.Collision.collides(this.body, this.homeGarage))
+                    this.setCurrentUI(1);
+                else if(Matter.Collision.collides(this.body, this.gasStation))
+                    this.setCurrentUI(2);
+                else if(Matter.Collision.collides(this.body, this.wheelShop))
+                    this.setCurrentUI(3);
+                else if(Matter.Collision.collides(this.body, this.bodyShop))
+                    this.setCurrentUI(4); 
+            }
         }
         else if(e.key == "Escape")
         {
@@ -499,6 +566,36 @@ class RacingGame extends React.Component
 
         Matter.Body.setVelocity(this.leftWheel, {x: power * direction, y: 0});
         Matter.Body.setVelocity(this.rightWheel, {x: power * direction, y: 0});
+    }
+
+    updateBikeBody()
+    {
+        if(this.leftWheel.velocity.x < -3)
+        this.setBikeFlipped(true);
+        else if(this.leftWheel.velocity.x > 3)
+            this.setBikeFlipped(false);
+    }
+
+    setBikeFlipped(flipped)
+    {
+        if(flipped)
+            this.body.render.sprite.texture = BikeBodiesFlipped[this.state.bikeBodyIndex];
+        else
+            this.body.render.sprite.texture = BikeBodies[this.state.bikeBodyIndex];
+    }
+
+    setBikePosition(pos, flipped = null)
+    {
+        if(flipped != null)
+            this.setBikeFlipped(flipped);
+            
+        Matter.Body.setPosition(this.body, pos);
+        Matter.Body.setPosition(this.leftWheel, {x: pos.x, y: 250});
+        Matter.Body.setPosition(this.rightWheel, {x: pos.x + 165, y: 250});
+
+        Matter.Body.setVelocity(this.body, {x: 0, y: 0});
+        Matter.Body.setVelocity(this.leftWheel, {x: 0, y: 0});
+        Matter.Body.setVelocity(this.rightWheel, {x: 0, y: 0});
     }
 
     gasStationBuy = (index) =>
@@ -591,14 +688,6 @@ class RacingGame extends React.Component
         }
     }
 
-    updateBikeBody()
-    {
-        if(this.leftWheel.velocity.x < -3)
-            this.body.render.sprite.texture = BikeBodiesFlipped[this.state.bikeBodyIndex];
-        else if(this.leftWheel.velocity.x > 3)
-            this.body.render.sprite.texture = BikeBodies[this.state.bikeBodyIndex];
-    }
-
     setBikeWheels(index)
     {
         this.setState({bikeWheelsIndex: index});
@@ -620,6 +709,16 @@ class RacingGame extends React.Component
                 <div ref={this.mainRef} className="game_div center_align" style={{width: "fit-content"}}>
                     <div className="game_ui_div">
                         <button className="game_pause_button action_button_resizable pause_button"></button>
+
+                        <div className="game_ui_countdown">
+                            <p hidden={this.state.countdownID == ""}>{this.state.countdown > 0 ? this.state.countdown : "Go!"}</p>
+                        </div>
+
+                        <div hidden={this.scene != "Game"} className="game_ui_race_map">
+                            <img srcSet={RaceStartIcon} className="game_ui_race_map_icon game_ui_race_map_start"></img>
+                            <img srcSet={RaceMarkerIcon} className="game_ui_race_map_icon" style={{left: (this.body.position.x / this.state.currentRaceLength) * 100 + "%"}}></img>
+                            <img srcSet={RaceIcon} className="game_ui_race_map_icon game_ui_race_map_finish"></img>
+                        </div>
                         
                         {/* <p className="game_press_to_interact">Press [F] to interact</p> */}
                         <div className="game_form_ui_div" hidden={this.state.currentUI != 1}>
