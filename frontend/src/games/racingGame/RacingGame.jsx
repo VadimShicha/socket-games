@@ -327,18 +327,43 @@ class RacingGame extends React.Component
         else if(scene == "Game")
         {
             let firstY = 800;
+            let raceLength = 10000;
 
-            this.ground = Matter.Bodies.rectangle(0, firstY, 1000, 1000,
+            this.startGround = Matter.Bodies.rectangle(0, firstY, 1000, 1000,
             {
                 isStatic: true,
                 render:
                 {
-                    fillStyle: "oldlace",
+                    fillStyle: "white",
                     lineWidth: 0
                 }
             });
 
-            this.groundChecker = Matter.Bodies.rectangle(0, firstY - 450, 1000, 100,
+            this.endGround = Matter.Bodies.rectangle(raceLength, firstY + 80, 1000, 1000,
+            {
+                isStatic: true,
+                render:
+                {
+                    fillStyle: "white",
+                    lineWidth: 0
+                }
+            });
+
+            this.groundStartChecker = Matter.Bodies.rectangle(0, firstY - 450, 1000, 100,
+            {
+                isStatic: true,
+                render:
+                {
+                    sprite:
+                    {
+                        texture: RaceChecker,
+                        xScale: 3.3333,
+                        yScale: 3.3333
+                    }
+                }
+            });
+
+            this.groundEndChecker = Matter.Bodies.rectangle(raceLength, firstY - 370, 1000, 100,
             {
                 isStatic: true,
                 render:
@@ -354,7 +379,17 @@ class RacingGame extends React.Component
 
             
 
-            this.gameLeftBorderWall = Matter.Bodies.rectangle(-500, 0, 50, 3000,
+            this.gameLeftBorderWall = Matter.Bodies.rectangle(-500 - 25, 0, 50, 3000,
+            {
+                isStatic: true,
+                render:
+                {
+                    fillStyle: "gainsboro",
+                    lineWidth: 0
+                }
+            });
+
+            this.gameRightBorderWall = Matter.Bodies.rectangle(raceLength + 500 + 25, 0, 50, 3000,
             {
                 isStatic: true,
                 render:
@@ -378,11 +413,11 @@ class RacingGame extends React.Component
                 groundVertices.push({x: i * 125, y: (Math.floor(Math.random() * 60) + (isHill > 0 ? 200 : 0) - ((isHill > 0 && isHill < 4) || (isHill > 8) ? 200 : 0))});
             }
 
-            groundVertices.push({x: 10000, y: 800});
+            groundVertices.push({x: raceLength, y: 800});
 
             groundVertices = Matter.Vertices.chamfer(groundVertices, 25);
 
-            this.topGround = Matter.Bodies.fromVertices(5000, 600, groundVertices, {
+            this.topGround = Matter.Bodies.fromVertices(raceLength / 2, 600, groundVertices, {
                 isStatic: true,
                 render:
                 {
@@ -399,7 +434,15 @@ class RacingGame extends React.Component
 
             this.setBikePosition({x: 0, y: 0}, false);
             
-            Matter.Composite.add(this.engine.world, [this.topGround, this.ground, this.groundChecker, this.gameLeftBorderWall]);
+            Matter.Composite.add(this.engine.world, [
+                this.topGround,
+                this.startGround,
+                this.endGround,
+                this.groundStartChecker,
+                this.groundEndChecker,
+                this.gameLeftBorderWall,
+                this.gameRightBorderWall
+            ]);
         }
         this.scene = scene;
     }
@@ -588,14 +631,14 @@ class RacingGame extends React.Component
     {
         if(flipped != null)
             this.setBikeFlipped(flipped);
-            
-        Matter.Body.setPosition(this.body, pos);
-        Matter.Body.setPosition(this.leftWheel, {x: pos.x, y: 250});
-        Matter.Body.setPosition(this.rightWheel, {x: pos.x + 165, y: 250});
 
         Matter.Body.setVelocity(this.body, {x: 0, y: 0});
         Matter.Body.setVelocity(this.leftWheel, {x: 0, y: 0});
         Matter.Body.setVelocity(this.rightWheel, {x: 0, y: 0});
+            
+        Matter.Body.setPosition(this.body, {x: pos.x + 85, y: pos.y + 200});
+        Matter.Body.setPosition(this.leftWheel, {x: pos.x, y: pos.y + 250});
+        Matter.Body.setPosition(this.rightWheel, {x: pos.x + 165, y: pos.y + 250});
     }
 
     gasStationBuy = (index) =>
