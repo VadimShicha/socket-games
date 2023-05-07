@@ -30,6 +30,7 @@ import LeftArrow from './assets/left_arrow.svg';
 import RaceChecker from './assets/race_checker.svg';
 import RaceStartIcon from './assets/race_start_icon.svg';
 import RaceMarkerIcon from './assets/race_marker_icon.svg';
+import PausedIcon from './assets/paused_icon.svg';
 
 const BikeWheels = [Wheel, RoadWheel, MudWheel, SandWheel, SnowWheel, WetWheel];
 const BikeBodies = [BikeBodyRed, BikeBodyGreen, BikeBodyBlue];
@@ -120,6 +121,7 @@ class RacingGame extends React.Component
 
         this.state = {
             coins: 500 + 9500,
+            gamePaused: false,
             countdown: 3,
             countdownID: "",
             currentRaceLength: 10000,
@@ -159,7 +161,7 @@ class RacingGame extends React.Component
         }
         else if(scene == "Game")
         {
-            Matter.Composite.remove(this.engine.world, [this.ground, this.topGround]);
+            Matter.Composite.remove(this.engine.world, [this.topGround]);
         }
     }
 
@@ -547,7 +549,7 @@ class RacingGame extends React.Component
 
     keyUp = (e) =>
     {
-        if(this.state.currentUI == 0 && this.state.countdownID == "")
+        if(this.state.currentUI == 0 && this.state.countdownID == "" && !this.state.gamePaused)
         {
             if(e.key == "a")
                 this.carMove(-1);
@@ -560,7 +562,7 @@ class RacingGame extends React.Component
     {
         if(e.key == "f")
         {
-            if(this.scene == "Home")
+            if(this.scene == "Home" && !this.state.gamePaused)
             {
                 if(Matter.Collision.collides(this.body, this.homeGarage))
                     this.setCurrentUI(1);
@@ -697,6 +699,17 @@ class RacingGame extends React.Component
         }
     }
 
+    gotoGarageBuy()
+    {
+        if(this.state.coins >= 10)
+        {
+            this.setState({coins: this.state.coins - 10});
+            this.setBikePosition({x: 0, y: 0});
+            this.loadScene("Home");
+            this.setGamePaused(false);
+        }
+    }
+
     setCurrentUI(index)
     {
         this.setState({currentUI: index, currentUIData: [""]});
@@ -739,6 +752,16 @@ class RacingGame extends React.Component
         this.rightWheel.render.sprite.texture = BikeWheels[index];
     }
 
+    setGamePaused(paused)
+    {
+        if(paused)
+            this.engine.timing.timeScale = 0;
+        else
+            this.engine.timing.timeScale = 1;
+
+        this.setState({gamePaused: paused});
+    }
+
     componentDidMount()
     {
         if(!this.loaded)
@@ -751,7 +774,7 @@ class RacingGame extends React.Component
             <div>
                 <div ref={this.mainRef} className="game_div center_align" style={{width: "fit-content"}}>
                     <div className="game_ui_div">
-                        <button className="game_pause_button action_button_resizable pause_button"></button>
+                        <button hidden={this.state.gamePaused} className="game_pause_button action_button_resizable pause_button" onClick={() => this.setGamePaused(true)}></button>
 
                         <div className="game_ui_countdown">
                             <p hidden={this.state.countdownID == ""}>{this.state.countdown > 0 ? this.state.countdown : "Go!"}</p>
@@ -761,6 +784,23 @@ class RacingGame extends React.Component
                             <img srcSet={RaceStartIcon} className="game_ui_race_map_icon game_ui_race_map_start"></img>
                             <img srcSet={RaceMarkerIcon} className="game_ui_race_map_icon" style={{left: (this.body.position.x / this.state.currentRaceLength) * 100 + "%"}}></img>
                             <img srcSet={RaceIcon} className="game_ui_race_map_icon game_ui_race_map_finish"></img>
+                        </div>
+
+                        <div hidden={!this.state.gamePaused} className="game_ui_pause_div center_align">
+                            <h1>Game Paused</h1>
+                            <img srcSet={PausedIcon} width="130px"></img>
+
+                            <p>Goto Garage:</p>
+                            <div className="game_ui_buy_button_div">
+                                <button onClick={this.gotoGarageBuy.bind(this)}>
+                                    <img alt="coin" srcSet={TrumpetCoin}></img>
+                                    <p>10</p>
+                                </button>
+                            </div>
+                            
+                            <div className="game_ui_pause_div_button_div">
+                                <button className="racing_game_button" onClick={() => this.setGamePaused(false)}>Resume</button>
+                            </div>
                         </div>
                         
                         {/* <p className="game_press_to_interact">Press [F] to interact</p> */}
@@ -869,7 +909,7 @@ class RacingGame extends React.Component
                                     <div className="game_ui_buy_button_div">
                                         <button onClick={this.gasStationBuy.bind(this, 0)}>
                                             <img alt="coin" srcSet={TrumpetCoin}></img>
-                                            <p>60</p> 
+                                            <p>60</p>
                                         </button>
                                     </div>
                                 </div>
