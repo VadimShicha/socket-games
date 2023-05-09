@@ -102,6 +102,28 @@
     /* margin: 0px; */
 }
 
+.game_ui_tutorial_div
+{
+    position: absolute;
+    background-color: #dcdcdce5;
+    padding-left: 15px;
+    padding-right: 15px;
+    width: 45%;
+    height: 65%;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 35px;
+}
+
+.game_ui_tutorial_div > div > button
+{
+    position: absolute;
+    left: 50%;
+    bottom: 10px;
+    transform: translateX(-50%);
+}
+
 .game_ui_pause_div
 {
     position: absolute;
@@ -208,6 +230,11 @@
     cursor: pointer;
 }
 
+.game_garage_ui_section:disabled
+{
+    filter: brightness(60%);
+}
+
 .game_garage_ui_section > img
 {
     width: 65%;
@@ -219,12 +246,12 @@
     margin: 5px;
 }
 
-.game_garage_ui_section:hover
+.game_garage_ui_section:hover:enabled
 {
     filter: brightness(92%);
 }
 
-.game_garage_ui_section:active
+.game_garage_ui_section:active:enabled
 {
     filter: brightness(88%);
 }

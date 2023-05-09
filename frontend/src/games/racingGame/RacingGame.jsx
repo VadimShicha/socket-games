@@ -1,4 +1,5 @@
 import React, {createRef} from 'react';
+import { randFloat, randInt, userLoggedIn } from '../../tools';
 import '../../../src/styles/GamePage.css';
 import '../../../src/styles/RacingGame.css';
 import Matter from 'matter-js';
@@ -29,12 +30,27 @@ import RaceIcon from './assets/race_icon.svg';
 import LeftArrow from './assets/left_arrow.svg';
 import RaceChecker from './assets/race_checker.svg';
 import RaceStartIcon from './assets/race_start_icon.svg';
-import RaceMarkerIcon from './assets/race_marker_icon.svg';
+import RaceMarkerIcon from './assets/race_markers/you_marker.svg';
+import BlueMarker from './assets/race_markers/blue_marker.svg';
+import GreenMarker from './assets/race_markers/green_marker.svg';
+import OrangeMarker from './assets/race_markers/orange_marker.svg';
+import RedMarker from './assets/race_markers/red_marker.svg';
 import PausedIcon from './assets/paused_icon.svg';
+import SaveIcon from './assets/save_icon.svg';
 
 const BikeWheels = [Wheel, RoadWheel, MudWheel, SandWheel, SnowWheel, WetWheel];
 const BikeBodies = [BikeBodyRed, BikeBodyGreen, BikeBodyBlue];
 const BikeBodiesFlipped = [BikeBodyRedFlipped, BikeBodyGreenFlipped, BikeBodyBlueFlipped];
+
+const RaceMarkers = [BlueMarker, GreenMarker, OrangeMarker, RedMarker];
+const RaceBotNames = [
+    "Bob", "Joe", "James", "Arnold", "Roger", "Oliver", "Noah",
+    "Beck", "Will", "Edward", "Sam", "Chad", "Juan", "Max", "Jake",
+    "Felix", "Mike", "Thomas", "Henry", "Liam", "Jason", "Sean",
+    "Sally", "Anna", "Emily", "Rose", "Emma", "Jane", "Lillie",
+    "Ella", "Susan", "Erin", "Isabel", "Olivia", "Abby", "Debbie",
+    "Sandy", "Rose", "Katie", "Myra"
+];
 
 function toDegrees(radians)
 {
@@ -118,10 +134,12 @@ class RacingGame extends React.Component
         this.loaded = false;
 
         this.scene = "Home";
+        this.loggedIn = userLoggedIn();
 
         this.state = {
             coins: 500 + 9500,
             gamePaused: false,
+            raceBots: [{name: "", speed: 0, posX: 0}, {name: "", speed: 0, posX: 0}, {name: "", speed: 0, posX: 0}, {name: "", speed: 0, posX: 0}], //EXAMPLE: {name: "Bob", speed: 5, posX: 0}
             countdown: 3,
             countdownID: "",
             currentRaceLength: 10000,
@@ -167,7 +185,7 @@ class RacingGame extends React.Component
 
     loadScene(scene)
     {
-        this.setCurrentUI(0); //close any opened UI
+        this.setCurrentUI(1); //close any opened UI
 
         if(this.scene != scene)
             this.unloadScene(this.scene); //unload the old scene
@@ -319,8 +337,7 @@ class RacingGame extends React.Component
                 this.homeRightBorderWall,
                 this.gasStation,
                 this.wheelShop,
-                this.bodyShop,
-                center
+                this.bodyShop
             ]);
             Matter.Composite.add(this.engine.world, this.cactuses);
 
@@ -431,8 +448,32 @@ class RacingGame extends React.Component
 
             this.startCountdown(3000, function()
             {
-                
-            });
+                let bots = [];
+
+                for(let i = 0; i < 4; i++)
+                {
+                    let name = RaceBotNames[Math.floor(Math.random() * RaceBotNames.length)];
+
+                    bots.push({name: name, speed: randFloat(this.getBikeSpeed() - 4, this.getBikeSpeed() + 2), posX: 0});
+                }
+
+                setInterval(function()
+                {
+                    let bots = this.state.raceBots;
+
+                    for(let i = 0; i < bots.length; i++)
+                    {
+                        if(randInt(0, 1000) == 0)
+                            bots[i].speed -= 1;
+                        
+                        bots[i].posX += bots[i].speed;
+                    }
+
+                    this.setState({raceBots: bots});
+                }.bind(this), 20);
+
+                this.setState({raceBots: bots});
+            }.bind(this));
 
             this.setBikePosition({x: 0, y: 0}, false);
             
@@ -458,14 +499,13 @@ class RacingGame extends React.Component
             //callback called at 1 second to not have a wait on 0 seconds
             if(this.state.countdown == 1)
             {
-                callback();
-                
                 //made to show a "start" message at 0 seconds
                 setTimeout(() =>
                 {
                     clearInterval(countdownID);
                     this.setState({countdownID: ""});
-                }, 500);
+                    callback();
+                }, 500, callback);
             }
         }, 1000);
 
@@ -562,16 +602,16 @@ class RacingGame extends React.Component
     {
         if(e.key == "f")
         {
-            if(this.scene == "Home" && !this.state.gamePaused)
+            if(this.scene == "Home" && !this.state.gamePaused && this.state.currentUI == 0)
             {
                 if(Matter.Collision.collides(this.body, this.homeGarage))
-                    this.setCurrentUI(1);
-                else if(Matter.Collision.collides(this.body, this.gasStation))
                     this.setCurrentUI(2);
-                else if(Matter.Collision.collides(this.body, this.wheelShop))
+                else if(Matter.Collision.collides(this.body, this.gasStation))
                     this.setCurrentUI(3);
+                else if(Matter.Collision.collides(this.body, this.wheelShop))
+                    this.setCurrentUI(4);
                 else if(Matter.Collision.collides(this.body, this.bodyShop))
-                    this.setCurrentUI(4); 
+                    this.setCurrentUI(5); 
             }
         }
         else if(e.key == "Escape")
@@ -598,9 +638,14 @@ class RacingGame extends React.Component
             this.setState({carGasColor: "limegreen"});
     }
 
+    getBikeSpeed()
+    {
+        return 15 + (this.state.upgrades[0] / 1.46);
+    }
+
     carMove = (direction) =>
     {
-        let power = 15 + (this.state.upgrades[0] / 1.46);
+        let power = this.getBikeSpeed();
 
         if(this.state.carGas <= 0)
             power = 3;
@@ -776,19 +821,48 @@ class RacingGame extends React.Component
                     <div className="game_ui_div">
                         <button hidden={this.state.gamePaused} className="game_pause_button action_button_resizable pause_button" onClick={() => this.setGamePaused(true)}></button>
 
+                        <div hidden={this.state.currentUI != 1}className="game_ui_tutorial_div">
+                            <div hidden={this.state.currentUIData[0] !== ""}>
+                                <h1>Welcome</h1>
+                                <h4>Welcome to the Racing Game!</h4>
+                                <p>In this game you ride your bike around the city. There are races you can do against bots to earn rewards. You can tune your bike with unlockable parts and upgrades.</p>
+                                <h3>How Game Saving Works:</h3>
+                                <p>You must be logged in to save progress. Your game data saves automatically every minute. It also saves when you close the game (non forcefully). You can always manually save your game in the garage menu.</p>
+                                
+                                <button className="racing_game_button" onClick={() => this.setState({currentUIData: ["Controls"]})}>Next Page -&#62;</button>
+                            </div>
+                            <div hidden={this.state.currentUIData[0] !== "Controls"}>
+                                <h1>Controls:</h1>
+                                <p>Main click <b>(Left Click)</b></p>
+                                <p>Move bike <b>(A & D)</b></p>
+                                <p>Interact / open place <b>(F)</b></p>
+                                <button className="racing_game_button" onClick={() => this.setCurrentUI(0)}>Start Playing!</button>
+                            </div>
+                            
+                        </div>
+
                         <div className="game_ui_countdown">
                             <p hidden={this.state.countdownID == ""}>{this.state.countdown > 0 ? this.state.countdown : "Go!"}</p>
                         </div>
 
                         <div hidden={this.scene != "Game"} className="game_ui_race_map">
                             <img srcSet={RaceStartIcon} className="game_ui_race_map_icon game_ui_race_map_start"></img>
-                            <img srcSet={RaceMarkerIcon} className="game_ui_race_map_icon" style={{left: (this.body.position.x / this.state.currentRaceLength) * 100 + "%"}}></img>
+                            <img srcSet={RaceMarkers[0]} className="game_ui_race_map_icon" style={{left: Math.min((this.state.raceBots[0].posX / this.state.currentRaceLength) * 100, 100) + "%"}}></img>
+                            <img srcSet={RaceMarkers[1]} className="game_ui_race_map_icon" style={{left: Math.min((this.state.raceBots[1].posX / this.state.currentRaceLength) * 100, 100) + "%"}}></img>
+                            <img srcSet={RaceMarkers[2]} className="game_ui_race_map_icon" style={{left: Math.min((this.state.raceBots[2].posX / this.state.currentRaceLength) * 100, 100) + "%"}}></img>
+                            <img srcSet={RaceMarkers[3]} className="game_ui_race_map_icon" style={{left: Math.min((this.state.raceBots[3].posX / this.state.currentRaceLength) * 100, 100) + "%"}}></img>
                             <img srcSet={RaceIcon} className="game_ui_race_map_icon game_ui_race_map_finish"></img>
+                            <img srcSet={RaceMarkerIcon} className="game_ui_race_map_icon" style={{left: Math.min((this.body.position.x / this.state.currentRaceLength) * 100, 100) + "%"}}></img>
                         </div>
 
                         <div hidden={!this.state.gamePaused} className="game_ui_pause_div center_align">
                             <h1>Game Paused</h1>
                             <img srcSet={PausedIcon} width="130px"></img>
+                            <br></br><br></br>
+
+                            <div>
+                                <button className="racing_game_button">Manual Save</button>
+                            </div>
 
                             <p>Goto Garage:</p>
                             <div className="game_ui_buy_button_div">
@@ -804,7 +878,7 @@ class RacingGame extends React.Component
                         </div>
                         
                         {/* <p className="game_press_to_interact">Press [F] to interact</p> */}
-                        <div className="game_form_ui_div" hidden={this.state.currentUI != 1}>
+                        <div className="game_form_ui_div" hidden={this.state.currentUI != 2}>
                             <h1>{this.state.currentUIData[0] == "" ? "Garage" : this.state.currentUIData[0]}</h1>
                             <button className="game_form_ui_close decline_button" onClick={() => this.setCurrentUI(0)}></button>
                             <button hidden={this.state.currentUIData[0] == ""} className="game_form_ui_back" style={{backgroundImage: `url(${LeftArrow})`}} onClick={() => this.setState({currentUIData: [""]})}></button>
@@ -821,6 +895,10 @@ class RacingGame extends React.Component
                                     <button onClick={() => this.setState({currentUIData: ["Wheels"]})} className="game_garage_ui_section">
                                         <img srcSet={Wheel}></img>
                                         <h2>Wheels</h2>
+                                    </button>
+                                    <button disabled={!this.loggedIn} onClick={() => alert("Game saving is in progress")} className="game_garage_ui_section">
+                                        <img disabled={!this.loggedIn} srcSet={SaveIcon}></img>
+                                        <h2 disabled={!this.loggedIn}>Save Data</h2>
                                     </button>
                                     <button onClick={() => this.loadScene("Game")} className="game_garage_ui_section">
                                         <img srcSet={RaceIcon}></img>
@@ -898,7 +976,7 @@ class RacingGame extends React.Component
                                 </div>
                             </div>
                         </div>
-                        <div className="game_form_ui_div" hidden={this.state.currentUI != 2}>
+                        <div className="game_form_ui_div" hidden={this.state.currentUI != 3}>
                             <h1>Biker's Gas</h1>
                             <h4>Any extra fuel will not be added to your vehicle</h4>
                             <button className="game_form_ui_close decline_button" onClick={() => this.setCurrentUI(0)}></button>
@@ -935,7 +1013,7 @@ class RacingGame extends React.Component
                                 </div> 
                             </div>
                         </div>
-                        <div className="game_form_ui_div" hidden={this.state.currentUI != 3}>
+                        <div className="game_form_ui_div" hidden={this.state.currentUI != 4}>
                             <h1>Wheelie Wheels</h1>
                             <h4>Apply wheels that fit your terrain needs</h4>
                             <button className="game_form_ui_close decline_button" onClick={() => this.setCurrentUI(0)}></button>
@@ -997,7 +1075,7 @@ class RacingGame extends React.Component
                                 </div>
                             </div>
                         </div>
-                        <div className="game_form_ui_div" hidden={this.state.currentUI != 4}>
+                        <div className="game_form_ui_div" hidden={this.state.currentUI != 5}>
                             <h1>Bob's Bodies</h1>
                             <h4>Fresh bike bodies!</h4>
                             <button className="game_form_ui_close decline_button" onClick={() => this.setCurrentUI(0)}></button>
