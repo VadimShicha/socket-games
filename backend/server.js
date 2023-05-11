@@ -256,6 +256,38 @@ app.post("/server", async function(req, res)
         else
             res.send({success: false});
     }
+    else if(req.body["requestID"] == "save_game_data")
+    {
+        let result = await user.getUsernameWithToken(getCookieValue(cookieManager.getCookieBy("token")));
+
+        if(result[1] == 0)
+        {
+            let saveResult = await user.saveGameData(result[0], req.body["gameUrl"], req.body["gameData"]);
+        
+            if(saveResult[1] == 0)
+                res.send({success: true});
+            else
+                res.send({success: false});
+        }
+        else
+            res.send({success: false});
+    }
+    else if(req.body["requestID"] == "load_game_data")
+    {
+        let result = await user.getUsernameWithToken(getCookieValue(cookieManager.getCookieBy("token")));
+
+        if(result[1] == 0)
+        {
+            let loadResult = await user.loadGameData(result[0], req.body["gameUrl"]);
+        
+            if(loadResult[1] == 0)
+                res.send({data: loadResult[0], success: true});
+            else
+                res.send({success: false});
+        }
+        else
+            res.send({success: false});
+    }
     else
     {
         res.send({success: false});

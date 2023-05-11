@@ -1,5 +1,5 @@
 import React, {createRef} from 'react';
-import { randFloat, randInt, userLoggedIn } from '../../tools';
+import { randFloat, randInt, sendPOST, userLoggedIn } from '../../tools';
 import '../../../src/styles/GamePage.css';
 import '../../../src/styles/RacingGame.css';
 import Matter from 'matter-js';
@@ -66,7 +66,6 @@ const wheelOptions = {
     mass: 5,
     render:
     {
-        // fillStyle: "transparent",
         lineWidth: 0,
         sprite:
         {
@@ -143,14 +142,16 @@ class RacingGame extends React.Component
             countdown: 3,
             countdownID: "",
             currentRaceLength: 10000,
-            carGas: 100,
-            carGasColor: "limegreen",
+            bikeGas: 100,
+            bikeGasColor: "limegreen",
             items: {wheels: [0], bodies: [0]},
             upgrades: [0, 0, 0, 0],
             currentUI: 0,
             currentUIData: [""],
             bikeBodyIndex: 0,
-            bikeWheelsIndex: 0
+            bikeWheelsIndex: 0,
+            saveText: "Save Data",
+            autoSaving: false
         };
 
         this.body = {position: {x: 0}};
@@ -160,9 +161,63 @@ class RacingGame extends React.Component
         this.runner = null;
     };
 
+    saveGame(autoSaving = false)
+    {
+        let saveData = {
+            coins: this.state.coins,
+            bikeGas: this.state.bikeGas,
+            items: this.state.items,
+            upgrades: this.state.upgrades,
+            bikeBodyIndex: this.state.bikeBodyIndex,
+            bikeWheelsIndex: this.state.bikeWheelsIndex
+        };
+
+        if(autoSaving)
+            this.setState({autoSaving: true});
+
+        this.setState({saveText: "Saving..."});
+
+        sendPOST({requestID: "save_game_data", gameUrl: "raceride", gameData: saveData}, function(){
+            this.setState({saveText: "Save Data"});
+
+            if(this.state.autoSaving)
+            {
+                setTimeout(function()
+                {
+                    this.setState({autoSaving: false});
+                }.bind(this), 1000);
+            }
+            
+        }.bind(this));
+    }
+
+    loadGame()
+    {
+        sendPOST({requestID: "load_game_data", gameUrl: "raceride"}, function(data)
+        {
+            console.log(data);
+            if(data.success)
+            {
+                let gameData = data.data
+
+                this.setState({
+                    coins: gameData.coins,
+                    items: gameData.items,
+                    upgrades: gameData.upgrades
+                });
+
+                this.setBikeGas(gameData.bikeGas);
+                this.setBikeBody(gameData.bikeBodyIndex);
+                this.setBikeWheels(gameData.bikeWheelsIndex)
+            }
+            else
+                this.setCurrentUI(1);
+        }.bind(this));
+    }
+
     unloadScene(scene)
     {
-        if(scene == "Home")
+        if(scene === "Home")
         {
             Matter.Composite.remove(this.engine.world, [
                 this.homeGround,
@@ -177,7 +232,7 @@ class RacingGame extends React.Component
             ]);
             Matter.Composite.remove(this.engine.world, this.cactuses);
         }
-        else if(scene == "Game")
+        else if(scene === "Game")
         {
             Matter.Composite.remove(this.engine.world, [this.topGround]);
         }
@@ -185,12 +240,12 @@ class RacingGame extends React.Component
 
     loadScene(scene)
     {
-        this.setCurrentUI(1); //close any opened UI
+        this.setCurrentUI(0); //close any opened UI
 
-        if(this.scene != scene)
+        if(this.scene !== scene)
             this.unloadScene(this.scene); //unload the old scene
 
-        if(scene == "Home")
+        if(scene === "Home")
         {
             // let homeGroundVertices = [{x: -0, y: 500}, {x: -0, y: 0}, {x: 30000, y: 0}, {x: 30000, y: 500}];
             // this.homeGround = Matter.Bodies.fromVertices(0, 525, homeGroundVertices,
@@ -343,7 +398,7 @@ class RacingGame extends React.Component
 
             this.addDefaultsToWorld();
         }
-        else if(scene == "Game")
+        else if(scene === "Game")
         {
             let firstY = 800;
             let raceLength = 10000;
@@ -426,7 +481,7 @@ class RacingGame extends React.Component
             {
                 if(isHill > 0)
                     isHill -= 1;
-                else if(Math.floor(Math.random() * 17) == 0)
+                else if(Math.floor(Math.random() * 17) === 0)
                     isHill = 10;
 
                 groundVertices.push({x: i * 125, y: (Math.floor(Math.random() * 60) + (isHill > 0 ? 200 : 0) - ((isHill > 0 && isHill < 4) || (isHill > 8) ? 200 : 0))});
@@ -463,7 +518,7 @@ class RacingGame extends React.Component
 
                     for(let i = 0; i < bots.length; i++)
                     {
-                        if(randInt(0, 1000) == 0)
+                        if(randInt(0, 1000) === 0)
                             bots[i].speed -= 1;
                         
                         bots[i].posX += bots[i].speed;
@@ -497,7 +552,7 @@ class RacingGame extends React.Component
             this.setState({countdown: this.state.countdown - 1});
   
             //callback called at 1 second to not have a wait on 0 seconds
-            if(this.state.countdown == 1)
+            if(this.state.countdown === 1)
             {
                 //made to show a "start" message at 0 seconds
                 setTimeout(() =>
@@ -583,40 +638,52 @@ class RacingGame extends React.Component
         this.loaded = true;
         setInterval(this.look, 1, this);
 
+        if(this.loggedIn)
+            this.loadGame();
+        else
+            this.setCurrentUI(1);
+
+        //start auto-save clock
+        setInterval(function()
+        {
+            this.saveGame(true);
+            console.log("Auto-Saving...");
+        }.bind(this), 60000);
+
         document.addEventListener("keypress", this.keyUp);
         document.addEventListener("keydown", this.keyDown);
     };
 
     keyUp = (e) =>
     {
-        if(this.state.currentUI == 0 && this.state.countdownID == "" && !this.state.gamePaused)
+        if(this.state.currentUI === 0 && this.state.countdownID === "" && !this.state.gamePaused)
         {
-            if(e.key == "a")
-                this.carMove(-1);
-            else if(e.key == "d")
-                this.carMove(1);
+            if(e.key === "a")
+                this.bikeMove(-1);
+            else if(e.key === "d")
+                this.bikeMove(1);
         }
     }
 
     keyDown = (e) =>
     {
-        if(e.key == "f")
+        if(e.key === "f")
         {
-            if(this.scene == "Home" && !this.state.gamePaused && this.state.currentUI == 0)
+            if(this.scene === "Home" && !this.state.gamePaused && this.state.currentUI === 0)
             {
                 if(Matter.Collision.collides(this.body, this.homeGarage))
-                    this.setCurrentUI(2);
-                else if(Matter.Collision.collides(this.body, this.gasStation))
                     this.setCurrentUI(3);
-                else if(Matter.Collision.collides(this.body, this.wheelShop))
+                else if(Matter.Collision.collides(this.body, this.gasStation))
                     this.setCurrentUI(4);
+                else if(Matter.Collision.collides(this.body, this.wheelShop))
+                    this.setCurrentUI(5);
                 else if(Matter.Collision.collides(this.body, this.bodyShop))
-                    this.setCurrentUI(5); 
+                    this.setCurrentUI(6); 
             }
         }
-        else if(e.key == "Escape")
+        else if(e.key === "Escape")
         {
-            if(this.state.currentUI != 0)
+            if(this.state.currentUI !== 0)
                 this.setCurrentUI(0);
         }
     }
@@ -626,16 +693,16 @@ class RacingGame extends React.Component
         Matter.Render.lookAt(this.renderer, this.body, {x: 500, y: 500});
     }
 
-    setCarGas(gas)
+    setBikeGas(gas)
     {
-        this.setState({carGas: gas});
+        this.setState({bikeGas: gas});
 
         if(gas <= 30)
-            this.setState({carGasColor: "red"});
+            this.setState({bikeGasColor: "red"});
         else if(gas <= 50)
-            this.setState({carGasColor: "greenyellow"});
+            this.setState({bikeGasColor: "greenyellow"});
         else
-            this.setState({carGasColor: "limegreen"});
+            this.setState({bikeGasColor: "limegreen"});
     }
 
     getBikeSpeed()
@@ -643,14 +710,14 @@ class RacingGame extends React.Component
         return 15 + (this.state.upgrades[0] / 1.46);
     }
 
-    carMove = (direction) =>
+    bikeMove = (direction) =>
     {
         let power = this.getBikeSpeed();
 
-        if(this.state.carGas <= 0)
+        if(this.state.bikeGas <= 0)
             power = 3;
         else
-            this.setCarGas(this.state.carGas - (0.1 - (this.state.upgrades[3] / 290)));
+            this.setBikeGas(this.state.bikeGas - (0.1 - (this.state.upgrades[3] / 290)));
 
         this.updateBikeBody(this.state.bikeBodyIndex);
 
@@ -676,7 +743,7 @@ class RacingGame extends React.Component
 
     setBikePosition(pos, flipped = null)
     {
-        if(flipped != null)
+        if(flipped !== null)
             this.setBikeFlipped(flipped);
 
         Matter.Body.setVelocity(this.body, {x: 0, y: 0});
@@ -690,28 +757,28 @@ class RacingGame extends React.Component
 
     gasStationBuy = (index) =>
     {
-        if(this.state.carGas == 100)
+        if(this.state.bikeGas === 100)
             return;
 
         let newGas = 0;
 
-        if(index == 0)
+        if(index === 0)
         {
             if(this.state.coins < 60)
                 return;
 
-            newGas = this.state.carGas + 25;
+            newGas = this.state.bikeGas + 25;
             this.setState({coins: this.state.coins - 60});
         }
-        else if(index == 1)
+        else if(index === 1)
         {
             if(this.state.coins < 110)
                 return;
 
-            newGas = this.state.carGas + 50;
+            newGas = this.state.bikeGas + 50;
             this.setState({coins: this.state.coins - 110});
         }
-        else if(index == 2)
+        else if(index === 2)
         {
             if(this.state.coins < 200)
                 return;
@@ -723,7 +790,7 @@ class RacingGame extends React.Component
         if(newGas > 100)
             newGas = 100;
 
-        this.setCarGas(newGas);
+        this.setBikeGas(newGas);
     }
 
     wheelShopBuy = (index) =>
@@ -777,7 +844,7 @@ class RacingGame extends React.Component
             newUpgrades[index]++;
             this.setState({upgrades: newUpgrades});
 
-            if(index == 1)
+            if(index === 1)
             {
                 let newStiffness = wheelConstraintOptions.stiffness + (this.state.upgrades[index] / (maxUpgradeLevel * 2));
 
@@ -821,14 +888,18 @@ class RacingGame extends React.Component
                     <div className="game_ui_div">
                         <button hidden={this.state.gamePaused} className="game_pause_button action_button_resizable pause_button" onClick={() => this.setGamePaused(true)}></button>
 
-                        <div hidden={this.state.currentUI != 1}className="game_ui_tutorial_div">
+                        {/* <p className="game_bottom_right_text">Press [F] to interact</p> */}
+                        <p className="game_bottom_right_text" hidden={!this.state.autoSaving}>Auto Saving...</p>
+
+                        <div hidden={this.state.currentUI !== 1} className="game_ui_tutorial_div">
                             <div hidden={this.state.currentUIData[0] !== ""}>
                                 <h1>Welcome</h1>
                                 <h4>Welcome to the Racing Game!</h4>
                                 <p>In this game you ride your bike around the city. There are races you can do against bots to earn rewards. You can tune your bike with unlockable parts and upgrades.</p>
                                 <h3>How Game Saving Works:</h3>
-                                <p>You must be logged in to save progress. Your game data saves automatically every minute. It also saves when you close the game (non forcefully). You can always manually save your game in the garage menu.</p>
+                                <p>You must be logged in to save progress. Your game data saves automatically every minute. You can always manually save your game in the garage menu. <span style={{color: "red"}}>If you don't save before closing some progress may NOT be saved.</span></p>
                                 
+                                {/*It also saves when you close the game (non forcefully).*/}
                                 <button className="racing_game_button" onClick={() => this.setState({currentUIData: ["Controls"]})}>Next Page -&#62;</button>
                             </div>
                             <div hidden={this.state.currentUIData[0] !== "Controls"}>
@@ -842,33 +913,39 @@ class RacingGame extends React.Component
                         </div>
 
                         <div className="game_ui_countdown">
-                            <p hidden={this.state.countdownID == ""}>{this.state.countdown > 0 ? this.state.countdown : "Go!"}</p>
+                            <p hidden={this.state.countdownID === ""}>{this.state.countdown > 0 ? this.state.countdown : "Go!"}</p>
                         </div>
 
-                        <div hidden={this.scene != "Game"} className="game_ui_race_map">
-                            <img srcSet={RaceStartIcon} className="game_ui_race_map_icon game_ui_race_map_start"></img>
-                            <img srcSet={RaceMarkers[0]} className="game_ui_race_map_icon" style={{left: Math.min((this.state.raceBots[0].posX / this.state.currentRaceLength) * 100, 100) + "%"}}></img>
-                            <img srcSet={RaceMarkers[1]} className="game_ui_race_map_icon" style={{left: Math.min((this.state.raceBots[1].posX / this.state.currentRaceLength) * 100, 100) + "%"}}></img>
-                            <img srcSet={RaceMarkers[2]} className="game_ui_race_map_icon" style={{left: Math.min((this.state.raceBots[2].posX / this.state.currentRaceLength) * 100, 100) + "%"}}></img>
-                            <img srcSet={RaceMarkers[3]} className="game_ui_race_map_icon" style={{left: Math.min((this.state.raceBots[3].posX / this.state.currentRaceLength) * 100, 100) + "%"}}></img>
-                            <img srcSet={RaceIcon} className="game_ui_race_map_icon game_ui_race_map_finish"></img>
-                            <img srcSet={RaceMarkerIcon} className="game_ui_race_map_icon" style={{left: Math.min((this.body.position.x / this.state.currentRaceLength) * 100, 100) + "%"}}></img>
+                        <div hidden={this.state.currentUI !== 3} className="game_ui_race_map_div">
+                            <div>
+
+                            </div>
+                        </div>
+
+                        <div hidden={this.scene !== "Game"} className="game_ui_race_line">
+                            <img alt="Start" srcSet={RaceStartIcon} className="game_ui_race_line_icon game_ui_race_line_start"></img>
+                            <img alt="Bot" srcSet={RaceMarkers[0]} className="game_ui_race_line_icon" style={{left: Math.min((this.state.raceBots[0].posX / this.state.currentRaceLength) * 100, 100) + "%"}}></img>
+                            <img alt="Bot" srcSet={RaceMarkers[1]} className="game_ui_race_line_icon" style={{left: Math.min((this.state.raceBots[1].posX / this.state.currentRaceLength) * 100, 100) + "%"}}></img>
+                            <img alt="Bot" srcSet={RaceMarkers[2]} className="game_ui_race_line_icon" style={{left: Math.min((this.state.raceBots[2].posX / this.state.currentRaceLength) * 100, 100) + "%"}}></img>
+                            <img alt="Bot" srcSet={RaceMarkers[3]} className="game_ui_race_line_icon" style={{left: Math.min((this.state.raceBots[3].posX / this.state.currentRaceLength) * 100, 100) + "%"}}></img>
+                            <img alt="Finish" srcSet={RaceIcon} className="game_ui_race_line_icon game_ui_race_line_finish"></img>
+                            <img alt="You" srcSet={RaceMarkerIcon} className="game_ui_race_line_icon" style={{left: Math.min((this.body.position.x / this.state.currentRaceLength) * 100, 100) + "%"}}></img>
                         </div>
 
                         <div hidden={!this.state.gamePaused} className="game_ui_pause_div center_align">
                             <h1>Game Paused</h1>
-                            <img srcSet={PausedIcon} width="130px"></img>
+                            <img alt="Paused Icon" srcSet={PausedIcon} width="130px"></img>
                             <br></br><br></br>
 
                             <div>
-                                <button className="racing_game_button">Manual Save</button>
+                                <button disabled={!this.loggedIn} onClick={() => this.saveGame()} className="racing_game_button">Manual Save</button>
                             </div>
 
                             <p>Goto Garage:</p>
                             <div className="game_ui_buy_button_div">
-                                <button onClick={this.gotoGarageBuy.bind(this)}>
-                                    <img alt="coin" srcSet={TrumpetCoin}></img>
-                                    <p>10</p>
+                                <button disabled={this.state.coins < 10} onClick={this.gotoGarageBuy.bind(this)}>
+                                    <img disabled={this.state.coins < 10} alt="coin" srcSet={TrumpetCoin}></img>
+                                    <p disabled={this.state.coins < 10}>10</p>
                                 </button>
                             </div>
                             
@@ -877,31 +954,30 @@ class RacingGame extends React.Component
                             </div>
                         </div>
                         
-                        {/* <p className="game_press_to_interact">Press [F] to interact</p> */}
-                        <div className="game_form_ui_div" hidden={this.state.currentUI != 2}>
-                            <h1>{this.state.currentUIData[0] == "" ? "Garage" : this.state.currentUIData[0]}</h1>
+                        <div className="game_form_ui_div" hidden={this.state.currentUI !== 2}>
+                            <h1>{this.state.currentUIData[0] === "" ? "Garage" : this.state.currentUIData[0]}</h1>
                             <button className="game_form_ui_close decline_button" onClick={() => this.setCurrentUI(0)}></button>
-                            <button hidden={this.state.currentUIData[0] == ""} className="game_form_ui_back" style={{backgroundImage: `url(${LeftArrow})`}} onClick={() => this.setState({currentUIData: [""]})}></button>
+                            <button hidden={this.state.currentUIData[0] === ""} className="game_form_ui_back" style={{backgroundImage: `url(${LeftArrow})`}} onClick={() => this.setState({currentUIData: [""]})}></button>
                             <div hidden={this.state.currentUIData[0] !== ""}>
                                 <div className="game_form_ui_sections center_align">
                                     <button onClick={() => this.setState({currentUIData: ["Upgrades"]})} className="game_garage_ui_section">
-                                        <img srcSet={UpgradeIcon}></img>
+                                        <img alt="Upgrades Icon" srcSet={UpgradeIcon}></img>
                                         <h2>Upgrades</h2>
                                     </button>
                                     <button onClick={() => this.setState({currentUIData: ["Body"]})} className="game_garage_ui_section">
-                                        <img srcSet={BikeBodyRed}></img>
+                                        <img alt="Body Icon" srcSet={BikeBodyRed}></img>
                                         <h2>Body</h2>
                                     </button>
                                     <button onClick={() => this.setState({currentUIData: ["Wheels"]})} className="game_garage_ui_section">
-                                        <img srcSet={Wheel}></img>
+                                        <img alt="Wheels Icon" srcSet={Wheel}></img>
                                         <h2>Wheels</h2>
                                     </button>
-                                    <button disabled={!this.loggedIn} onClick={() => alert("Game saving is in progress")} className="game_garage_ui_section">
-                                        <img disabled={!this.loggedIn} srcSet={SaveIcon}></img>
-                                        <h2 disabled={!this.loggedIn}>Save Data</h2>
+                                    <button disabled={!this.loggedIn} onClick={() => this.saveGame()} className="game_garage_ui_section">
+                                        <img disabled={!this.loggedIn} alt="Save Icon" srcSet={SaveIcon}></img>
+                                        <h2 disabled={!this.loggedIn}>{this.state.saveText}</h2>
                                     </button>
                                     <button onClick={() => this.loadScene("Game")} className="game_garage_ui_section">
-                                        <img srcSet={RaceIcon}></img>
+                                        <img alt="Start Race Icon" srcSet={RaceIcon}></img>
                                         <h2>Start Race</h2>
                                     </button>
                                 </div>
@@ -910,22 +986,22 @@ class RacingGame extends React.Component
                             <div hidden={this.state.currentUIData[0] !== "Upgrades"}>
                                 <div className="game_form_ui_sections center_align">
                                     <button onClick={() => this.upgradeBike(0)} className="game_garage_ui_section">
-                                        <img srcSet={EngineIcon}></img>
+                                        <img alt="Engine Icon" srcSet={EngineIcon}></img>
                                         <p>{this.state.upgrades[0] < maxUpgradeLevel ? this.state.upgrades[0] + "/" + maxUpgradeLevel : "MAX"}</p>
                                         <h2>Engine</h2>
                                     </button>
                                     <button onClick={() => this.upgradeBike(1)} className="game_garage_ui_section">
-                                        <img srcSet={SuspensionIcon}></img>
+                                        <img alt="Suspension Icon" srcSet={SuspensionIcon}></img>
                                         <p>{this.state.upgrades[1] < maxUpgradeLevel ? this.state.upgrades[1] + "/" + maxUpgradeLevel : "MAX"}</p>
                                         <h2>Suspension</h2>
                                     </button>
                                     <button onClick={() => this.upgradeBike(2)} className="game_garage_ui_section">
-                                        <img srcSet={BikeWheels[2]}></img>
+                                        <img alt="Traction Icon" srcSet={BikeWheels[2]}></img>
                                         <p>{this.state.upgrades[2] < maxUpgradeLevel ? this.state.upgrades[2] + "/" + maxUpgradeLevel : "MAX"}</p>
                                         <h2>Traction</h2>
                                     </button>
                                     <button onClick={() => this.upgradeBike(3)} className="game_garage_ui_section">
-                                        <img srcSet={GasIcon}></img>
+                                        <img alt="Gas Icon" srcSet={GasIcon}></img>
                                         <p>{this.state.upgrades[3] < maxUpgradeLevel ? this.state.upgrades[3] + "/" + maxUpgradeLevel : "MAX"}</p>
                                         <h2>Gas Efficiency</h2>
                                     </button>
@@ -934,15 +1010,15 @@ class RacingGame extends React.Component
                             <div hidden={this.state.currentUIData[0] !== "Body"}>
                                 <div className="game_form_ui_sections center_align">
                                     <button onClick={() => this.setBikeBody(0)} className="game_garage_ui_section">
-                                        <img srcSet={BikeBodies[0]}></img>
+                                        <img alt="Body Icon" srcSet={BikeBodies[0]}></img>
                                         <h2>Red</h2>
                                     </button>
                                     <button hidden={!this.state.items.bodies.includes(1)} onClick={() => this.setBikeBody(1)} className="game_garage_ui_section">
-                                        <img srcSet={BikeBodies[1]}></img>
+                                        <img alt="Body Icon" srcSet={BikeBodies[1]}></img>
                                         <h2>Green</h2>
                                     </button>
                                     <button hidden={!this.state.items.bodies.includes(2)} onClick={() => this.setBikeBody(2)} className="game_garage_ui_section">
-                                        <img srcSet={BikeBodies[2]}></img>
+                                        <img alt="Body Icon" srcSet={BikeBodies[2]}></img>
                                         <h2>Blue</h2>
                                     </button>
                                 </div>
@@ -950,33 +1026,33 @@ class RacingGame extends React.Component
                             <div hidden={this.state.currentUIData[0] !== "Wheels"}>
                                 <div className="game_form_ui_sections center_align">
                                     <button className="game_garage_ui_section" onClick={() => this.setBikeWheels(0)}>
-                                        <img srcSet={BikeWheels[0]}></img>
+                                        <img alt="Wheel Icon" srcSet={BikeWheels[0]}></img>
                                         <h2>Default Wheels</h2>
                                     </button>
                                     <button hidden={!this.state.items.wheels.includes(1)} onClick={() => this.setBikeWheels(1)} className="game_garage_ui_section">
-                                        <img srcSet={BikeWheels[1]}></img>
+                                        <img alt="Wheel Icon" srcSet={BikeWheels[1]}></img>
                                         <h2>Road Wheels</h2>
                                     </button>
                                     <button hidden={!this.state.items.wheels.includes(2)} onClick={() => this.setBikeWheels(2)} className="game_garage_ui_section">
-                                        <img srcSet={BikeWheels[2]}></img>
+                                        <img alt="Wheel Icon" srcSet={BikeWheels[2]}></img>
                                         <h2>Mud Wheels</h2>
                                     </button>
                                     <button hidden={!this.state.items.wheels.includes(3)} onClick={() => this.setBikeWheels(3)} className="game_garage_ui_section">
-                                        <img srcSet={BikeWheels[3]}></img>
+                                        <img alt="Wheel Icon" srcSet={BikeWheels[3]}></img>
                                         <h2>Sand Wheels</h2>
                                     </button>
                                     <button hidden={!this.state.items.wheels.includes(4)} onClick={() => this.setBikeWheels(4)} className="game_garage_ui_section">
-                                        <img srcSet={BikeWheels[4]}></img>
+                                        <img alt="Wheel Icon" srcSet={BikeWheels[4]}></img>
                                         <h2>Snow Wheels</h2>
                                     </button>
                                     <button hidden={!this.state.items.wheels.includes(5)} onClick={() => this.setBikeWheels(5)} className="game_garage_ui_section">
-                                        <img srcSet={BikeWheels[5]}></img>
+                                        <img alt="Wheel Icon" srcSet={BikeWheels[5]}></img>
                                         <h2>Wet Wheels</h2>
                                     </button>
                                 </div>
                             </div>
                         </div>
-                        <div className="game_form_ui_div" hidden={this.state.currentUI != 3}>
+                        <div className="game_form_ui_div" hidden={this.state.currentUI !== 4}>
                             <h1>Biker's Gas</h1>
                             <h4>Any extra fuel will not be added to your vehicle</h4>
                             <button className="game_form_ui_close decline_button" onClick={() => this.setCurrentUI(0)}></button>
@@ -1013,7 +1089,7 @@ class RacingGame extends React.Component
                                 </div> 
                             </div>
                         </div>
-                        <div className="game_form_ui_div" hidden={this.state.currentUI != 4}>
+                        <div className="game_form_ui_div" hidden={this.state.currentUI !== 5}>
                             <h1>Wheelie Wheels</h1>
                             <h4>Apply wheels that fit your terrain needs</h4>
                             <button className="game_form_ui_close decline_button" onClick={() => this.setCurrentUI(0)}></button>
@@ -1046,7 +1122,7 @@ class RacingGame extends React.Component
                                     <p>+60% speed in the desert</p>
                                     <div className="game_ui_buy_button_div" hidden={this.state.items.wheels.includes(3)}>
                                         <button onClick={this.wheelShopBuy.bind(this, 3)}>
-                                            <img srcSet={TrumpetCoin}></img>
+                                            <img alt="Coin" srcSet={TrumpetCoin}></img>
                                             <p>{bikeWheelCosts[3]}</p> 
                                         </button>
                                     </div>
@@ -1075,7 +1151,7 @@ class RacingGame extends React.Component
                                 </div>
                             </div>
                         </div>
-                        <div className="game_form_ui_div" hidden={this.state.currentUI != 5}>
+                        <div className="game_form_ui_div" hidden={this.state.currentUI !== 6}>
                             <h1>Bob's Bodies</h1>
                             <h4>Fresh bike bodies!</h4>
                             <button className="game_form_ui_close decline_button" onClick={() => this.setCurrentUI(0)}></button>
@@ -1106,13 +1182,13 @@ class RacingGame extends React.Component
                         </div>
 
                         <div className="game_coins_div">
-                            <img className="game_coins_image" srcSet={TrumpetCoin}></img>
+                            <img className="game_coins_image" alt="Coin" srcSet={TrumpetCoin}></img>
                             <p className="game_coins_text">{this.state.coins}</p>
                         </div>
                         
                         <div className="game_gas_bar">
-                            <ProgressBar mainColor={this.state.carGasColor} bgColor="gray" value={this.state.carGas}></ProgressBar> 
-                            <p className="game_gas_bar_text" hidden={this.state.carGas > 0}>Empty</p>
+                            <ProgressBar mainColor={this.state.bikeGasColor} bgColor="gray" value={this.state.bikeGas}></ProgressBar> 
+                            <p className="game_gas_bar_text" hidden={this.state.bikeGas > 0}>Empty</p>
                         </div>
                     </div>
                 </div>

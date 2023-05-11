@@ -323,3 +323,24 @@ exports.declineFriendRequest = async function(username, declineUsername)
     await dbClient.updateOne(config.usersTable, {username: username}, {$set: {friend_requests: newRequests}});
     return ["Success", 0];
 };
+
+exports.saveGameData = async function(username, gameName, data)
+{
+    let gameData = await dbClient.findOne(config.usersTable, {username: username});
+
+    let newGameData = gameData.hasOwnProperty("game_data") ? gameData.game_data : {};
+    newGameData[gameName] = data;
+
+    await dbClient.updateOne(config.usersTable, {username: username}, {$set: {game_data: newGameData}});
+    return ["Success", 0];
+}
+
+exports.loadGameData = async function(username, gameName)
+{
+    let gameData = await dbClient.findOne(config.usersTable, {username: username});
+
+    if(!gameData.hasOwnProperty("game_data") || gameData.game_data[gameName] === undefined)
+        return ["No data", 1];
+
+    return [gameData.game_data[gameName], 0];
+}

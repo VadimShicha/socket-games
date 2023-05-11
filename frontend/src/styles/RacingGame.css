@@ -6,12 +6,12 @@
     cursor: pointer;
 }
 
-.racing_game_button:hover
+.racing_game_button:hover:enabled
 {
     filter: brightness(92%);
 }
 
-.racing_game_button:active
+.racing_game_button:active:enabled
 {
     filter: brightness(88%);
 }
@@ -124,6 +124,18 @@
     transform: translateX(-50%);
 }
 
+.game_ui_race_map_div
+{
+    position: absolute;
+    background-color: #a57a2be5;
+    width: 75%;
+    height: 85%;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 35px;
+}
+
 .game_ui_pause_div
 {
     position: absolute;
@@ -135,6 +147,7 @@
     transform: translateX(-50%);
     border-radius: 35px;
 }
+
 .game_ui_pause_div_button_div
 {
     position: absolute;
@@ -145,7 +158,7 @@
     gap: 5px;
 }
 
-.game_ui_race_map
+.game_ui_race_line
 {
     width: 500px;
     height: 10px;
@@ -156,7 +169,7 @@
     transform: translateX(-50%);
 }
 
-.game_ui_race_map_icon
+.game_ui_race_line_icon
 {
     position: absolute;
     width: 30px;
@@ -164,12 +177,12 @@
     top: -10px;
 }
 
-.game_ui_race_map_start
+.game_ui_race_line_start
 {
     left: -10px;
 }
 
-.game_ui_race_map_finish
+.game_ui_race_line_finish
 {
     right: -10px;
 }
@@ -311,7 +324,7 @@
     height: 100px;
 }
 
-.game_press_to_interact
+.game_bottom_right_text
 {
     position: absolute;
     margin: 0px;
