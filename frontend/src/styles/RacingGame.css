@@ -85,6 +85,16 @@
     cursor: pointer;
 }
 
+.game_form_ui_info
+{
+    position: absolute;
+    width: 35px;
+    height: 35px;
+    left: 20px;
+    top: 20px;
+    cursor: pointer;
+}
+
 .game_form_ui_back
 {
     position: absolute;
@@ -134,6 +144,73 @@
     left: 50%;
     transform: translateX(-50%);
     border-radius: 35px;
+}
+
+.game_ui_race_map_levels_table
+{
+    border: 3px solid black;
+    width: 85%;
+    height: 70%;
+}
+
+.game_ui_race_map_levels_table th
+{
+    font-size: 20px;
+    font-family: cursive;
+}
+
+.game_ui_race_map_levels_table td > button
+{
+    font-size: 50px;
+    font-family: cursive;
+    width: 80px;
+    height: 80px;
+}
+
+.game_ui_race_map_levels_div
+{
+    display: flex;
+    flex-wrap: wrap;
+    width: 90%;
+    height: 20%;
+    gap: 20px;
+    flex-direction: row;
+    justify-content: center;
+    margin-bottom: 50px;
+}
+
+.game_ui_race_map_levels_div > button
+{
+    font-size: 50px;
+    font-family: cursive;
+    width: 80px;
+    height: 80px;
+}
+
+.game_ui_race_map_left_button
+{
+    left: 5px;
+}
+
+.game_ui_race_map_right_button
+{
+    right: 5px;
+}
+
+.game_ui_race_map_left_button, .game_ui_race_map_right_button
+{
+    position: absolute;
+    background-color: transparent;
+    border: none;
+    font-size: 75px;
+    font-family: cursive;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.game_ui_race_map_left_button:hover, .game_ui_race_map_right_button:hover
+{
+    color: #474747;
 }
 
 .game_ui_pause_div

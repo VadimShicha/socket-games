@@ -147,7 +147,7 @@ class RacingGame extends React.Component
             items: {wheels: [0], bodies: [0]},
             upgrades: [0, 0, 0, 0],
             currentUI: 0,
-            currentUIData: [""],
+            currentUIData: [],
             bikeBodyIndex: 0,
             bikeWheelsIndex: 0,
             saveText: "Save Data",
@@ -672,7 +672,7 @@ class RacingGame extends React.Component
             if(this.scene === "Home" && !this.state.gamePaused && this.state.currentUI === 0)
             {
                 if(Matter.Collision.collides(this.body, this.homeGarage))
-                    this.setCurrentUI(3);
+                    this.setCurrentUI(2);
                 else if(Matter.Collision.collides(this.body, this.gasStation))
                     this.setCurrentUI(4);
                 else if(Matter.Collision.collides(this.body, this.wheelShop))
@@ -824,7 +824,10 @@ class RacingGame extends React.Component
 
     setCurrentUI(index)
     {
-        this.setState({currentUI: index, currentUIData: [""]});
+        if(index == 3)
+            this.setState({currentUI: index, currentUIData: [0]});
+        else
+            this.setState({currentUI: index, currentUIData: [""]});
     }
 
     setBikeBody(index)
@@ -917,8 +920,62 @@ class RacingGame extends React.Component
                         </div>
 
                         <div hidden={this.state.currentUI !== 3} className="game_ui_race_map_div">
-                            <div>
+                            <button className="game_form_ui_close decline_button" onClick={() => this.setCurrentUI(0)}></button>
+                            <button className="game_form_ui_info loading_button" onClick={() => this.setState({currentUIData: [-1]})}></button>
+                            
+                            <button hidden={this.state.currentUIData[0] === 0} className="game_ui_race_map_left_button" onClick={() => this.setState({currentUIData: [this.state.currentUIData[0] - 1]})}>&#60;</button>
+                            <button hidden={this.state.currentUIData[0] === 2} className="game_ui_race_map_right_button" onClick={() => this.setState({currentUIData: [this.state.currentUIData[0] + 1]})}>&#62;</button>
 
+                            <div hidden={this.state.currentUIData[0] !== -1}>
+                                <h1>Info</h1>
+                                <p>Complete 2 levels to unlock the next map variant</p>
+                            </div>
+                            <div hidden={this.state.currentUIData[0] !== 0}>
+                                <h1>North Pole</h1>
+                                <table className="game_ui_race_map_levels_table center_align">
+                                    <tbody>
+                                        <tr>
+                                            <th>Snowy Fields</th>
+                                            <td><button>1</button></td>
+                                            <td><button>2</button></td>
+                                            <td><button>3</button></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Snowy Hills</th>
+                                            <td><button>1</button></td>
+                                            <td><button>2</button></td>
+                                            <td><button>3</button></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Snowy Mountains</th>
+                                            <td><button>1</button></td>
+                                            <td><button>2</button></td>
+                                            <td><button>3</button></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                {/* <div className="game_ui_race_map_levels_div center_align">
+                                    <p></p>
+                                    <button>1</button>
+                                    <button>2</button>
+                                    <button>3</button>
+                                </div>
+                                <div className="game_ui_race_map_levels_div center_align">
+                                    <button>4</button>
+                                    <button>5</button>
+                                    <button>6</button>
+                                </div>
+                                <div className="game_ui_race_map_levels_div center_align">
+                                    <button>7</button>
+                                    <button>8</button>
+                                    <button>9</button>
+                                </div> */}
+                            </div>
+                            <div hidden={this.state.currentUIData[0] !== 1}>
+                                <h1>Swamp</h1>
+                            </div>
+                            <div hidden={this.state.currentUIData[0] !== 2}>
+                                <h1>Desert</h1>
                             </div>
                         </div>
 
@@ -976,7 +1033,7 @@ class RacingGame extends React.Component
                                         <img disabled={!this.loggedIn} alt="Save Icon" srcSet={SaveIcon}></img>
                                         <h2 disabled={!this.loggedIn}>{this.state.saveText}</h2>
                                     </button>
-                                    <button onClick={() => this.loadScene("Game")} className="game_garage_ui_section">
+                                    <button onClick={() => this.setCurrentUI(3)} className="game_garage_ui_section">
                                         <img alt="Start Race Icon" srcSet={RaceIcon}></img>
                                         <h2>Start Race</h2>
                                     </button>
