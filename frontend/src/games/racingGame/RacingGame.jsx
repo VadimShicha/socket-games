@@ -124,6 +124,20 @@ const maxUpgradeLevel = 16;
 const bikeWheelCosts = [0, 500, 650, 850, 1000, 1400];
 const bikeBodyCosts = [0, 400, 600];
 
+const maxRaces = [
+    [
+        [2, 2, 5],
+        [2, 2, 6],
+        [2, 3, 6]
+    ],
+    [
+        [2, 3, 5],
+        [2, 3, 6],
+        [3, 4, 6],
+        [3, 3, 7]
+    ]
+];
+
 class RacingGame extends React.Component
 {
     constructor(props)
@@ -150,6 +164,7 @@ class RacingGame extends React.Component
             currentUIData: [],
             bikeBodyIndex: 0,
             bikeWheelsIndex: 0,
+            raceAmounts: [[[0, 0, 0], [0, 0, 0], [0, 0, 0]], [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]],
             saveText: "Save Data",
             autoSaving: false
         };
@@ -921,14 +936,17 @@ class RacingGame extends React.Component
 
                         <div hidden={this.state.currentUI !== 3} className="game_ui_race_map_div">
                             <button className="game_form_ui_close decline_button" onClick={() => this.setCurrentUI(0)}></button>
-                            <button className="game_form_ui_info loading_button" onClick={() => this.setState({currentUIData: [-1]})}></button>
+                            <button className={`game_form_ui_info ${this.state.currentUIData[0] === -1 ? "back_arrow_button" : "loading_button"}`} onClick={() => this.state.currentUIData[0] === -1 ? this.setState({currentUIData: [0]}) : this.setState({currentUIData: [-1]})}></button>
                             
-                            <button hidden={this.state.currentUIData[0] === 0} className="game_ui_race_map_left_button" onClick={() => this.setState({currentUIData: [this.state.currentUIData[0] - 1]})}>&#60;</button>
-                            <button hidden={this.state.currentUIData[0] === 2} className="game_ui_race_map_right_button" onClick={() => this.setState({currentUIData: [this.state.currentUIData[0] + 1]})}>&#62;</button>
+                            <button hidden={this.state.currentUIData[0] === 0 || this.state.currentUIData[0] === -1} className="game_ui_race_map_left_button" onClick={() => this.setState({currentUIData: [this.state.currentUIData[0] - 1]})}>&#60;</button>
+                            <button hidden={this.state.currentUIData[0] === 2 || this.state.currentUIData[0] === -1} className="game_ui_race_map_right_button" onClick={() => this.setState({currentUIData: [this.state.currentUIData[0] + 1]})}>&#62;</button>
 
-                            <div hidden={this.state.currentUIData[0] !== -1}>
+                            <div hidden={this.state.currentUIData[0] !== -1} className="game_ui_race_map_info_div">
                                 <h1>Info</h1>
-                                <p>Complete 2 levels to unlock the next map variant</p>
+                                <h3>Environments and Varients:</h3>
+                                <p>Each environment has some variants. You must complete 2 levels of each variant to unlock the next one. After completing the last variant you unlock the next environment.</p>
+                                <h3>Rewards:</h3>
+                                <p></p>
                             </div>
                             <div hidden={this.state.currentUIData[0] !== 0}>
                                 <h1>North Pole</h1>
@@ -936,21 +954,21 @@ class RacingGame extends React.Component
                                     <tbody>
                                         <tr>
                                             <th>Snowy Fields</th>
-                                            <td><button>1</button></td>
-                                            <td><button>2</button></td>
-                                            <td><button>3</button></td>
+                                            <td><button><h1>1</h1><p>{this.state.raceAmounts[0][0][0]}/{maxRaces[0][0][0]}</p></button></td>
+                                            <td><button><h1>2</h1><p>{this.state.raceAmounts[0][0][1]}/{maxRaces[0][0][1]}</p></button></td>
+                                            <td><button><h1>3</h1><p>{this.state.raceAmounts[0][0][2]}/{maxRaces[0][0][2]}</p></button></td>
                                         </tr>
                                         <tr>
                                             <th>Snowy Hills</th>
-                                            <td><button>1</button></td>
-                                            <td><button>2</button></td>
-                                            <td><button>3</button></td>
+                                            <td><button disabled={true}><h1>1</h1><p>{this.state.raceAmounts[0][1][0]}/{maxRaces[0][1][0]}</p></button></td>
+                                            <td><button disabled={true}><h1>2</h1><p>{this.state.raceAmounts[0][1][1]}/{maxRaces[0][1][1]}</p></button></td>
+                                            <td><button disabled={true}><h1>3</h1><p>{this.state.raceAmounts[0][1][2]}/{maxRaces[0][1][2]}</p></button></td>
                                         </tr>
                                         <tr>
                                             <th>Snowy Mountains</th>
-                                            <td><button>1</button></td>
-                                            <td><button>2</button></td>
-                                            <td><button>3</button></td>
+                                            <td><button disabled={true}><h1>1</h1><p>{this.state.raceAmounts[0][2][0]}/{maxRaces[0][2][0]}</p></button></td>
+                                            <td><button disabled={true}><h1>2</h1><p>{this.state.raceAmounts[0][2][1]}/{maxRaces[0][2][1]}</p></button></td>
+                                            <td><button disabled={true}><h1>3</h1><p>{this.state.raceAmounts[0][2][2]}/{maxRaces[0][2][2]}</p></button></td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -973,6 +991,34 @@ class RacingGame extends React.Component
                             </div>
                             <div hidden={this.state.currentUIData[0] !== 1}>
                                 <h1>Swamp</h1>
+                                <table className="game_ui_race_map_levels_table center_align">
+                                    <tbody>
+                                        <tr>
+                                            <th>Dirty Lands</th>
+                                            <td><button><h1>1</h1><p>{this.state.raceAmounts[1][0][0]}/{maxRaces[1][0][0]}</p></button></td>
+                                            <td><button><h1>2</h1><p>{this.state.raceAmounts[1][0][1]}/{maxRaces[1][0][1]}</p></button></td>
+                                            <td><button><h1>3</h1><p>{this.state.raceAmounts[1][0][2]}/{maxRaces[1][0][2]}</p></button></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Dirty Hills</th>
+                                            <td><button disabled={true}><h1>1</h1><p>{this.state.raceAmounts[1][1][0]}/{maxRaces[1][1][0]}</p></button></td>
+                                            <td><button disabled={true}><h1>2</h1><p>{this.state.raceAmounts[1][1][1]}/{maxRaces[1][1][1]}</p></button></td>
+                                            <td><button disabled={true}><h1>3</h1><p>{this.state.raceAmounts[1][1][2]}/{maxRaces[1][1][2]}</p></button></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Muddy Pools</th>
+                                            <td><button disabled={true}><h1>1</h1><p>{this.state.raceAmounts[1][2][0]}/{maxRaces[1][2][0]}</p></button></td>
+                                            <td><button disabled={true}><h1>2</h1><p>{this.state.raceAmounts[1][2][1]}/{maxRaces[1][2][1]}</p></button></td>
+                                            <td><button disabled={true}><h1>3</h1><p>{this.state.raceAmounts[1][2][2]}/{maxRaces[1][2][2]}</p></button></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Muddy Lakes</th>
+                                            <td><button disabled={true}><h1>1</h1><p>{this.state.raceAmounts[1][3][0]}/{maxRaces[1][3][0]}</p></button></td>
+                                            <td><button disabled={true}><h1>2</h1><p>{this.state.raceAmounts[1][3][1]}/{maxRaces[1][3][1]}</p></button></td>
+                                            <td><button disabled={true}><h1>3</h1><p>{this.state.raceAmounts[1][3][2]}/{maxRaces[1][3][2]}</p></button></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
                             <div hidden={this.state.currentUIData[0] !== 2}>
                                 <h1>Desert</h1>

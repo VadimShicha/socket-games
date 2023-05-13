@@ -149,6 +149,11 @@ body
     background: url("../public/assets/pause_box.svg");
 }
 
+.back_arrow_button
+{
+    background: url("../public/assets/back_box.svg");
+}
+
 .App-header
 {
     background-color: #282c34;

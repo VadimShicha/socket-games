@@ -146,9 +146,15 @@
     border-radius: 35px;
 }
 
+.game_ui_race_map_info_div
+{
+    padding-left: 35px;
+    padding-right: 35px;
+}
+
 .game_ui_race_map_levels_table
 {
-    border: 3px solid black;
+    /* border: 3px solid black; */
     width: 85%;
     height: 70%;
 }
@@ -161,10 +167,25 @@
 
 .game_ui_race_map_levels_table td > button
 {
-    font-size: 50px;
+    border: none;
     font-family: cursive;
     width: 80px;
     height: 80px;
+}
+
+.game_ui_race_map_levels_table td > button > *
+{
+    margin: 0px;
+}
+
+.game_ui_race_map_levels_table td > button:hover:enabled
+{
+    filter: brightness(92%);
+}
+
+.game_ui_race_map_levels_table td > button:active:enabled
+{
+    filter: brightness(85%);
 }
 
 .game_ui_race_map_levels_div
