@@ -37,6 +37,7 @@ import OrangeMarker from './assets/race_markers/orange_marker.svg';
 import RedMarker from './assets/race_markers/red_marker.svg';
 import PausedIcon from './assets/paused_icon.svg';
 import SaveIcon from './assets/save_icon.svg';
+import RacingGameMapItem from './RacingGameMapItem';
 
 const BikeWheels = [Wheel, RoadWheel, MudWheel, SandWheel, SnowWheel, WetWheel];
 const BikeBodies = [BikeBodyRed, BikeBodyGreen, BikeBodyBlue];
@@ -164,7 +165,7 @@ class RacingGame extends React.Component
             currentUIData: [],
             bikeBodyIndex: 0,
             bikeWheelsIndex: 0,
-            raceAmounts: [[[0, 0, 0], [0, 0, 0], [0, 0, 0]], [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]],
+            raceAmounts: [[[0, -1, -1], [-1, -1, -1], [-1, -1, -1]], [[-1, -1, -1], [-1, -1, -1], [-1, -1, -1], [-1, -1, -1]]],
             saveText: "Save Data",
             autoSaving: false
         };
@@ -415,10 +416,9 @@ class RacingGame extends React.Component
         }
         else if(scene === "Game")
         {
-            let firstY = 800;
-            let raceLength = 10000;
+            const setLater = 123;
 
-            this.startGround = Matter.Bodies.rectangle(0, firstY, 1000, 1000,
+            this.startGround = Matter.Bodies.rectangle(0, setLater, 1000, 1000,
             {
                 isStatic: true,
                 render:
@@ -428,7 +428,7 @@ class RacingGame extends React.Component
                 }
             });
 
-            this.endGround = Matter.Bodies.rectangle(raceLength, firstY + 80, 1000, 1000,
+            this.endGround = Matter.Bodies.rectangle(setLater, setLater, 1000, 1000,
             {
                 isStatic: true,
                 render:
@@ -438,7 +438,7 @@ class RacingGame extends React.Component
                 }
             });
 
-            this.groundStartChecker = Matter.Bodies.rectangle(0, firstY - 450, 1000, 100,
+            this.groundStartChecker = Matter.Bodies.rectangle(0, setLater, 1000, 100,
             {
                 isStatic: true,
                 render:
@@ -452,7 +452,7 @@ class RacingGame extends React.Component
                 }
             });
 
-            this.groundEndChecker = Matter.Bodies.rectangle(raceLength, firstY - 370, 1000, 100,
+            this.groundEndChecker = Matter.Bodies.rectangle(setLater, setLater, 1000, 100,
             {
                 isStatic: true,
                 render:
@@ -465,8 +465,6 @@ class RacingGame extends React.Component
                     }
                 }
             });
-
-            
 
             this.gameLeftBorderWall = Matter.Bodies.rectangle(-500 - 25, 0, 50, 3000,
             {
@@ -478,7 +476,7 @@ class RacingGame extends React.Component
                 }
             });
 
-            this.gameRightBorderWall = Matter.Bodies.rectangle(raceLength + 500 + 25, 0, 50, 3000,
+            this.gameRightBorderWall = Matter.Bodies.rectangle(setLater, 0, 50, 3000,
             {
                 isStatic: true,
                 render:
@@ -488,25 +486,7 @@ class RacingGame extends React.Component
                 }
             });
 
-            let groundVertices = [{x: -200, y: firstY - 100}];
-            let isHill = 0;
-
-
-            for(let i = 1; i < 80; i++)
-            {
-                if(isHill > 0)
-                    isHill -= 1;
-                else if(Math.floor(Math.random() * 17) === 0)
-                    isHill = 10;
-
-                groundVertices.push({x: i * 125, y: (Math.floor(Math.random() * 60) + (isHill > 0 ? 200 : 0) - ((isHill > 0 && isHill < 4) || (isHill > 8) ? 200 : 0))});
-            }
-
-            groundVertices.push({x: raceLength, y: 800});
-
-            groundVertices = Matter.Vertices.chamfer(groundVertices, 25);
-
-            this.topGround = Matter.Bodies.fromVertices(raceLength / 2, 600, groundVertices, {
+            this.topGround = Matter.Bodies.fromVertices(setLater, setLater, [{x: 0, y: 0}, {x: setLater, y: setLater}], {
                 isStatic: true,
                 render:
                 {
@@ -558,6 +538,86 @@ class RacingGame extends React.Component
             ]);
         }
         this.scene = scene;
+    }
+
+    generateRace(mapIndex, variantIndex, levelIndex)
+    {
+        let groundColor = "white";
+        let raceLength = 0;
+
+        if(mapIndex === 0)
+        {
+            groundColor = "white";
+
+            if(variantIndex === 0)
+                raceLength = 4000;
+            else if(variantIndex === 1)
+                raceLength = 9000;
+            else if(variantIndex === 2)
+                raceLength = 12000;
+        }
+
+        let firstY = 800;
+
+        Matter.Body.setPosition(this.startGround, {x: 0, y: firstY});
+        Matter.Body.setPosition(this.endGround, {x: raceLength, y: firstY + 80});
+        Matter.Body.setPosition(this.groundStartChecker, {x: 0, y: firstY - 450});
+        Matter.Body.setPosition(this.groundEndChecker, {x: raceLength, y: firstY - 370});
+        Matter.Body.setPosition(this.gameRightBorderWall, {x: raceLength + 500 + 25, y: 0});
+
+        let groundVertices = [{x: -200, y: firstY - 100}];
+        let isHill = 0;
+
+
+        for(let i = 1; i < 80; i++)
+        {
+            if(isHill > 0)
+                isHill -= 1;
+            else if(Math.floor(Math.random() * 17) === 0)
+                isHill = 10;
+
+            groundVertices.push({x: i * 125, y: (Math.floor(Math.random() * 60) + (isHill > 0 ? 200 : 0) - ((isHill > 0 && isHill < 4) || (isHill > 8) ? 200 : 0))});
+        }
+
+        groundVertices.push({x: raceLength, y: 800});
+
+        groundVertices = Matter.Vertices.chamfer(groundVertices, 25);
+
+        this.topGround = Matter.Bodies.fromVertices(raceLength / 2, 600, groundVertices, {
+            isStatic: true,
+            render:
+            {
+                fillStyle: groundColor,
+                lineWidth: 1,
+                strokeStyle: groundColor
+            }
+        });
+
+        Matter.Events.on(this.engine, "collisionActive", function(_, obj1, obj2)
+        {
+            if(obj1 == this.endGround || obj2 == this.endGround)
+            {
+                if(obj1 == this.leftWheel || obj2 == this.leftWheel)
+                {
+                    this.raceFinish(mapIndex, variantIndex, levelIndex);
+                }
+            }
+        }.bind(this));
+    }
+
+    raceFinish(mapIndex, variantIndex, levelIndex)
+    {
+        let raceAmounts = this.state.raceAmounts;
+
+        raceAmounts[mapIndex][variantIndex][levelIndex]++;
+
+        this.setState({raceAmounts: raceAmounts})
+    }
+
+    raceMapClick(mapIndex, variantIndex, levelIndex)
+    {
+        this.loadScene("Game");
+        this.generateRace(mapIndex, variantIndex, levelIndex);
     }
 
     startCountdown(time, callback)
@@ -651,23 +711,26 @@ class RacingGame extends React.Component
         Matter.Runner.run(this.runner, this.engine);
 
         this.loaded = true;
+
         setInterval(this.look, 1, this);
 
         if(this.loggedIn)
+        {
             this.loadGame();
+            
+            //start auto-save clock
+            setInterval(function()
+            {
+                this.saveGame(true);
+                console.log("Auto-Saving...");
+            }.bind(this), 60000);
+        }
         else
             this.setCurrentUI(1);
 
-        //start auto-save clock
-        setInterval(function()
-        {
-            this.saveGame(true);
-            console.log("Auto-Saving...");
-        }.bind(this), 60000);
-
         document.addEventListener("keypress", this.keyUp);
         document.addEventListener("keydown", this.keyDown);
-    };
+    }
 
     keyUp = (e) =>
     {
@@ -954,21 +1017,21 @@ class RacingGame extends React.Component
                                     <tbody>
                                         <tr>
                                             <th>Snowy Fields</th>
-                                            <td><button><h1>1</h1><p>{this.state.raceAmounts[0][0][0]}/{maxRaces[0][0][0]}</p></button></td>
-                                            <td><button><h1>2</h1><p>{this.state.raceAmounts[0][0][1]}/{maxRaces[0][0][1]}</p></button></td>
-                                            <td><button><h1>3</h1><p>{this.state.raceAmounts[0][0][2]}/{maxRaces[0][0][2]}</p></button></td>
+                                            <td><RacingGameMapItem click={() => this.raceMapClick(0, 0, 0).bind(this)} number={1} amount={this.state.raceAmounts[0][0][0]} maxAmount={maxRaces[0][0][0]}></RacingGameMapItem></td>
+                                            <td><RacingGameMapItem click={() => this.raceMapClick(0, 0, 1).bind(this)} number={2} amount={this.state.raceAmounts[0][0][1]} maxAmount={maxRaces[0][0][1]}></RacingGameMapItem></td>
+                                            <td><RacingGameMapItem click={() => this.raceMapClick(0, 0, 2).bind(this)} number={3} amount={this.state.raceAmounts[0][0][2]} maxAmount={maxRaces[0][0][2]}></RacingGameMapItem></td>
                                         </tr>
                                         <tr>
                                             <th>Snowy Hills</th>
-                                            <td><button disabled={true}><h1>1</h1><p>{this.state.raceAmounts[0][1][0]}/{maxRaces[0][1][0]}</p></button></td>
-                                            <td><button disabled={true}><h1>2</h1><p>{this.state.raceAmounts[0][1][1]}/{maxRaces[0][1][1]}</p></button></td>
-                                            <td><button disabled={true}><h1>3</h1><p>{this.state.raceAmounts[0][1][2]}/{maxRaces[0][1][2]}</p></button></td>
+                                            <td><RacingGameMapItem number={1} amount={this.state.raceAmounts[0][1][0]} maxAmount={maxRaces[0][1][0]}></RacingGameMapItem></td>
+                                            <td><RacingGameMapItem number={2} amount={this.state.raceAmounts[0][1][1]} maxAmount={maxRaces[0][1][1]}></RacingGameMapItem></td>
+                                            <td><RacingGameMapItem number={3} amount={this.state.raceAmounts[0][1][2]} maxAmount={maxRaces[0][1][2]}></RacingGameMapItem></td>
                                         </tr>
                                         <tr>
                                             <th>Snowy Mountains</th>
-                                            <td><button disabled={true}><h1>1</h1><p>{this.state.raceAmounts[0][2][0]}/{maxRaces[0][2][0]}</p></button></td>
-                                            <td><button disabled={true}><h1>2</h1><p>{this.state.raceAmounts[0][2][1]}/{maxRaces[0][2][1]}</p></button></td>
-                                            <td><button disabled={true}><h1>3</h1><p>{this.state.raceAmounts[0][2][2]}/{maxRaces[0][2][2]}</p></button></td>
+                                            <td><RacingGameMapItem number={1} amount={this.state.raceAmounts[0][2][0]} maxAmount={maxRaces[0][2][0]}></RacingGameMapItem></td>
+                                            <td><RacingGameMapItem number={2} amount={this.state.raceAmounts[0][2][1]} maxAmount={maxRaces[0][2][1]}></RacingGameMapItem></td>
+                                            <td><RacingGameMapItem number={3} amount={this.state.raceAmounts[0][2][2]} maxAmount={maxRaces[0][2][2]}></RacingGameMapItem></td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -995,27 +1058,27 @@ class RacingGame extends React.Component
                                     <tbody>
                                         <tr>
                                             <th>Dirty Lands</th>
-                                            <td><button><h1>1</h1><p>{this.state.raceAmounts[1][0][0]}/{maxRaces[1][0][0]}</p></button></td>
-                                            <td><button><h1>2</h1><p>{this.state.raceAmounts[1][0][1]}/{maxRaces[1][0][1]}</p></button></td>
-                                            <td><button><h1>3</h1><p>{this.state.raceAmounts[1][0][2]}/{maxRaces[1][0][2]}</p></button></td>
+                                            <td><RacingGameMapItem number={1} amount={this.state.raceAmounts[1][0][0]} maxAmount={maxRaces[1][0][0]}></RacingGameMapItem></td>
+                                            <td><RacingGameMapItem number={2} amount={this.state.raceAmounts[1][0][1]} maxAmount={maxRaces[1][0][1]}></RacingGameMapItem></td>
+                                            <td><RacingGameMapItem number={3} amount={this.state.raceAmounts[1][0][2]} maxAmount={maxRaces[1][0][2]}></RacingGameMapItem></td>
                                         </tr>
                                         <tr>
                                             <th>Dirty Hills</th>
-                                            <td><button disabled={true}><h1>1</h1><p>{this.state.raceAmounts[1][1][0]}/{maxRaces[1][1][0]}</p></button></td>
-                                            <td><button disabled={true}><h1>2</h1><p>{this.state.raceAmounts[1][1][1]}/{maxRaces[1][1][1]}</p></button></td>
-                                            <td><button disabled={true}><h1>3</h1><p>{this.state.raceAmounts[1][1][2]}/{maxRaces[1][1][2]}</p></button></td>
+                                            <td><RacingGameMapItem number={1} amount={this.state.raceAmounts[1][1][0]} maxAmount={maxRaces[1][1][0]}></RacingGameMapItem></td>
+                                            <td><RacingGameMapItem number={2} amount={this.state.raceAmounts[1][1][1]} maxAmount={maxRaces[1][1][1]}></RacingGameMapItem></td>
+                                            <td><RacingGameMapItem number={3} amount={this.state.raceAmounts[1][1][2]} maxAmount={maxRaces[1][1][2]}></RacingGameMapItem></td>
                                         </tr>
                                         <tr>
                                             <th>Muddy Pools</th>
-                                            <td><button disabled={true}><h1>1</h1><p>{this.state.raceAmounts[1][2][0]}/{maxRaces[1][2][0]}</p></button></td>
-                                            <td><button disabled={true}><h1>2</h1><p>{this.state.raceAmounts[1][2][1]}/{maxRaces[1][2][1]}</p></button></td>
-                                            <td><button disabled={true}><h1>3</h1><p>{this.state.raceAmounts[1][2][2]}/{maxRaces[1][2][2]}</p></button></td>
+                                            <td><RacingGameMapItem number={1} amount={this.state.raceAmounts[1][2][0]} maxAmount={maxRaces[1][2][0]}></RacingGameMapItem></td>
+                                            <td><RacingGameMapItem number={2} amount={this.state.raceAmounts[1][2][1]} maxAmount={maxRaces[1][2][1]}></RacingGameMapItem></td>
+                                            <td><RacingGameMapItem number={3} amount={this.state.raceAmounts[1][2][2]} maxAmount={maxRaces[1][2][2]}></RacingGameMapItem></td>
                                         </tr>
                                         <tr>
                                             <th>Muddy Lakes</th>
-                                            <td><button disabled={true}><h1>1</h1><p>{this.state.raceAmounts[1][3][0]}/{maxRaces[1][3][0]}</p></button></td>
-                                            <td><button disabled={true}><h1>2</h1><p>{this.state.raceAmounts[1][3][1]}/{maxRaces[1][3][1]}</p></button></td>
-                                            <td><button disabled={true}><h1>3</h1><p>{this.state.raceAmounts[1][3][2]}/{maxRaces[1][3][2]}</p></button></td>
+                                            <td><RacingGameMapItem number={1} amount={this.state.raceAmounts[1][3][0]} maxAmount={maxRaces[1][3][0]}></RacingGameMapItem></td>
+                                            <td><RacingGameMapItem number={2} amount={this.state.raceAmounts[1][3][1]} maxAmount={maxRaces[1][3][1]}></RacingGameMapItem></td>
+                                            <td><RacingGameMapItem number={3} amount={this.state.raceAmounts[1][3][2]} maxAmount={maxRaces[1][3][2]}></RacingGameMapItem></td>
                                         </tr>
                                     </tbody>
                                 </table>
