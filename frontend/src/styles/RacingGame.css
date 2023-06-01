@@ -1,4 +1,4 @@
-.racing_game_button
+.racing_game_button, .racing_game_danger_button
 {
     border: 1px solid black;
     font-size: 20px;
@@ -6,12 +6,17 @@
     cursor: pointer;
 }
 
-.racing_game_button:hover:enabled
+.racing_game_danger_button
+{
+    background-color: red;
+}
+
+.racing_game_button:hover:enabled, .racing_game_danger_button:hover:enabled
 {
     filter: brightness(92%);
 }
 
-.racing_game_button:active:enabled
+.racing_game_button:active:enabled, .racing_game_danger_button:active:enabled
 {
     filter: brightness(88%);
 }

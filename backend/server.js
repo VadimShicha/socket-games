@@ -288,6 +288,22 @@ app.post("/server", async function(req, res)
         else
             res.send({success: false});
     }
+    else if(req.body["requestID"] == "reset_game_data")
+    {
+        let result = await user.getUsernameWithToken(getCookieValue(cookieManager.getCookieBy("token")));
+
+        if(result[1] == 0)
+        {
+            let newResult = await user.resetGameData(result[0], req.body["gameUrl"]);
+        
+            if(newResult[1] == 0)
+                res.send({success: true});
+            else
+                res.send({success: false});
+        }
+        else
+            res.send({success: false});
+    }
     else
     {
         res.send({success: false});

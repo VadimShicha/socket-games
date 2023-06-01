@@ -37,6 +37,7 @@ import OrangeMarker from './assets/race_markers/orange_marker.svg';
 import RedMarker from './assets/race_markers/red_marker.svg';
 import PausedIcon from './assets/paused_icon.svg';
 import SaveIcon from './assets/save_icon.svg';
+import SettingsIcon from './assets/settings_icon.svg';
 import RacingGameMapItem from './RacingGameMapItem';
 
 const BikeWheels = [Wheel, RoadWheel, MudWheel, SandWheel, SnowWheel, WetWheel];
@@ -91,6 +92,7 @@ const wheelConstraintOptions = {
 
 const bodyOptions = {
     mass: 15,
+    frictionAir: 0.02,
     render:
     {
         lineWidth: 0,
@@ -149,7 +151,6 @@ class RacingGame extends React.Component
 
         this.scene = "Home";
         this.loggedIn = userLoggedIn();
-
         this.state = {
             coins: 500 + 9500,
             gamePaused: false,
@@ -185,7 +186,8 @@ class RacingGame extends React.Component
             items: this.state.items,
             upgrades: this.state.upgrades,
             bikeBodyIndex: this.state.bikeBodyIndex,
-            bikeWheelsIndex: this.state.bikeWheelsIndex
+            bikeWheelsIndex: this.state.bikeWheelsIndex,
+            raceAmounts: this.state.raceAmounts
         };
 
         if(autoSaving)
@@ -214,12 +216,13 @@ class RacingGame extends React.Component
             console.log(data);
             if(data.success)
             {
-                let gameData = data.data
+                let gameData = data.data;
 
                 this.setState({
                     coins: gameData.coins,
                     items: gameData.items,
-                    upgrades: gameData.upgrades
+                    upgrades: gameData.upgrades,
+                    raceAmounts: gameData.raceAmounts
                 });
 
                 this.setBikeGas(gameData.bikeGas);
@@ -231,14 +234,22 @@ class RacingGame extends React.Component
         }.bind(this));
     }
 
+    resetGameData()
+    {
+        sendPOST({requestID: "reset_game_data", gameUrl: "raceride"}, function()
+        {
+            window.location.reload();
+        }.bind(this));
+    }
+
     unloadScene(scene)
     {
         if(scene === "Home")
         {
             Matter.Composite.remove(this.engine.world, [
-                this.homeGround,
-                this.homeGroundLeftHill,
                 this.homeGarage,
+                this.homeGroundLeftHill,
+                this.homeGround,
                 this.homeGroundHill,
                 this.homeHillGround,
                 this.homeRightBorderWall,
@@ -397,7 +408,6 @@ class RacingGame extends React.Component
 
             Matter.Composite.clear(this.engine.world);
             
-
             Matter.Composite.add(this.engine.world,
             [
                 this.homeGarage,
@@ -416,126 +426,7 @@ class RacingGame extends React.Component
         }
         else if(scene === "Game")
         {
-            const setLater = 123;
-
-            this.startGround = Matter.Bodies.rectangle(0, setLater, 1000, 1000,
-            {
-                isStatic: true,
-                render:
-                {
-                    fillStyle: "white",
-                    lineWidth: 0
-                }
-            });
-
-            this.endGround = Matter.Bodies.rectangle(setLater, setLater, 1000, 1000,
-            {
-                isStatic: true,
-                render:
-                {
-                    fillStyle: "white",
-                    lineWidth: 0
-                }
-            });
-
-            this.groundStartChecker = Matter.Bodies.rectangle(0, setLater, 1000, 100,
-            {
-                isStatic: true,
-                render:
-                {
-                    sprite:
-                    {
-                        texture: RaceChecker,
-                        xScale: 3.3333,
-                        yScale: 3.3333
-                    }
-                }
-            });
-
-            this.groundEndChecker = Matter.Bodies.rectangle(setLater, setLater, 1000, 100,
-            {
-                isStatic: true,
-                render:
-                {
-                    sprite:
-                    {
-                        texture: RaceChecker,
-                        xScale: 3.3333,
-                        yScale: 3.3333
-                    }
-                }
-            });
-
-            this.gameLeftBorderWall = Matter.Bodies.rectangle(-500 - 25, 0, 50, 3000,
-            {
-                isStatic: true,
-                render:
-                {
-                    fillStyle: "gainsboro",
-                    lineWidth: 0
-                }
-            });
-
-            this.gameRightBorderWall = Matter.Bodies.rectangle(setLater, 0, 50, 3000,
-            {
-                isStatic: true,
-                render:
-                {
-                    fillStyle: "gainsboro",
-                    lineWidth: 0
-                }
-            });
-
-            this.topGround = Matter.Bodies.fromVertices(setLater, setLater, [{x: 0, y: 0}, {x: setLater, y: setLater}], {
-                isStatic: true,
-                render:
-                {
-                    fillStyle: "white",
-                    lineWidth: 1,
-                    strokeStyle: "white"
-                }
-            });
-
-            this.startCountdown(3000, function()
-            {
-                let bots = [];
-
-                for(let i = 0; i < 4; i++)
-                {
-                    let name = RaceBotNames[Math.floor(Math.random() * RaceBotNames.length)];
-
-                    bots.push({name: name, speed: randFloat(this.getBikeSpeed() - 4, this.getBikeSpeed() + 2), posX: 0});
-                }
-
-                setInterval(function()
-                {
-                    let bots = this.state.raceBots;
-
-                    for(let i = 0; i < bots.length; i++)
-                    {
-                        if(randInt(0, 1000) === 0)
-                            bots[i].speed -= 1;
-                        
-                        bots[i].posX += bots[i].speed;
-                    }
-
-                    this.setState({raceBots: bots});
-                }.bind(this), 20);
-
-                this.setState({raceBots: bots});
-            }.bind(this));
-
             this.setBikePosition({x: 0, y: 0}, false);
-            
-            Matter.Composite.add(this.engine.world, [
-                this.topGround,
-                this.startGround,
-                this.endGround,
-                this.groundStartChecker,
-                this.groundEndChecker,
-                this.gameLeftBorderWall,
-                this.gameRightBorderWall
-            ]);
         }
         this.scene = scene;
     }
@@ -544,39 +435,177 @@ class RacingGame extends React.Component
     {
         let groundColor = "white";
         let raceLength = 0;
+        let groundHeight = 60;
+        let hillHeight = 200;
+        let hillLength = 10;
+        let botSpeed = 0;
 
         if(mapIndex === 0)
         {
             groundColor = "white";
 
             if(variantIndex === 0)
+            {
+                botSpeed = -11;
+                groundHeight = 60;
+                hillHeight = 200;
                 raceLength = 4000;
+            }
             else if(variantIndex === 1)
+            {
                 raceLength = 9000;
+                groundHeight = 90;
+                hillHeight = 300;
+                botSpeed = -6;
+            }
             else if(variantIndex === 2)
+            {
                 raceLength = 12000;
+                groundHeight = 200;
+                hillHeight = 500;
+                hillLength = 15;
+                botSpeed = -3;
+            }
         }
 
-        let firstY = 800;
+        //start a countdown. once finished, create bots
+        this.startCountdown(3000, function()
+        {
+            let bots = [];
 
-        Matter.Body.setPosition(this.startGround, {x: 0, y: firstY});
-        Matter.Body.setPosition(this.endGround, {x: raceLength, y: firstY + 80});
-        Matter.Body.setPosition(this.groundStartChecker, {x: 0, y: firstY - 450});
-        Matter.Body.setPosition(this.groundEndChecker, {x: raceLength, y: firstY - 370});
-        Matter.Body.setPosition(this.gameRightBorderWall, {x: raceLength + 500 + 25, y: 0});
+            for(let i = 0; i < 4; i++)
+            {
+                let name = RaceBotNames[Math.floor(Math.random() * RaceBotNames.length)];
+
+                bots.push({name: name, speed: randFloat(this.getBikeSpeed() - 4 + botSpeed, this.getBikeSpeed() + 2 + botSpeed), posX: 0});
+            }
+
+            setInterval(function()
+            {
+                let bots = this.state.raceBots;
+
+                for(let i = 0; i < bots.length; i++)
+                {
+                    if(randInt(0, 1000) === 0)
+                        bots[i].speed -= 1;
+                    
+                    bots[i].posX += bots[i].speed;
+                }
+
+                this.setState({raceBots: bots});
+            }.bind(this), 20);
+
+            this.setState({raceBots: bots});
+        }.bind(this));
+
+        this.setState({currentRaceLength: raceLength});
+
+        let firstY = 800;
+       
+        this.startGround = Matter.Bodies.rectangle(0, firstY, 1000, 1000,
+        {
+            isStatic: true,
+            render:
+            {
+                fillStyle: "white",
+                lineWidth: 0
+            }
+        });
+
+        this.bottomGround = Matter.Bodies.rectangle(raceLength / 2, 5800, raceLength, 10000,
+        {
+            isStatic: true,
+            render:
+            {
+                fillStyle: "white",
+                lineWidth: 0
+            }
+        });
+
+        this.endGround = Matter.Bodies.rectangle(raceLength, firstY + 80, 1000, 1000,
+        {
+            isStatic: true,
+            render:
+            {
+                fillStyle: "white",
+                lineWidth: 0
+            }
+        });
+
+        this.groundStartChecker = Matter.Bodies.rectangle(0, firstY - 450, 1000, 100,
+        {
+            isStatic: true,
+            render:
+            {
+                sprite:
+                {
+                    texture: RaceChecker,
+                    xScale: 3.3333,
+                    yScale: 3.3333
+                }
+            }
+        });
+
+        this.groundEndChecker = Matter.Bodies.rectangle(raceLength, firstY - 370, 1000, 100,
+        {
+            isStatic: true,
+            render:
+            {
+                sprite:
+                {
+                    texture: RaceChecker,
+                    xScale: 3.3333,
+                    yScale: 3.3333
+                }
+            }
+        });
+
+        this.finishDetector = Matter.Bodies.rectangle(raceLength + 200, firstY - 370, 100, 10000,
+        {
+            isStatic: true,
+            render:
+            {
+                fillStyle: "transparent"
+            }
+        });
+
+        this.gameLeftBorderWall = Matter.Bodies.rectangle(-500 - 25, 0, 50, 3000,
+        {
+            isStatic: true,
+            render:
+            {
+                fillStyle: "gainsboro",
+                lineWidth: 0
+            }
+        });
+
+        this.gameRightBorderWall = Matter.Bodies.rectangle(raceLength + 500 + 25, 0, 50, 3000,
+        {
+            isStatic: true,
+            render:
+            {
+                fillStyle: "gainsboro",
+                lineWidth: 0
+            }
+        });
 
         let groundVertices = [{x: -200, y: firstY - 100}];
         let isHill = 0;
 
-
-        for(let i = 1; i < 80; i++)
+        for(let i = 1; i < raceLength / 100; i++)
         {
             if(isHill > 0)
                 isHill -= 1;
             else if(Math.floor(Math.random() * 17) === 0)
-                isHill = 10;
+                isHill = hillLength;
 
-            groundVertices.push({x: i * 125, y: (Math.floor(Math.random() * 60) + (isHill > 0 ? 200 : 0) - ((isHill > 0 && isHill < 4) || (isHill > 8) ? 200 : 0))});
+            let y = (Math.floor(Math.random() * groundHeight) + (isHill > 0 ? hillHeight : 0) - ((isHill > 0 && isHill < 4) || (isHill > hillLength - 2) ? 200 : 0));
+
+            if(y < 20)
+                y = 20;
+
+            groundVertices.push({x: i * raceLength / (raceLength / 100), y: y});
+        
         }
 
         groundVertices.push({x: raceLength, y: 800});
@@ -593,13 +622,30 @@ class RacingGame extends React.Component
             }
         });
 
-        Matter.Events.on(this.engine, "collisionActive", function(_, obj1, obj2)
+        Matter.Composite.add(this.engine.world,
+        [
+            this.topGround,
+            this.startGround,
+            this.endGround,
+            this.groundStartChecker,
+            this.groundEndChecker,
+            this.gameLeftBorderWall,
+            this.gameRightBorderWall,
+            this.finishDetector,
+            this.bottomGround
+        ]);
+
+        Matter.Events.on(this.engine, "collisionActive", function(e)
         {
-            if(obj1 == this.endGround || obj2 == this.endGround)
+            for(let i = 0; i < e.pairs.length; i++)
             {
-                if(obj1 == this.leftWheel || obj2 == this.leftWheel)
+                if(e.pairs[i].bodyA == this.finishDetector || e.pairs[i].bodyB == this.finishDetector)
                 {
-                    this.raceFinish(mapIndex, variantIndex, levelIndex);
+                    if(e.pairs[i].bodyA == this.body || e.pairs[i].bodyB == this.body)
+                    {
+                        Matter.Events.off(this.engine, "collisionActive");
+                        this.raceFinish(mapIndex, variantIndex, levelIndex);
+                    }
                 }
             }
         }.bind(this));
@@ -611,11 +657,35 @@ class RacingGame extends React.Component
 
         raceAmounts[mapIndex][variantIndex][levelIndex]++;
 
-        this.setState({raceAmounts: raceAmounts})
+        if(raceAmounts[mapIndex][variantIndex][levelIndex] >= maxRaces[mapIndex][variantIndex][levelIndex])
+        {
+            //if completed the second level, unlock the next varient and the last level
+            if(levelIndex == 1)
+            {
+                //if complete the last varient, unlock the next map and the last level
+                if(variantIndex == maxRaces[mapIndex].length - 1)
+                    raceAmounts[mapIndex + 1][0][0] = 0;
+                else
+                    raceAmounts[mapIndex][variantIndex + 1][0] = 0;
+                
+
+                raceAmounts[mapIndex][variantIndex][2] = 0;
+            }
+            else
+            {
+               raceAmounts[mapIndex][variantIndex][levelIndex + 1] = 0;
+            }
+        }
+
+        this.setState({raceAmounts: raceAmounts});
+
+        this.setBikePosition({x: 0, y: 0});
+        this.loadScene("Home");
     }
 
     raceMapClick(mapIndex, variantIndex, levelIndex)
     {
+        console.log(this);
         this.loadScene("Game");
         this.generateRace(mapIndex, variantIndex, levelIndex);
     }
@@ -997,12 +1067,14 @@ class RacingGame extends React.Component
                             <p hidden={this.state.countdownID === ""}>{this.state.countdown > 0 ? this.state.countdown : "Go!"}</p>
                         </div>
 
+                        
+
                         <div hidden={this.state.currentUI !== 3} className="game_ui_race_map_div">
                             <button className="game_form_ui_close decline_button" onClick={() => this.setCurrentUI(0)}></button>
                             <button className={`game_form_ui_info ${this.state.currentUIData[0] === -1 ? "back_arrow_button" : "loading_button"}`} onClick={() => this.state.currentUIData[0] === -1 ? this.setState({currentUIData: [0]}) : this.setState({currentUIData: [-1]})}></button>
                             
                             <button hidden={this.state.currentUIData[0] === 0 || this.state.currentUIData[0] === -1} className="game_ui_race_map_left_button" onClick={() => this.setState({currentUIData: [this.state.currentUIData[0] - 1]})}>&#60;</button>
-                            <button hidden={this.state.currentUIData[0] === 2 || this.state.currentUIData[0] === -1} className="game_ui_race_map_right_button" onClick={() => this.setState({currentUIData: [this.state.currentUIData[0] + 1]})}>&#62;</button>
+                            <button hidden={this.state.currentUIData[0] === this.state.raceAmounts.filter(item => item[0][0] != -1).length - 1 || this.state.currentUIData[0] === -1} className="game_ui_race_map_right_button" onClick={() => this.setState({currentUIData: [this.state.currentUIData[0] + 1]})}>&#62;</button>
 
                             <div hidden={this.state.currentUIData[0] !== -1} className="game_ui_race_map_info_div">
                                 <h1>Info</h1>
@@ -1017,21 +1089,21 @@ class RacingGame extends React.Component
                                     <tbody>
                                         <tr>
                                             <th>Snowy Fields</th>
-                                            <td><RacingGameMapItem click={() => this.raceMapClick(0, 0, 0).bind(this)} number={1} amount={this.state.raceAmounts[0][0][0]} maxAmount={maxRaces[0][0][0]}></RacingGameMapItem></td>
-                                            <td><RacingGameMapItem click={() => this.raceMapClick(0, 0, 1).bind(this)} number={2} amount={this.state.raceAmounts[0][0][1]} maxAmount={maxRaces[0][0][1]}></RacingGameMapItem></td>
-                                            <td><RacingGameMapItem click={() => this.raceMapClick(0, 0, 2).bind(this)} number={3} amount={this.state.raceAmounts[0][0][2]} maxAmount={maxRaces[0][0][2]}></RacingGameMapItem></td>
+                                            <td><RacingGameMapItem click={() => this.raceMapClick(0, 0, 0)} number={1} amount={this.state.raceAmounts[0][0][0]} maxAmount={maxRaces[0][0][0]}></RacingGameMapItem></td>
+                                            <td><RacingGameMapItem click={() => this.raceMapClick(0, 0, 1)} number={2} amount={this.state.raceAmounts[0][0][1]} maxAmount={maxRaces[0][0][1]}></RacingGameMapItem></td>
+                                            <td><RacingGameMapItem click={() => this.raceMapClick(0, 0, 2)} number={3} amount={this.state.raceAmounts[0][0][2]} maxAmount={maxRaces[0][0][2]}></RacingGameMapItem></td>
                                         </tr>
                                         <tr>
                                             <th>Snowy Hills</th>
-                                            <td><RacingGameMapItem number={1} amount={this.state.raceAmounts[0][1][0]} maxAmount={maxRaces[0][1][0]}></RacingGameMapItem></td>
-                                            <td><RacingGameMapItem number={2} amount={this.state.raceAmounts[0][1][1]} maxAmount={maxRaces[0][1][1]}></RacingGameMapItem></td>
-                                            <td><RacingGameMapItem number={3} amount={this.state.raceAmounts[0][1][2]} maxAmount={maxRaces[0][1][2]}></RacingGameMapItem></td>
+                                            <td><RacingGameMapItem click={() => this.raceMapClick(0, 1, 0)} number={1} amount={this.state.raceAmounts[0][1][0]} maxAmount={maxRaces[0][1][0]}></RacingGameMapItem></td>
+                                            <td><RacingGameMapItem click={() => this.raceMapClick(0, 1, 1)} number={2} amount={this.state.raceAmounts[0][1][1]} maxAmount={maxRaces[0][1][1]}></RacingGameMapItem></td>
+                                            <td><RacingGameMapItem click={() => this.raceMapClick(0, 1, 2)} number={3} amount={this.state.raceAmounts[0][1][2]} maxAmount={maxRaces[0][1][2]}></RacingGameMapItem></td>
                                         </tr>
                                         <tr>
                                             <th>Snowy Mountains</th>
-                                            <td><RacingGameMapItem number={1} amount={this.state.raceAmounts[0][2][0]} maxAmount={maxRaces[0][2][0]}></RacingGameMapItem></td>
-                                            <td><RacingGameMapItem number={2} amount={this.state.raceAmounts[0][2][1]} maxAmount={maxRaces[0][2][1]}></RacingGameMapItem></td>
-                                            <td><RacingGameMapItem number={3} amount={this.state.raceAmounts[0][2][2]} maxAmount={maxRaces[0][2][2]}></RacingGameMapItem></td>
+                                            <td><RacingGameMapItem click={() => this.raceMapClick(0, 2, 0)} number={1} amount={this.state.raceAmounts[0][2][0]} maxAmount={maxRaces[0][2][0]}></RacingGameMapItem></td>
+                                            <td><RacingGameMapItem click={() => this.raceMapClick(0, 2, 1)} number={2} amount={this.state.raceAmounts[0][2][1]} maxAmount={maxRaces[0][2][1]}></RacingGameMapItem></td>
+                                            <td><RacingGameMapItem click={() => this.raceMapClick(0, 2, 2)} number={3} amount={this.state.raceAmounts[0][2][2]} maxAmount={maxRaces[0][2][2]}></RacingGameMapItem></td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -1142,6 +1214,10 @@ class RacingGame extends React.Component
                                         <img disabled={!this.loggedIn} alt="Save Icon" srcSet={SaveIcon}></img>
                                         <h2 disabled={!this.loggedIn}>{this.state.saveText}</h2>
                                     </button>
+                                    <button onClick={() => this.setState({currentUIData: ["Settings"]})} className="game_garage_ui_section">
+                                        <img alt="Settings Icon" srcSet={SettingsIcon}></img>
+                                        <h2>Settings</h2>
+                                    </button>
                                     <button onClick={() => this.setCurrentUI(3)} className="game_garage_ui_section">
                                         <img alt="Start Race Icon" srcSet={RaceIcon}></img>
                                         <h2>Start Race</h2>
@@ -1216,6 +1292,9 @@ class RacingGame extends React.Component
                                         <h2>Wet Wheels</h2>
                                     </button>
                                 </div>
+                            </div>
+                            <div hidden={this.state.currentUIData[0] !== "Settings"}>
+                                <button onClick={this.resetGameData.bind(this)} className="racing_game_danger_button" title="Resets all of your game data">Reset Game Data</button>
                             </div>
                         </div>
                         <div className="game_form_ui_div" hidden={this.state.currentUI !== 4}>

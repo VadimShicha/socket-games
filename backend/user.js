@@ -344,3 +344,18 @@ exports.loadGameData = async function(username, gameName)
 
     return [gameData.game_data[gameName], 0];
 }
+
+exports.resetGameData = async function(username, gameName)
+{
+    let gameData = await dbClient.findOne(config.usersTable, {username: username});
+
+    let newGameData = gameData.hasOwnProperty("game_data") ? gameData.game_data : {};
+
+    if(!newGameData.hasOwnProperty(gameName))
+        return ["No data", 1];
+
+    delete newGameData[gameName];
+
+    await dbClient.updateOne(config.usersTable, {username: username}, {$set: {game_data: newGameData}});
+    return ["Success", 0];
+}
