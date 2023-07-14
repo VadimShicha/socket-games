@@ -15,6 +15,7 @@ import SlingGame from './games/SlingGame';
 import SocialPage from './pages/nav/SocialPage';
 import CameraGame from './games/CameraGame';
 import RacingGame from './games/racingGame/RacingGame';
+import SpeedyPizzaGame from './games/speedy_pizza/SpeedyPizzaGame';
 import NotFoundPage from './pages/NotFoundPage';
 import DataManager from './dataManager';
 import PopText from './components/PopText';
@@ -101,6 +102,7 @@ function App()
                     <Route path="/game-sling" element={<><GamePage/><SlingGame/></>}></Route>
                     <Route path="/game-camera" element={<><GamePage/><CameraGame/></>}></Route>
                     <Route path="/game-racing" element={<><GamePage/><RacingGame/></>}></Route>
+                    <Route path="/game-speedy_pizza" element={<><GamePage/><SpeedyPizzaGame/></>}></Route>
 
                     <Route path="/multiplayer/game-first" element={<><MultiGamePage/><FirstMultiGame/></>}></Route>
                     <Route path="/multiplayer/game-tic_tac_toe" element={<TicTacToeMultiGame/>}></Route>

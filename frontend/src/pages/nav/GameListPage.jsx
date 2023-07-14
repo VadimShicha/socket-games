@@ -36,6 +36,7 @@ function GameListPage()
                     </span>
                     
                     <GameItem info={"A bike game where you can ride and tune your bike!\n\nYour bike uses fuel and you can buy fuel at the gas station with in-game currency."} gameUrl="racing" imgURL="/assets/racing_game_image.svg" title="Racing Game"></GameItem>
+                    <GameItem info={"Speedy pizza!"} gameUrl="speedy_pizza" imgURL="/assets/potato_runner_game_image.svg" title="Speedy Pizza"></GameItem>
                 </div>
             </div>
         </>

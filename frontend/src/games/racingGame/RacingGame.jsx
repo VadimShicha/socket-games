@@ -476,8 +476,11 @@ class RacingGame extends React.Component
             for(let i = 0; i < 4; i++)
             {
                 let name = RaceBotNames[Math.floor(Math.random() * RaceBotNames.length)];
+                let speed = randFloat(this.getBikeSpeed() - 4, this.getBikeSpeed() + 2) + botSpeed;
+                if(speed <= 0)
+                    speed = 0.1;
 
-                bots.push({name: name, speed: randFloat(this.getBikeSpeed() - 4 + botSpeed, this.getBikeSpeed() + 2 + botSpeed), posX: 0});
+                bots.push({name: name, speed: speed, posX: 0});
             }
 
             setInterval(function()
@@ -489,7 +492,7 @@ class RacingGame extends React.Component
                     if(randInt(0, 1000) === 0)
                         bots[i].speed -= 1;
                     
-                    bots[i].posX += bots[i].speed;
+                    bots[i].posX += bots[i].speed / 1.8;
                 }
 
                 this.setState({raceBots: bots});
@@ -1067,7 +1070,7 @@ class RacingGame extends React.Component
                             <p hidden={this.state.countdownID === ""}>{this.state.countdown > 0 ? this.state.countdown : "Go!"}</p>
                         </div>
 
-                        
+                        <div></div>
 
                         <div hidden={this.state.currentUI !== 3} className="game_ui_race_map_div">
                             <button className="game_form_ui_close decline_button" onClick={() => this.setCurrentUI(0)}></button>
